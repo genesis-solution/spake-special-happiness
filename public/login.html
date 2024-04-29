@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Authentication Check</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <form id="loginForm" style="visibility: hidden;">
+    <button type="submit">Click</button>
+  </form>
+  <div class="container mt-5" id="succ_alert" style="display: none;">
+    <div class="alert alert-success" role="alert">
+      <p class="mb-0" id="responseMessage_succ"></p>
+    </div>
+  </div>
+
+  <div class="container mt-5" id="alert" style="display: none;">
+    <div class="alert alert-danger" role="alert">
+      <p class="mb-0" id="responseMessage"></p>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <script>
+    
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // Get the value of a specific parameter
+        const tokenkey = urlParams.get('t'); // Returns 'value1'
+
+        if (tokenkey != undefined && tokenkey != '')
+        {
+          localStorage.setItem('t', tokenkey);
+
+          const gameID = 2
+
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', '/login');
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.onload = function() {
+              const data = JSON.parse(xhr.responseText);
+              if (xhr.status === 200) {
+                  document.getElementById('succ_alert').style.display = "block"
+                  document.getElementById('responseMessage_succ').innerText = 'Login successful.';
+
+                  redirectToWithAuth('/game', tokenkey, 1);
+              } else {
+                  // document.getElementById('alert').style.display = "block"
+                  // document.getElementById('responseMessage').innerText = data.error;
+                  redirectToWithAuth('https://www.player1.win/games/2/checkers', data.error, 0);
+              }
+          };
+          xhr.onerror = function() {
+              console.error('An error occurred.');
+              document.getElementById('alert').style.display = "block"
+              document.getElementById('responseMessage').innerText = 'An error occurred. Please try again later.';
+              redirectToWithAuth('https://www.player1.win/games/2/checkers', 'You are already in the middle of another game. It is not permitted to play multiple games simultaneously.', 0);
+          };
+          xhr.send(JSON.stringify({ t: tokenkey, gameID: 2 }));
+        } else {
+          redirectToWithAuth('https://www.player1.win/games/2/checkers', 'Token not found', 0);
+        }
+    
+      } catch (error) {
+          console.error('Error:', error);
+          document.getElementById('alert').style.display = "block"
+          document.getElementById('responseMessage').innerText = 'An error occurred. Please try again later.';
+          redirectToWithAuth('https://www.player1.win/games/2/checkers', 'You are already in the middle of another game. It is not permitted to play multiple games simultaneously.', 0);
+      }
+
+      function redirectToWithAuth(url, authToken, noError) {
+        var form = document.createElement('form');
+        form.method = 'GET';
+        form.action = url;
+
+        var headerInput = document.createElement('input');
+        headerInput.type = 'hidden';
+
+        if (noError == 1)
+        {
+          headerInput.name = 't';
+        } else {
+          headerInput.name = 'e';
+        }
+        headerInput.value = authToken; 
+        form.appendChild(headerInput);
+        document.body.appendChild(form);
+        form.submit();
+      }
+    
+  </script>
+  <!-- Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+</body>
+</html>
