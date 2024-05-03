@@ -57,12 +57,14 @@ function CInterface() {
 
         var oSprite = s_oSpriteLibrary.getSprite('but_pause');
         _pStartPosPause = {x: _pStartPosExit.x - oSprite.height - 20, y: _pStartPosExit.y};
+
         _oButPause = new CGfxButton(_pStartPosPause.x, _pStartPosPause.y, oSprite, s_oStage);
         _oButPause.addEventListener(ON_MOUSE_UP, this._onPause, this);
 
         if (DISABLE_SOUND_MOBILE === false || s_bMobile === false) {
             var oSprite = s_oSpriteLibrary.getSprite('audio_icon');
-            _pStartPosAudio = {x: _pStartPosPause.x - oSprite.height - 20, y: _pStartPosExit.y};
+            _pStartPosAudio = {x: _pStartPosExit.x - oSprite.height - 20, y: _pStartPosExit.y};
+            // _pStartPosAudio = {x: _pStartPosPause.x - oSprite.height - 20, y: _pStartPosExit.y};
             _oAudioToggle = new CToggle(_pStartPosAudio.x, _pStartPosAudio.y, oSprite, s_bAudioActive, s_oStage);
             _oAudioToggle.addEventListener(ON_MOUSE_UP, this._onAudioToggle, this);
             
