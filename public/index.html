@@ -67,58 +67,48 @@
                 });
 
                 $(oMain).on("start_session", function (evt) {
-                    console.log("start_session", evt)
                     if (getParamValue('ctl-arcade') === "true") {
                         parent.__ctlArcadeStartSession();
                     }
                 });
 
                 $(oMain).on("end_session", function (evt) {
-                    console.log("end_session", evt)
                     if (getParamValue('ctl-arcade') === "true") {
                         parent.__ctlArcadeEndSession();
                     }
                 });
 
                 $(oMain).on("start_level", function (evt, iLevel) {
-                    console.log("start_leven", evt)
-                    console.log("start_leven", iLevel)
                     if (getParamValue('ctl-arcade') === "true") {
                         parent.__ctlArcadeStartLevel({level: iLevel});
                     }
                 });
 
                 $(oMain).on("restart_level", function (evt, iLevel) {
-                    console.log("restart_level", evt)
                     if (getParamValue('ctl-arcade') === "true") {
                         parent.__ctlArcadeRestartLevel({level: iLevel});
                     }
                 });
 
                 $(oMain).on("end_level", function (evt, iLevel) {
-                    console.log("end_level", evt)
                     if (getParamValue('ctl-arcade') === "true") {
                         parent.__ctlArcadeEndLevel({level: iLevel});
                     }
                 });
 
                 $(oMain).on("save_score", function (evt, iScore, szMode) {
-                    console.log("save_score", iScore)
-                    console.log("save_score", szMode)
                     if (getParamValue('ctl-arcade') === "true") {
                         parent.__ctlArcadeSaveScore({score: iScore, mode: szMode});
                     }
                 });
 
                 $(oMain).on("show_interlevel_ad", function (evt) {
-                    console.log("show_interlevel_ad", evt)
                     if (getParamValue('ctl-arcade') === "true") {
                         parent.__ctlArcadeShowInterlevelAD();
                     }
                 });
 
                 $(oMain).on("share_event", function (evt, iScore) {
-                    console.log("share_event", iScore)
                     if (getParamValue('ctl-arcade') === "true") {
                         parent.__ctlArcadeShareEvent({img: TEXT_SHARE_IMAGE,
                             title: TEXT_SHARE_TITLE,

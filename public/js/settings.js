@@ -88,17 +88,16 @@ var MAX_FOODS_INSTANCE = 100;
 
 var FOOD_STATE = [4];
 
-// var AI_SNAKES = [{type: ENEMY_SNAKES[0], x: 250, y: 250, time_follow: 2000},
-//     {type: ENEMY_SNAKES[1], x: 2762, y: 250, time_follow: 3000},
-//     {type: ENEMY_SNAKES[2], x: 250, y: 1798, time_follow: 2500},
-//     {type: ENEMY_SNAKES[3], x: 2762, y: 1798, time_follow: 3000}];
-var AI_SNAKES = [];
+var AI_SNAKES = [{type: ENEMY_SNAKES[0], x: 250, y: 250, time_follow: 0, name: 'John', country: 'Chile', score: 1, die: false},
+    {type: ENEMY_SNAKES[1], x: 2762, y: 250, time_follow: 0, name: 'Edward', country: 'Israel', score: 1, die: false},
+    {type: ENEMY_SNAKES[2], x: 250, y: 1798, time_follow: 0, name: 'Alex', country: 'Chile', score: 1, die: false},
+    {type: ENEMY_SNAKES[3], x: 2762, y: 1798, time_follow: 0, name: 'Miller', country: 'Russia', score: 1, die: false}];
 
 var MS_TIME_SHOW_WIN_PANEL = 1000;
 
 var WAIT_TIME_UPDATE_POS_QUEUE = 30;
 
-var START_QUEUE_SNAKES = [50, 40, 65, 80, 6];
+var START_QUEUE_SNAKES = [1, 1, 1, 1, 1];
 
 var MS_DECREASE_TIME_EATEN_QUEUE = 250;
 
@@ -121,7 +120,7 @@ var TIME_EATEN_EFFECT = 250;
 
 var MAXT_TIME_WAIT_FOOD_SPAWN_ANIM = 250;
 
-var MAX_AI_QUEUE_LENGTH = 100;
+var MAX_AI_QUEUE_LENGTH = 5000;
 
 var SINGLE_QUEUE_RADIUS = 14;
 
@@ -155,10 +154,12 @@ var SHOW_FOODS_ID = false;
 
 var SHOW_SECTION_SHAPE = false;
 
-var ALLOW_SPEED_UP = false;
+var ALLOW_SPEED_UP = true;
 
 var HERO_START_X = 1511;
 var HERO_START_Y = 1024;
+
+var ME_SNAKE = {type: 4, x: 1511, y: 1024, time_follow: 0, name: 'me', country: 'Israel', score: 1, die: false};
 
 var HERO_ACCELLERATION;
 

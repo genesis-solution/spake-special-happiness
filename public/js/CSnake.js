@@ -208,6 +208,7 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
     this.queuePosition = function () {
 //        var iDirX = _vDir.getX() * DISTANCE_SINGLE_QUEUE;
 //        var iDirY = _vDir.getY() * DISTANCE_SINGLE_QUEUE;
+
         _aQueue[0].setPosition(_oSnake.x, _oSnake.y);
         _aQueue[0].setRotation(_oSnake.rotation);
         for (var i = _aQueue.length - 1; i > 0; i--) {
@@ -230,9 +231,9 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
             return;
         }
         _bDie = true;
-        _vDir.set(0, 0);
-        this.stopState("die");
-//        this.cutQueueAtPoint(0);
+       // _vDir.set(0, 0);
+      //  this.stopState("die");
+        this.cutQueueAtPoint(0);
 //        var oScope = this;
 //        createjs.Tween.get(_oSnake).wait(750).to({scaleX: 0, scaleY: 0}, 1000).call(function () {
 //            oScope.unload();
@@ -240,6 +241,14 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
 //                oFunc(_iID);
 //            }
 //        });
+
+       var oScope = this;
+       createjs.Tween.get(_oSnake).wait(750).to({scaleX: 0, scaleY: 0}, 1000).call(function () {
+           oScope.unload();
+        //    if (oFunc !== "undefined") {
+        //        oFunc(_iID);
+        //    }
+       });
     };
 
     this.getOpenMounthDim = function () {

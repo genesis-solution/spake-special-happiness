@@ -32,15 +32,23 @@ function CInterface() {
         _oScoreText.regY = _oScoreText.getBounds().height * 0.5;
         s_oStage.addChild(_oScoreText);
 
-        _pStartPosBest = {x: (CANVAS_WIDTH / 2) - 550, y: 55};
+        _pStartPosBest = {x: (CANVAS_WIDTH / 2) - 650, y: 45};
         _oBestScoreText = new createjs.Text(TEXT_BEST_SCORE + ": 0", "32px " + FONT_GAME, "#ffffff");
         _oBestScoreText.x = _pStartPosBest.x;
         _oBestScoreText.y = _pStartPosBest.y;
+        _oBestScoreText.visible = false;
         _oBestScoreText.textAlign = "left";
 
         _oBestScoreText.regX = _oBestScoreText.getBounds().width * 0.5;
         _oBestScoreText.regY = _oBestScoreText.getBounds().height * 0.5;
         s_oStage.addChild(_oBestScoreText);
+
+        // Added by Sup man
+        _userListContainer = new createjs.Container();
+        _userListContainer.x = _pStartPosBest.x;
+        _userListContainer.y = _pStartPosBest.y;
+        _userListContainer.textAlign = "left";
+        s_oStage.addChild(_userListContainer);
 
         var oSprite = s_oSpriteLibrary.getSprite('but_exit');
         _pStartPosExit = {x: CANVAS_WIDTH - (oSprite.height / 2) - 20, y: (oSprite.height / 2) + 20};
@@ -118,6 +126,8 @@ function CInterface() {
 
         _oBestScoreText.x = _pStartPosBest.x + iNewX;
         _oBestScoreText.y = _pStartPosBest.y + iNewY;
+        _userListContainer.x = _pStartPosBest.x + iNewX;
+        _userListContainer.y = _pStartPosBest.y + iNewY;
         if (s_bMobile) {
                 _oArrowLeft.x = _pStartPosArrowLeft.x + iNewX;
                 _oArrowLeft.y = _pStartPosArrowLeft.y - iNewY;
@@ -159,6 +169,44 @@ function CInterface() {
             _oBestScoreText.color = "#ffff00";
             createjs.Tween.get(_oBestScoreText, {override: true}).to({scaleX: 1.1, scaleY: 1.1},
                     500, createjs.Ease.cubicOut).to({scaleX: 1, scaleY: 1}, 500, createjs.Ease.cubicIn).set({color: "#fff"});
+        }
+    };
+
+    // Added by Sup man
+    this.dispPlayers = function (players) {
+        _userListContainer.removeAllChildren();
+        var userListTitle = new createjs.Text("Players:", "32px " + FONT_GAME, "#ffffff");
+        _userListContainer.addChild(userListTitle);
+
+        for (var i = 0; i < players.length; i++) {
+            
+            var flagImage = new Image();
+            flagImage.src = `https://www.player1.win/assets/images/flags/`+players[i].country+`.png`
+
+			const flagWidth = 36; // Set your desired width here
+			const flagHeight = 27; // Set your desired height here
+
+            flagImage.onload = (function(index) {
+                return function() {
+                    var listItem = new createjs.Container();
+                    listItem.y = (index + 1) * 38; // Adjust the positioning according to your needs
+
+                    var usernameText = new createjs.Text(players[index].name + '(' + players[index].score + ')', "28px " + FONT_GAME, "#ffffff");
+
+                    var bitmap = new createjs.Bitmap(this);
+                    bitmap.scaleX = flagWidth / bitmap.image.width;
+                    bitmap.scaleY = flagHeight / bitmap.image.height;
+                    // Center the bitmap within the container
+                    // bitmap.regX = bitmap.image.width / 2;
+                    // bitmap.regY = 80;
+    
+                    usernameText.regX = usernameText.regX - bitmap.image.width - 20;
+    
+                    listItem.addChild(bitmap, usernameText);
+    
+                    _userListContainer.addChild(listItem);
+                };
+              })(i);
         }
     };
 

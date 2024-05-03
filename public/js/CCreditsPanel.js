@@ -54,7 +54,7 @@ function CCreditsPanel() {
         oTitle.lineWidth = 500;
         _oPanelContainer.addChild(oTitle);
 
-        var oLinkS = new createjs.Text("WWW.CODETHISLAB.COM", " 40px " + FONT_GAME, "#000");
+        var oLinkS = new createjs.Text("WWW.PLAYER1.WIN", " 40px " + FONT_GAME, "#000");
         oLinkS.y = 100;
         oLinkS.textAlign = "center";
         oLinkS.textBaseline = "middle";
@@ -62,7 +62,7 @@ function CCreditsPanel() {
         oLinkS.outline = 4;
         _oPanelContainer.addChild(oLinkS);
 
-        var oLink = new createjs.Text("WWW.CODETHISLAB.COM", " 40px " + FONT_GAME, "#ff6c00");
+        var oLink = new createjs.Text("WWW.PLAYER1.WIN", " 40px " + FONT_GAME, "#ff6c00");
         oLink.y = 100;
         oLink.textAlign = "center";
         oLink.textBaseline = "middle";
@@ -99,11 +99,11 @@ function CCreditsPanel() {
     };
 
     this._onLogoButRelease = function () {
-        window.open("http://www.codethislab.com/index.php?&l=en");
+        window.open("https://www.player1.win");
     };
 
     this._onMoreGamesReleased = function () {
-        window.open("http://codecanyon.net/collections/5409142-games");
+        window.open("https://www.player1.win");
     };
 
     this._init();
