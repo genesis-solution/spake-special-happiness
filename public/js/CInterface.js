@@ -32,12 +32,18 @@ function CInterface() {
         _oScoreText.regY = _oScoreText.getBounds().height * 0.5;
         s_oStage.addChild(_oScoreText);
 
-        _pStartPosBest = {x: (CANVAS_WIDTH / 2) - 650, y: 45};
+        _pStartPosBest = {x: (CANVAS_WIDTH / 2) - 600, y: 45};
         _oBestScoreText = new createjs.Text(TEXT_BEST_SCORE + ": 0", "32px " + FONT_GAME, "#ffffff");
         _oBestScoreText.x = _pStartPosBest.x;
         _oBestScoreText.y = _pStartPosBest.y;
         _oBestScoreText.visible = false;
         _oBestScoreText.textAlign = "left";
+
+        _oTimerText = new createjs.Text("10:00", "26px " + FONT_GAME, "#ffffff");
+        _oTimerText.x = _pStartPosBest.x;
+        _oTimerText.y = _pStartPosBest.y;
+        _oTimerText.textAlign = "center";
+        s_oStage.addChild(_oTimerText);
 
         _oBestScoreText.regX = _oBestScoreText.getBounds().width * 0.5;
         _oBestScoreText.regY = _oBestScoreText.getBounds().height * 0.5;
@@ -46,7 +52,7 @@ function CInterface() {
         // Added by Sup man
         _userListContainer = new createjs.Container();
         _userListContainer.x = _pStartPosBest.x;
-        _userListContainer.y = _pStartPosBest.y;
+        _userListContainer.y = _pStartPosBest.y + 30;
         _userListContainer.textAlign = "left";
         s_oStage.addChild(_userListContainer);
 
@@ -78,14 +84,13 @@ function CInterface() {
         _fRequestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
         _fCancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
         
-        if(ENABLE_FULLSCREEN === false){
+        if(ENABLE_FULLSCREEN === false) {
             _fRequestFullScreen = false;
         }
         
         if (_fRequestFullScreen && screenfull.enabled){
             oSprite = s_oSpriteLibrary.getSprite('but_fullscreen');
             
-
             _oButFullscreen = new CToggle(_pStartPosFullscreen.x,_pStartPosFullscreen.y,oSprite,s_bFullscreen,s_oStage);
             _oButFullscreen.addEventListener(ON_MOUSE_UP, this._onFullscreenRelease, this);
         }
@@ -128,14 +133,19 @@ function CInterface() {
 
         _oBestScoreText.x = _pStartPosBest.x + iNewX;
         _oBestScoreText.y = _pStartPosBest.y + iNewY;
-        _userListContainer.x = _pStartPosBest.x + iNewX;
-        _userListContainer.y = _pStartPosBest.y + iNewY;
-        if (s_bMobile) {
-                _oArrowLeft.x = _pStartPosArrowLeft.x + iNewX;
-                _oArrowLeft.y = _pStartPosArrowLeft.y - iNewY;
 
-                _oArrowRight.x = _pStartPosArrowRight.x - iNewX;
-                _oArrowRight.y = _pStartPosArrowRight.y - iNewY;
+        _oTimerText.x = _pStartPosBest.x + iNewX;
+        _oTimerText.y = _pStartPosBest.y + iNewY;
+
+        
+        _userListContainer.x = _pStartPosBest.x + iNewX;
+        _userListContainer.y = _pStartPosBest.y + iNewY + 30;
+        if (s_bMobile) {
+            _oArrowLeft.x = _pStartPosArrowLeft.x + iNewX;
+            _oArrowLeft.y = _pStartPosArrowLeft.y - iNewY;
+
+            _oArrowRight.x = _pStartPosArrowRight.x - iNewX;
+            _oArrowRight.y = _pStartPosArrowRight.y - iNewY;
         }
         _oScoreText.y = _pStartPosScore.y + iNewY;
 
@@ -211,6 +221,34 @@ function CInterface() {
               })(i);
         }
     };
+
+    //
+    this.displayTimer = function(milli) {
+        var milliseconds = milli % 1000;
+        var seconds = Math.floor((milli / 1000) % 60);
+        var minutes = Math.floor((milli / (60 * 1000)) % 60);
+        
+        if(seconds<10){
+            seconds = '0'+seconds;  
+        }
+        
+        if(minutes<10){
+            minutes = '0'+minutes;  
+        }
+        
+        var disp_content = '';
+        if (milli > 0)
+        {
+            disp_content =minutes+':'+seconds;
+        }
+        _oTimerText.text = disp_content;
+
+        if (milli < 59000) {
+            _oTimerText.color = '#F00';
+        } else {
+            _oTimerText.color = '#FFF';
+        }
+    }
 
     this._onPause = function () {
         s_oGame.unpause(false);

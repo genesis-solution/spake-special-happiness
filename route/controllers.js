@@ -447,13 +447,13 @@ function getBotInfo(req, res) {
                   })
                 }
                 else {
-                  const errorMessage = 'https://www.player1.win/games/2/checkers?e=' + 'No players available'; // userInfo.ResultMessage;
+                  const errorMessage = 'https://www.player1.win/games/3/snakes?e=' + 'No players available'; // userInfo.ResultMessage;
                   const errorHtml = fs.readFileSync(path.join(__dirname, '../public', 'error.html'), 'utf8');
                   const htmlWithErrorMessage = errorHtml.replace('{{ errorMessage }}', errorMessage);
                   return res.status(400).send(htmlWithErrorMessage);
                 }
               } else {
-                  const errorMessage = 'https://www.player1.win/games/2/checkers?e=' + 'No players available'; // userInfo.ResultMessage;
+                  const errorMessage = 'https://www.player1.win/games/3/snakes?e=' + 'No players available'; // userInfo.ResultMessage;
                   const errorHtml = fs.readFileSync(path.join(__dirname, '../public', 'error.html'), 'utf8');
                   const htmlWithErrorMessage = errorHtml.replace('{{ errorMessage }}', errorMessage);
                   return res.status(400).send(htmlWithErrorMessage);

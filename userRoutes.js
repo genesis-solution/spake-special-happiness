@@ -43,7 +43,7 @@ loginRoutes.get('/log', setLog);
 
 // Game routes
 gameRoutes.get('/game', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
+  res.sendFile(__dirname + '/public/game.html');
 });
 loginRoutes.post('/result', result); // Add result endpoint here
 

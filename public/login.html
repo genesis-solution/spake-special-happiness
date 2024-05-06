@@ -42,6 +42,8 @@
           xhr.setRequestHeader('Content-Type', 'application/json');
           xhr.onload = function() {
               const data = JSON.parse(xhr.responseText);
+
+              console.log("login", data)
               if (xhr.status === 200) {
                   document.getElementById('succ_alert').style.display = "block"
                   document.getElementById('responseMessage_succ').innerText = 'Login successful.';
@@ -50,25 +52,25 @@
               } else {
                   // document.getElementById('alert').style.display = "block"
                   // document.getElementById('responseMessage').innerText = data.error;
-                  redirectToWithAuth('https://www.player1.win/games/2/checkers', data.error, 0);
+                  redirectToWithAuth('https://www.player1.win/games/3/snakes', data.error, 0);
               }
           };
           xhr.onerror = function() {
               console.error('An error occurred.');
               document.getElementById('alert').style.display = "block"
               document.getElementById('responseMessage').innerText = 'An error occurred. Please try again later.';
-              redirectToWithAuth('https://www.player1.win/games/2/checkers', 'You are already in the middle of another game. It is not permitted to play multiple games simultaneously.', 0);
+              redirectToWithAuth('https://www.player1.win/games/3/snakes', 'You are already in the middle of another game. It is not permitted to play multiple games simultaneously.', 0);
           };
           xhr.send(JSON.stringify({ t: tokenkey, gameID: 2 }));
         } else {
-          redirectToWithAuth('https://www.player1.win/games/2/checkers', 'Token not found', 0);
+          redirectToWithAuth('https://www.player1.win/games/3/snakes', 'Token not found', 0);
         }
     
       } catch (error) {
           console.error('Error:', error);
           document.getElementById('alert').style.display = "block"
           document.getElementById('responseMessage').innerText = 'An error occurred. Please try again later.';
-          redirectToWithAuth('https://www.player1.win/games/2/checkers', 'You are already in the middle of another game. It is not permitted to play multiple games simultaneously.', 0);
+          redirectToWithAuth('https://www.player1.win/games/3/snakes', 'You are already in the middle of another game. It is not permitted to play multiple games simultaneously.', 0);
       }
 
       function redirectToWithAuth(url, authToken, noError) {

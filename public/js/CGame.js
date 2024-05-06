@@ -85,6 +85,8 @@ function CGame(oData) {
 
         s_oStage.addChild(_oFade);
 
+        START_DATE = new Date();
+
         createjs.Tween.get(_oFade).to({alpha: 0}, MS_FADE_TIME, createjs.Ease.cubicOut).call(function () {
             _oFade.visible = false;
         });
@@ -504,9 +506,40 @@ function CGame(oData) {
         for (var j = 0; j < _aSnakes.length; j++) {
             for (var i = 0; i < aEdgesCol.length; i++) {
                 if (aEdgesCol[i].rect.intersects(_aSnakes[j].getRectangle())) {
-                    _aSnakes[j].bounce(aEdgesCol[i].normal);
+                   // _aSnakes[j].bounce(aEdgesCol[i].normal);
                     // commit by Sup man, when Edge collision
-                   // _aSnakes[j].die();
+                    _aSnakes[j].die();
+
+                    let liveUsers = [];
+                    for (let i_AI = 0; i_AI < AI_SNAKES.length; i_AI++) {
+                        if (_aSnakes[j].getType() != null && AI_SNAKES[i_AI].type == _aSnakes[j].getType()) {
+                            AI_SNAKES[i_AI].die = true
+                        }
+
+                        if (AI_SNAKES[i_AI].die == false) {
+                            liveUsers.push(AI_SNAKES[i_AI]);
+                        }
+                    }
+
+                    ME_SNAKE.score = _iScore;
+                    let display_users = [];
+                    if (_oPlayerSnake.getEaten() == false) {
+                        display_users = [ME_SNAKE];
+                    }
+                    display_users = display_users.concat(liveUsers)
+                    display_users.sort((a, b) => {
+                        let scoreA = parseInt(a.score); // Ignore upper and lowercase
+                        let scoreB = parseInt(b.score); // Ignore upper and lowercase
+                        if (scoreA < scoreB) {
+                            return 1;
+                        }
+                        if (scoreA > scoreB) {
+                            return -1;
+                        }
+                        // names must be equal
+                        return 0;
+                    });
+                    _oInterface.dispPlayers(display_users);
                 }
             }
         }
@@ -656,6 +689,13 @@ function CGame(oData) {
 
             _oAiSnakes.update();
 
+            var currentDate = new Date();
+            if (START_DATE == null || START_DATE == '') {
+                START_DATE = new Date();
+            }
+            var elapsedTime = Math.floor((currentDate.getTime() - START_DATE.getTime()));
+			
+            _oInterface.displayTimer(Math.floor(MAX_TIMER - elapsedTime));
         }
     };
 

@@ -19,7 +19,7 @@ function authenticateToken(req, res, next) {
   }
 
   if (tokenID == null) {
-    const errorMessage = 'https://www.player1.win/games/2/checkers?e=Token not found'; // userInfo.ResultMessage;
+    const errorMessage = 'https://www.player1.win/games/3/snakes?e=Token not found'; // userInfo.ResultMessage;
     const errorHtml = fs.readFileSync(path.join(__dirname, '../public', 'error.html'), 'utf8');
     const htmlWithErrorMessage = errorHtml.replace('{{ errorMessage }}', errorMessage);
     return res.status(400).send(htmlWithErrorMessage);
@@ -84,14 +84,14 @@ function authenticateToken(req, res, next) {
                 }
                 else {
                   console.log("88", userInfo.ResultMessage)
-                  const errorMessage = 'https://www.player1.win/games/2/checkers?e=' + userInfo.ResultMessage;
+                  const errorMessage = 'https://www.player1.win/games/3/snakes?e=' + userInfo.ResultMessage;
                   const errorHtml = fs.readFileSync(path.join(__dirname, '../public', 'error.html'), 'utf8');
                   const htmlWithErrorMessage = errorHtml.replace('{{ errorMessage }}', errorMessage);
                   return res.status(400).send(htmlWithErrorMessage);
                 }
               } catch (error_) {
                 console.log(error_)
-                const errorMessage = 'https://www.player1.win/games/2/checkers?e=' + 'Invalid Token'; // userInfo.ResultMessage;
+                const errorMessage = 'https://www.player1.win/games/3/snakes?e=' + 'Invalid Token'; // userInfo.ResultMessage;
                 const errorHtml = fs.readFileSync(path.join(__dirname, '../public', 'error.html'), 'utf8');
                 const htmlWithErrorMessage = errorHtml.replace('{{ errorMessage }}', errorMessage);
                 return res.status(400).send(htmlWithErrorMessage);
@@ -101,14 +101,14 @@ function authenticateToken(req, res, next) {
         }
         else {
           console.log("105", _resp)
-          const errorMessage = 'https://www.player1.win/games/2/checkers?e=' + 'Invalid Token'; // userInfo.ResultMessage;
+          const errorMessage = 'https://www.player1.win/games/3/snakes?e=' + 'Invalid Token'; // userInfo.ResultMessage;
           const errorHtml = fs.readFileSync(path.join(__dirname, '../public', 'error.html'), 'utf8');
           const htmlWithErrorMessage = errorHtml.replace('{{ errorMessage }}', errorMessage);
           return res.status(400).send(htmlWithErrorMessage);
         }
       } else {
         console.log(_err)
-        const errorMessage = 'https://www.player1.win/games/2/checkers?e=' + 'Invalid Token'; // userInfo.ResultMessage;
+        const errorMessage = 'https://www.player1.win/games/3/snakes?e=' + 'Invalid Token'; // userInfo.ResultMessage;
         const errorHtml = fs.readFileSync(path.join(__dirname, '../public', 'error.html'), 'utf8');
         const htmlWithErrorMessage = errorHtml.replace('{{ errorMessage }}', errorMessage);
         return res.status(400).send(htmlWithErrorMessage);
@@ -116,7 +116,7 @@ function authenticateToken(req, res, next) {
     });
   } catch (error) {
     console.log(error)
-    const errorMessage = 'https://www.player1.win/games/2/checkers?e=' + 'Invalid Token'; // userInfo.ResultMessage;
+    const errorMessage = 'https://www.player1.win/games/3/snakes?e=' + 'Invalid Token'; // userInfo.ResultMessage;
     const errorHtml = fs.readFileSync(path.join(__dirname, '../public', 'error.html'), 'utf8');
     const htmlWithErrorMessage = errorHtml.replace('{{ errorMessage }}', errorMessage);
     return res.status(400).send(htmlWithErrorMessage);
