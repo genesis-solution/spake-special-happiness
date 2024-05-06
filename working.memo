@@ -48,3 +48,18 @@ this.addEnemySnakes // CGame.js
 
 CInterface.js
 
+
+
+
+- Starting the Game:
+
+this._onButPlayRelease = function () {
+        _oFade.visible = true;
+
+        createjs.Tween.get(_oFade).to({alpha: 1}, MS_FADE_TIME, createjs.Ease.cubicOut).call(function () {
+            s_oMenu.unload();
+            s_oMain.gotoGame();
+            $(s_oMain).trigger("start_session");
+        });
+    };
+
