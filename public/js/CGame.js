@@ -306,7 +306,7 @@ function CGame(oData) {
     };
 
     this._onExitHelp = function () {
-        _oInterface.onExitFromHelp();
+      //  _oInterface.onExitFromHelp();
         _bStartGame = true;
 
         _iGameState = STATE_PLAY;
@@ -465,8 +465,6 @@ function CGame(oData) {
                         return 0;
                     });
                     _oInterface.dispPlayers(display_users);
-                    // _iScore = oSnake1.getLengthQueue();
-                    // _oInterface.refreshScore(_iScore);
                 }
                 
                 break;
@@ -510,36 +508,11 @@ function CGame(oData) {
                     // commit by Sup man, when Edge collision
                     _aSnakes[j].die();
 
-                    let liveUsers = [];
                     for (let i_AI = 0; i_AI < AI_SNAKES.length; i_AI++) {
                         if (_aSnakes[j].getType() != null && AI_SNAKES[i_AI].type == _aSnakes[j].getType()) {
                             AI_SNAKES[i_AI].die = true
                         }
-
-                        if (AI_SNAKES[i_AI].die == false) {
-                            liveUsers.push(AI_SNAKES[i_AI]);
-                        }
                     }
-
-                    ME_SNAKE.score = _iScore;
-                    let display_users = [];
-                    if (_oPlayerSnake.getEaten() == false) {
-                        display_users = [ME_SNAKE];
-                    }
-                    display_users = display_users.concat(liveUsers)
-                    display_users.sort((a, b) => {
-                        let scoreA = parseInt(a.score); // Ignore upper and lowercase
-                        let scoreB = parseInt(b.score); // Ignore upper and lowercase
-                        if (scoreA < scoreB) {
-                            return 1;
-                        }
-                        if (scoreA > scoreB) {
-                            return -1;
-                        }
-                        // names must be equal
-                        return 0;
-                    });
-                    _oInterface.dispPlayers(display_users);
                 }
             }
         }

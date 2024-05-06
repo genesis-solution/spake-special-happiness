@@ -14,6 +14,7 @@ function CMenu() {
     var _oButFullscreen;
     var _fRequestFullScreen = null;
     var _fCancelFullScreen = null;
+    var _endTime = null;
 
     this._init = function () {
         _oBg = CBackground(s_oStage);
@@ -22,11 +23,11 @@ function CMenu() {
         _oContainerMenuGUI.alpha = 0;
         s_oStage.addChild(_oContainerMenuGUI);
 
-        var oSprite = s_oSpriteLibrary.getSprite('but_play');
-        _pStartPosPlay = {x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT - 200};
-        _oButPlay = new CGfxButton(_pStartPosPlay.x, _pStartPosPlay.y, oSprite, _oContainerMenuGUI);
-        _oButPlay.addEventListener(ON_MOUSE_UP, this._onButPlayRelease, this);
-        _oButPlay.pulseAnimation();
+        // var oSprite = s_oSpriteLibrary.getSprite('but_play');
+        // _pStartPosPlay = {x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT - 200};
+        // _oButPlay = new CGfxButton(_pStartPosPlay.x, _pStartPosPlay.y, oSprite, _oContainerMenuGUI);
+        // _oButPlay.addEventListener(ON_MOUSE_UP, this._onButPlayRelease, this);
+        // _oButPlay.pulseAnimation();
 
         if (DISABLE_SOUND_MOBILE === false || s_bMobile === false) {
             var oSprite = s_oSpriteLibrary.getSprite('audio_icon');
@@ -37,8 +38,8 @@ function CMenu() {
 
         var oSpriteCredits = s_oSpriteLibrary.getSprite('but_info');
         _pStartPosCredits = {x: (oSpriteCredits.height / 2) + 10, y: (oSpriteCredits.height / 2) + 10};
-        _oCreditsBut = new CGfxButton((CANVAS_WIDTH / 2), CANVAS_HEIGHT - 240, oSpriteCredits, _oContainerMenuGUI);
-        _oCreditsBut.addEventListener(ON_MOUSE_UP, this._onCreditsBut, this);
+        // _oCreditsBut = new CGfxButton((CANVAS_WIDTH / 2), CANVAS_HEIGHT - 240, oSpriteCredits, _oContainerMenuGUI);
+        // _oCreditsBut.addEventListener(ON_MOUSE_UP, this._onCreditsBut, this);
 
         _oAnimMenu = new CAnimMenu(s_oStage);
 
@@ -71,6 +72,8 @@ function CMenu() {
         });
 
         this.refreshButtonPos(s_iOffsetX, s_iOffsetY);
+
+        _endTime = Date.now() + 15 * 1000;
     };
 
     this.animContainerGUI = function () {
@@ -78,18 +81,18 @@ function CMenu() {
     };
 
     this.refreshButtonPos = function (iNewX, iNewY) {
-        _oCreditsBut.setPosition(_pStartPosCredits.x + iNewX, iNewY + _pStartPosCredits.y);
+        // _oCreditsBut.setPosition(_pStartPosCredits.x + iNewX, iNewY + _pStartPosCredits.y);
         if (DISABLE_SOUND_MOBILE === false || s_bMobile === false) {
             _oAudioToggle.setPosition(_pStartPosAudio.x - iNewX, iNewY + _pStartPosAudio.y);
         }
         if (_fRequestFullScreen && screenfull.enabled){
-            _oButFullscreen.setPosition(_pStartPosFullscreen.x + iNewX,_pStartPosFullscreen.y + iNewY);
+            _oButFullscreen.setPosition(_pStartPosCredits.x + iNewX, iNewY + _pStartPosCredits.y); // (_pStartPosFullscreen.x + iNewX,_pStartPosFullscreen.y + iNewY);
         }
     };
 
     this.unload = function () {
-        _oButPlay.unload();
-        _oButPlay = null;
+        // _oButPlay.unload();
+        // _oButPlay = null;
 
         if (DISABLE_SOUND_MOBILE === false || s_bMobile === false) {
             _oAudioToggle.unload();
@@ -117,7 +120,7 @@ function CMenu() {
         _oFade.visible = true;
 
         createjs.Tween.get(_oFade).to({alpha: 1}, MS_FADE_TIME, createjs.Ease.cubicOut).call(function () {
-            s_oMenu.unload();
+           // s_oMenu.unload();
             s_oMain.gotoGame();
             $(s_oMain).trigger("start_session");
         });
@@ -142,6 +145,30 @@ function CMenu() {
 
     this.update = function () {
         _oAnimMenu.update();
+
+        
+
+        if (_endTime != null) {
+            (function frame(onButPlayRelease) {
+                // launch a few confetti from the left edge
+                confetti({
+                    particleCount: 3,
+                    angle: 60,
+                    spread: 180,
+                    startVelocity: 80,
+                    origin: { x: 0.5, y: 1 }
+                    // origin: {
+                    //     x: Math.random(),
+                    //     // since they fall down, start a bit higher than random
+                    //     y: Math.random() - 0.2
+                    // }
+                });
+    
+                if (Date.now() > _endTime) {
+                    onButPlayRelease();
+                }
+            }(this._onButPlayRelease));
+        }
     };
 
     s_oMenu = this;
