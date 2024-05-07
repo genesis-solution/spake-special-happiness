@@ -132,6 +132,16 @@ function CMain(oData) {
         s_oSpriteLibrary.addSprite("logo", "./sprites/logo.png");
 		s_oSpriteLibrary.addSprite("but_fullscreen", "./sprites/but_fullscreen.png");
 
+        s_oSpriteLibrary.addSprite("buttonFacebook", "./sprites/button_facebook.png");
+        s_oSpriteLibrary.addSprite("buttonTwitter", "./sprites/button_twitter.png");
+        s_oSpriteLibrary.addSprite("buttonWhatsapp", "./sprites/button_whatsapp.png");
+        s_oSpriteLibrary.addSprite("buttonTiktok", "./sprites/button_tiktok.png");
+        s_oSpriteLibrary.addSprite("buttonContinue", "./sprites/button_continue.png");
+        s_oSpriteLibrary.addSprite("itemPop", "./sprites/item_pop.png");
+        s_oSpriteLibrary.addSprite("itemPopP", "./sprites/item_pop_p.png");
+        s_oSpriteLibrary.addSprite("buttonConfirm", "./sprites/button_confirm.png");
+        s_oSpriteLibrary.addSprite("buttonCancel", "./sprites/button_cancel.png");
+
         for (var j = 1; j < 4; j++) {
             for (var i = 0; i < FRAMES_NUM_HELP[j]; i++) {
                 s_oSpriteLibrary.addSprite("help_" + j + "_" + i, "./sprites/help_" + j + "/help_" + j + "_" + i + ".jpg");

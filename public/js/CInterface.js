@@ -21,6 +21,27 @@ function CInterface() {
     var _oButFullscreen;
     var _fRequestFullScreen = null;
     var _fCancelFullScreen = null;
+    var confirmContainer;
+    var canvasContainer;
+    var canvas1 = document.getElementById("canvas");
+    var context = canvas1.getContext("2d");
+    var possibleColors = [
+        "DodgerBlue",
+        "OliveDrab",
+        "Gold",
+        "Pink",
+        "SlateBlue",
+        "LightBlue",
+        "Gold",
+        "Violet",
+        "PaleGreen",
+        "SteelBlue",
+        "SandyBrown",
+        "Chocolate",
+        "Crimson"
+      ];
+    
+    var maxConfettis = 150;
 
     this._init = function () {
 
@@ -118,8 +139,135 @@ function CInterface() {
         _oHelpPanel = new CHelpPanel(0, 0, s_oSpriteLibrary.getSprite('bg_help'));
 
         this.refreshButtonPos(s_iOffsetX, s_iOffsetY);
+
+
+        // Added by Sup coder
+        // Result page:
+        confirmContainer = new createjs.Container();
+        itemResult = new createjs.Bitmap(s_oSpriteLibrary.getSprite('itemPop'));
+        
+        resultShareTxt = new createjs.Text();
+        resultShareTxt.font = "25px " + FONT_GAME;
+        resultShareTxt.color = '#ffffff';
+        resultShareTxt.textAlign = "center";
+        resultShareTxt.textBaseline='alphabetic';
+        resultShareTxt.text = 'SHARE YOUR SCORE:';
+        
+        resultTitleTxt = new createjs.Text();
+        resultTitleTxt.font = "60px " + FONT_GAME;
+        resultTitleTxt.color = '#ffffff';
+        resultTitleTxt.textAlign = "center";
+        resultTitleTxt.textBaseline='alphabetic';
+        resultTitleTxt.text = 'GAME OVER';
+        
+        resultDescTxt = new createjs.Text();
+        resultDescTxt.font = "20px " + FONT_GAME;
+        resultDescTxt.lineHeight = 28;
+        resultDescTxt.color = '#ffffff';
+        resultDescTxt.textAlign = "center";
+        resultDescTxt.textBaseline='alphabetic';
+        resultDescTxt.text = '';
+
+        resultPriceTxt = new createjs.Text();
+        resultPriceTxt.font = "25px " + FONT_GAME;
+        resultPriceTxt.lineHeight = 35;
+        resultPriceTxt.color = '#ffffff';
+        resultPriceTxt.textAlign = "center";
+        resultPriceTxt.textBaseline='alphabetic';
+        resultPriceTxt.text = 'SCORE : 100 TILES';
+        
+        
+        buttonFacebook = new createjs.Bitmap(s_oSpriteLibrary.getSprite('buttonFacebook'));
+        buttonWhatsapp = new createjs.Bitmap(s_oSpriteLibrary.getSprite('buttonWhatsapp'));
+        buttonTiktok = new createjs.Bitmap(s_oSpriteLibrary.getSprite('buttonTiktok'));
+        buttonContinue = new createjs.Bitmap(s_oSpriteLibrary.getSprite('buttonContinue'));
+	    centerReg(buttonContinue);
+        
+        centerReg(buttonFacebook);
+        createHitarea(buttonFacebook);
+        centerReg(buttonWhatsapp);
+        createHitarea(buttonWhatsapp);
+        centerReg(buttonTiktok);
+        createHitarea(buttonTiktok);
+        
+        itemExit = new createjs.Bitmap(s_oSpriteLibrary.getSprite('itemPop'));
+
+        itemExit.x = CANVAS_WIDTH/2 - itemExit.image.width / 2;
+
+        buttonWhatsapp.x = CANVAS_WIDTH/100*43;
+        buttonWhatsapp.y = CANVAS_HEIGHT/100*57;
+        buttonTiktok.x = CANVAS_WIDTH/2;
+        buttonTiktok.y = CANVAS_HEIGHT/100*57;
+        buttonFacebook.x = CANVAS_WIDTH/100*57;
+        buttonFacebook.y = CANVAS_HEIGHT/100*57;
+        
+        buttonContinue.x = CANVAS_WIDTH/2;
+        buttonContinue.y = CANVAS_HEIGHT/100 * 68;
+
+        resultShareTxt.x = CANVAS_WIDTH/2;
+        resultShareTxt.y = CANVAS_HEIGHT/100 * 51;
+
+        resultTitleTxt.x = CANVAS_WIDTH/2;
+        resultTitleTxt.y = CANVAS_HEIGHT/100 * 35;
+
+        resultDescTxt.x = CANVAS_WIDTH/2;
+        resultDescTxt.y = CANVAS_HEIGHT/100 * 40;
+
+        resultPriceTxt.x = CANVAS_WIDTH/2;
+        resultPriceTxt.y = CANVAS_HEIGHT/100 * 44;
+
+        confirmContainer.addChild(itemExit, buttonContinue, resultTitleTxt, resultDescTxt, resultPriceTxt, resultShareTxt, buttonFacebook, buttonTiktok, buttonWhatsapp);
+        confirmContainer.visible = false;
+        canvasContainer = new createjs.Container();
+        canvasContainer.addChild(confirmContainer);
+        s_oStage.addChild(confirmContainer);
+
     };
 
+    this.toggleResultContainer = function(con, winStatus) {
+        if (con == true) {
+
+            if (confirmContainer.visible == false)
+            {
+                _oButPause.visible = false;
+                _oButFullscreen.visible = false;
+                _oButExit.visible = false;
+
+                if (winStatus == 'win') {
+                    textTitle = "You won!!!!";
+                    textMessage = "Congratulations, you won:"
+                    resultPriceTxt.text = "$" + ME_SNAKE.betUsd;
+                    resultTitleTxt.font = "60px " + FONT_GAME;
+
+                    particles = [];
+					for (var i = 0; i < maxConfettis; i++) {
+						particles.push(new confettiParticle(context, possibleColors));
+					}
+					Draw();
+                }
+                else {
+                    textTitle = "The outcome of this game favors the opponent.\n\n 🙁  \n\n"
+                    textMessage = "\n\nOne more try,\nyou've got this!";
+                    resultTitleTxt.font = "20px " + FONT_GAME;
+
+                    resultShareTxt.visible = false;
+                    buttonFacebook.visible = false;
+                    buttonTiktok.visible = false;
+                    buttonWhatsapp.visible = false;
+                    resultPriceTxt.visible = false;
+                }
+
+                resultTitleTxt.text = textTitle;
+			    resultDescTxt.text = textMessage;
+                confirmContainer.visible = true;
+                
+            }
+
+        } else {
+            confirmContainer.visible = false;
+        }
+    }
+    
     this.refreshButtonPos = function (iNewX, iNewY) {
         _oButExit.setPosition(_pStartPosExit.x - iNewX, iNewY + _pStartPosExit.y);
         _oButPause.setPosition(_pStartPosPause.x - iNewX, iNewY + _pStartPosPause.y);
@@ -251,8 +399,10 @@ function CInterface() {
     }
 
     this._onPause = function () {
-        s_oGame.unpause(false);
-        this.createPauseInterface();
+        if (confirmContainer == null || confirmContainer.visible == false) {
+            s_oGame.unpause(false);
+            this.createPauseInterface();
+        }
     };
 
     this.createPauseInterface = function () {
@@ -279,8 +429,10 @@ function CInterface() {
     };
 
     this._onExit = function () {
-        var _oAreYouSure = new CAreYouSurePanel(s_oStage);
-        _oAreYouSure.show();
+        if (confirmContainer == null || confirmContainer.visible == false) {
+            var _oAreYouSure = new CAreYouSurePanel(s_oStage);
+            _oAreYouSure.show();
+        }
     };
     
     this.resetFullscreenBut = function(){

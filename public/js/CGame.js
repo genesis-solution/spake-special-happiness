@@ -655,20 +655,23 @@ function CGame(oData) {
             _oPlayerSnake.update(_iPlayerSpeed);
 
             this.scrollStage(_oPlayerSnake, _iPlayerSpeed);
-
             _oFoods.update();
-
             this.manageCollision();
-
             _oAiSnakes.update();
-
             var currentDate = new Date();
             if (START_DATE == null || START_DATE == '') {
                 START_DATE = new Date();
             }
             var elapsedTime = Math.floor((currentDate.getTime() - START_DATE.getTime()));
-			
-            _oInterface.displayTimer(Math.floor(MAX_TIMER - elapsedTime));
+
+            if (Math.floor(MAX_TIMER - elapsedTime) > 0)
+            {
+                _oInterface.displayTimer(Math.floor(MAX_TIMER - elapsedTime));
+            }
+            else {
+                $(s_oMain).trigger("end_session");
+                _oInterface.toggleResultContainer(true, 'win');
+            }
         }
     };
 

@@ -30,7 +30,7 @@ function CSpriteLibrary(){
     this.getSprite = function( szKey ){
         if (!_oLibSprites.hasOwnProperty(szKey)){
             return null;
-        }else{
+        } else {
             return _oLibSprites[szKey].oSprite;
         }
     };
