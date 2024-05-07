@@ -159,7 +159,7 @@ var ALLOW_SPEED_UP = true;
 var HERO_START_X = 1511;
 var HERO_START_Y = 1024;
 
-var ME_SNAKE = {type: 4, x: 1511, y: 1024, time_follow: 0, name: 'me', country: 'Israel', score: 1, die: false};
+var ME_SNAKE = {type: 4, x: 1511, y: 1024, time_follow: 0, name: 'me', country: 'Israel', score: 1, die: false, TokenId: '', betUsd: 1, entityId: ''};
 
 var HERO_ACCELLERATION;
 

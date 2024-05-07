@@ -146,8 +146,6 @@ function CMenu() {
     this.update = function () {
         _oAnimMenu.update();
 
-        
-
         if (_endTime != null) {
             (function frame(onButPlayRelease) {
                 // launch a few confetti from the left edge

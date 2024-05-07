@@ -71,7 +71,7 @@ function authenticateToken(req, res, next) {
                 if (userInfo.ResultCode == undefined && userInfo.ResultMessage == undefined) {
                   
                   req.user = {
-                    username: userInfo.Name + '(' + userInfo.EntityId + ')', // userInfo.Name,
+                    username: userInfo.Name, // userInfo.Name,
                     betUsd: userInfo.betUsd,
                     Status: userInfo.Status,
                     CountryName: userInfo.countryname,

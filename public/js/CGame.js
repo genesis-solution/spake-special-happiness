@@ -695,9 +695,16 @@ function CGame(oData) {
     HERO_SPEED_UP = oData.hero_speed_up;
     FOOD_SCORE = oData.food_score;
     SNAKES_AI_SPEED = oData.snakes_AI_speed;
+
+    if (oData != null && oData.data != null && oData.data != undefined) {
+        ME_SNAKE.name = oData.data.username;
+        ME_SNAKE.country = oData.data.CountryName;
+        ME_SNAKE.TokenId = oData.data.TokenId;
+        ME_SNAKE.betUsd = oData.data.betUsd;
+        ME_SNAKE.entityId = oData.data.entityId;
+        this._init();
+    }
     
-     
-    this._init();
 }
 
 var s_oGame;
