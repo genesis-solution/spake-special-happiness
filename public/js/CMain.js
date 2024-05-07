@@ -237,9 +237,7 @@ function CMain(oData) {
         } else if (_iState === STATE_MENU) {
             _oMenu.update();
         }
-
         s_oStage.update(event);
-
     };
 
     s_oMain = this;
@@ -247,7 +245,7 @@ function CMain(oData) {
     _oData = oData;
     ENABLE_CHECK_ORIENTATION = oData.check_orientation;
     ENABLE_FULLSCREEN = oData.fullscreen;
-    
+
     this.initContainer();
 }
 var s_bMobile;

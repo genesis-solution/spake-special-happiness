@@ -58,74 +58,124 @@
         <div style="position: fixed; background-color: transparent; top: 0px; left: 0px; width: 100%; height: 100%"></div>
         <script>
             $(document).ready(function () {
-                var oMain = new CMain({
-                    hero_rotation_speed: 10, //HERO ROTATION SPEED WHEN MOVING RIGHT/LEFT
-                    hero_speed_up: 15, //SET THIS MAX HERO SPEED WHEN PRESS UP KEY
-                    hero_speed: 10, //MAX HERO SPEED
-                    snakes_AI_speed: [10, 10, 10, 10],
-                    food_score: [1], //ADD SCORE WHEN SNAKE EAT A FOOD BY TYPE  
-                    fullscreen:true, //SET THIS TO FALSE IF YOU DON'T WANT TO SHOW FULLSCREEN BUTTON
-                    check_orientation:true //SET TO FALSE IF YOU DON'T WANT TO SHOW ORIENTATION ALERT ON MOBILE DEVICES
-                });
+                const urlParams = new URLSearchParams(window.location.search);
 
-                $(oMain).on("start_session", function (evt) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeStartSession();
-                    }
-                });
+                const errMessage = urlParams.get('e')
+                const tokenkey = urlParams.get('t');
 
-                $(oMain).on("end_session", function (evt) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeEndSession();
-                    }
-                });
+                if (errMessage != undefined && errMessage != '') {
+                    var errorHtml = `<!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>`+errMessage+`</title>
+                        <!-- Bootstrap CSS -->
+                        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+                    </head>
+                    <body style="background-color: none !important;">
+                        <div class="container">
+                            <div class="row mt-5">
+                                <div class="col-md-6 offset-md-3">
+                                    <div class="alert alert-danger">
+                                        `+errMessage+`
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                    `
+                    $('body').css('background', 'none');
+                    $('body').html(errorHtml);
+                } else if (tokenkey != undefined && tokenkey != '')
+                {
+                    // Get the value of a specific parameter
+                    const tokenkey = urlParams.get('t'); // Returns 'value1'
+                    localStorage.setItem('t', tokenkey);
+                    $.ajax({
+                        url: '/user/info',
+                        type: 'GET',
+                        data: {
+                            't': localStorage.getItem('t'),
+                            'gameID': 3
+                        },
+                        success: function(response) {
+                            var oMain = new CMain({
+                                hero_rotation_speed: 10, //HERO ROTATION SPEED WHEN MOVING RIGHT/LEFT
+                                hero_speed_up: 15, //SET THIS MAX HERO SPEED WHEN PRESS UP KEY
+                                hero_speed: 10, //MAX HERO SPEED
+                                snakes_AI_speed: [10, 10, 10, 10],
+                                food_score: [1], //ADD SCORE WHEN SNAKE EAT A FOOD BY TYPE  
+                                fullscreen:true, //SET THIS TO FALSE IF YOU DON'T WANT TO SHOW FULLSCREEN BUTTON
+                                check_orientation:true, //SET TO FALSE IF YOU DON'T WANT TO SHOW ORIENTATION ALERT ON MOBILE DEVICES,
+                                data: response
+                            });
 
-                $(oMain).on("start_level", function (evt, iLevel) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeStartLevel({level: iLevel});
-                    }
-                });
+                            $(oMain).on("start_session", function (evt) {
+                                if (getParamValue('ctl-arcade') === "true") {
+                                    parent.__ctlArcadeStartSession();
+                                }
+                            });
 
-                $(oMain).on("restart_level", function (evt, iLevel) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeRestartLevel({level: iLevel});
-                    }
-                });
+                            $(oMain).on("end_session", function (evt) {
+                                if (getParamValue('ctl-arcade') === "true") {
+                                    parent.__ctlArcadeEndSession();
+                                }
+                            });
 
-                $(oMain).on("end_level", function (evt, iLevel) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeEndLevel({level: iLevel});
-                    }
-                });
+                            $(oMain).on("start_level", function (evt, iLevel) {
+                                if (getParamValue('ctl-arcade') === "true") {
+                                    parent.__ctlArcadeStartLevel({level: iLevel});
+                                }
+                            });
 
-                $(oMain).on("save_score", function (evt, iScore, szMode) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeSaveScore({score: iScore, mode: szMode});
-                    }
-                });
+                            $(oMain).on("restart_level", function (evt, iLevel) {
+                                if (getParamValue('ctl-arcade') === "true") {
+                                    parent.__ctlArcadeRestartLevel({level: iLevel});
+                                }
+                            });
 
-                $(oMain).on("show_interlevel_ad", function (evt) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeShowInterlevelAD();
-                    }
-                });
+                            $(oMain).on("end_level", function (evt, iLevel) {
+                                if (getParamValue('ctl-arcade') === "true") {
+                                    parent.__ctlArcadeEndLevel({level: iLevel});
+                                }
+                            });
 
-                $(oMain).on("share_event", function (evt, iScore) {
-                    if (getParamValue('ctl-arcade') === "true") {
-                        parent.__ctlArcadeShareEvent({img: TEXT_SHARE_IMAGE,
-                            title: TEXT_SHARE_TITLE,
-                            msg: TEXT_SHARE_MSG1 + iScore + TEXT_SHARE_MSG2,
-                            msg_share: TEXT_SHARE_SHARE1 + iScore + TEXT_SHARE_SHARE1});
-                    }
-                });
+                            $(oMain).on("save_score", function (evt, iScore, szMode) {
+                                if (getParamValue('ctl-arcade') === "true") {
+                                    parent.__ctlArcadeSaveScore({score: iScore, mode: szMode});
+                                }
+                            });
+
+                            $(oMain).on("show_interlevel_ad", function (evt) {
+                                if (getParamValue('ctl-arcade') === "true") {
+                                    parent.__ctlArcadeShowInterlevelAD();
+                                }
+                            });
+
+                            $(oMain).on("share_event", function (evt, iScore) {
+                                if (getParamValue('ctl-arcade') === "true") {
+                                    parent.__ctlArcadeShareEvent({img: TEXT_SHARE_IMAGE,
+                                        title: TEXT_SHARE_TITLE,
+                                        msg: TEXT_SHARE_MSG1 + iScore + TEXT_SHARE_MSG2,
+                                        msg_share: TEXT_SHARE_SHARE1 + iScore + TEXT_SHARE_SHARE1});
+                                }
+                            });
 
 
-                if (isIOS()) {
-                    setTimeout(function () {
-                        sizeHandler();
-                    }, 200);
-                } else {
-                    sizeHandler();
+                            if (isIOS()) {
+                                setTimeout(function () {
+                                    sizeHandler();
+                                }, 200);
+                            } else {
+                                sizeHandler();
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            window.location.replace('/login?t='+tokenkey);
+                        }
+                    });
                 }
             });
 

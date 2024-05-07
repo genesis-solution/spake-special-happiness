@@ -55,7 +55,7 @@ async function login(req, res) {
 
                   if (userInfo.ResultCode == undefined && userInfo.ResultMessage == undefined) {
                     req.user = {
-                      username: userInfo.Name + '(' + userInfo.EntityId + ')',
+                      username: userInfo.Name,
                       betUsd: userInfo.betUsd,
                       Status: userInfo.Status,
                       CountryName: userInfo.countryname,
@@ -438,7 +438,7 @@ function getBotInfo(req, res) {
 
                 if (userInfo.ResultCode == undefined && userInfo.ResultMessage == undefined) {
                   res.json({
-                    username: userInfo.Name + '(' + userInfo.entityId + ')',
+                    username: userInfo.Name,
                     CountryName: userInfo.CountryName,
                     TokenId: userInfo.TokenId,
                     entityId: userInfo.entityId,
