@@ -167,5 +167,87 @@ var MAX_HERO_SPEED;
 var ENABLE_FULLSCREEN;
 var ENABLE_CHECK_ORIENTATION;
 
-var MAX_TIMER = 600000;
+var MAX_TIMER = 6000;
 var START_DATE;
+
+/*!
+ * 
+ * CANVAS MISC FUNCTIONS
+ * 
+ */
+function centerReg(obj){
+    if (obj != null && obj.image != null) {
+        obj.regX=obj.image.naturalWidth/2;
+	    obj.regY=obj.image.naturalHeight/2;
+    }
+}
+
+function createHitarea(obj){
+    if (obj != null && obj.image != null) {
+        obj.hitArea = new createjs.Shape(new createjs.Graphics().beginFill("#000").drawRect(0, 0, obj.image.naturalWidth, obj.image.naturalHeight));	
+    }
+}
+
+function randomFromTo(from, to) {
+	return Math.floor(Math.random() * (to - from + 1) + from);
+}
+var _maxConfettis = 150;
+function confettiParticle(context, possibleColors) {
+    this.x = randomFromTo(0, Math.random() * CANVAS_WIDTH * 2); // x
+    this.y = Math.random() * CANVAS_HEIGHT - CANVAS_HEIGHT; // y
+    this.r = randomFromTo(11, 33); // radius
+    this.d = Math.random() * _maxConfettis + 11;
+    this.color =
+      possibleColors[Math.floor(Math.random() * possibleColors.length)];
+    this.tilt = Math.floor(Math.random() * 33) - 11;
+    this.tiltAngleIncremental = Math.random() * 0.07 + 0.05;
+    this.tiltAngle = 0;
+  
+    this.draw = function() {
+        context.beginPath();
+        context.lineWidth = this.r / 2;
+        context.strokeStyle = this.color;
+        context.moveTo(this.x + this.tilt + this.r / 3, this.y);
+        context.lineTo(this.x + this.tilt, this.y + this.tilt + this.r / 5);
+        return context.stroke();
+    };
+}
+let particles = [];
+function Draw() {
+    const results = [];
+  
+    // Magical recursive functional love
+    requestAnimationFrame(Draw);
+  
+    //context.clearRect(0, 0, windowW, window.innerHeight);
+  
+    for (var i = 0; i < particles.length; i++) {
+        results.push(particles[i].draw());    
+    }
+  
+    let particle = {};
+    let remainingFlakes = 0;
+    for (var i = 0; i < particles.length; i++) {
+      particle = particles[i];
+  
+      particle.tiltAngle += particle.tiltAngleIncremental;
+      particle.y += (Math.cos(particle.d) + 3 + particle.r / 2) / 2;
+      particle.tilt = Math.sin(particle.tiltAngle - i / 3) * 15;
+  
+      if (particle.y <= CANVAS_HEIGHT) remainingFlakes++;
+  
+      // If a confetti has fluttered out of view,
+      // bring it back to above the viewport and let if re-fall.
+      if (particle.x > CANVAS_WIDTH * 2 + 20 || particle.x < -20 || particle.y > CANVAS_HEIGHT) {
+        particle.x = Math.random() * CANVAS_WIDTH * 2;
+        particle.y = -20;
+        particle.tilt = Math.floor(Math.random() * 10) - 20;
+      }
+    }
+  
+    return results;
+}
+
+
+
+
