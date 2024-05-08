@@ -670,7 +670,7 @@ function CGame(oData) {
             }
             else {
                 $(s_oMain).trigger("end_session");
-                _oInterface.toggleResultContainer(true, 'win');
+                _oInterface.toggleResultContainer(true, 'win'); // win or fail
             }
         }
     };

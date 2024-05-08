@@ -247,7 +247,47 @@ function Draw() {
   
     return results;
 }
+var shareTitle = 'Highscore on Play Checkers is [SCORE]';//social share score title
+var shareMessage = 'I just won $[SCORE] on player1.win, Let’s play Connect Four with real money bets! Are you in? Join now.'; //social share score message
 
+function gtag(){dataLayer.push(arguments);}
+
+function share(action){
+	gtag('event','click',{'event_category':'share','event_label':action});
+	window.dataLayer = window.dataLayer || [];
+    
+	var loc = 'https://www.player1.win/games/3/snakes'//location.href
+
+	var curr_loc = location.href
+	curr_loc = curr_loc.substring(0, curr_loc.lastIndexOf("/") + 1);
+	
+	var title = '';
+	var text = '';
+
+	var prizeUSD = 0;
+
+	if (ME_SNAKE.betUsd != null && parseInt(ME_SNAKE.betUsd) > 0)
+	{
+		prizeUSD = parseInt(ME_SNAKE.betUsd);
+	}
+	
+	title = shareTitle.replace("[SCORE]", prizeUSD);
+	text = shareMessage.replace("[SCORE]", prizeUSD);
+	
+	var shareurl = '';
+	
+	if( action == 'tiktok' ) {
+		shareurl = 'https://www.tiktok.com/@exampleuser/video/1234567890123456789?text=' + encodeURIComponent(text) + " " + encodeURIComponent(loc);
+	}else if( action == 'facebook' ){
+		shareurl = 'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(curr_loc+'share?desc='+text+'&title='+title+'&url='+loc+'&thumb='+loc+'share.jpg&width=590&height=300');
+	}else if( action == 'google' ){
+		shareurl = 'https://plus.google.com/share?url='+loc;
+	}else if( action == 'whatsapp' ) {
+		shareurl = "whatsapp://send?text=" + encodeURIComponent(text) + " " + encodeURIComponent(loc);
+	}
+	
+	window.open(shareurl);
+}
 
 
 
