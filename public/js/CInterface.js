@@ -181,8 +181,26 @@ function CInterface() {
         buttonWhatsapp = new createjs.Bitmap(s_oSpriteLibrary.getSprite('buttonWhatsapp'));
         buttonTiktok = new createjs.Bitmap(s_oSpriteLibrary.getSprite('buttonTiktok'));
         buttonContinue = new createjs.Bitmap(s_oSpriteLibrary.getSprite('buttonContinue'));
-	    centerReg(buttonContinue);
+
+        buttonFacebook.cursor = "pointer";
+        buttonFacebook.addEventListener("click", function(evt) {
+            share('facebook');
+        });
         
+        buttonTiktok.cursor = "pointer";
+        buttonTiktok.addEventListener("click", function(evt) {
+            share('tiktok');
+        });
+
+        buttonWhatsapp.cursor = "pointer";
+        buttonWhatsapp.addEventListener("click", function(evt) {
+            share('whatsapp');
+        });
+        buttonContinue.cursor = "pointer";
+        buttonContinue.addEventListener("click", function(evt) {
+            window.location.href = 'https://www.player1.win/games/3/snakes?rb=1';
+        });
+	    centerReg(buttonContinue);
         centerReg(buttonFacebook);
         createHitarea(buttonFacebook);
         centerReg(buttonWhatsapp);
@@ -333,7 +351,7 @@ function CInterface() {
     };
 
     // Added by Sup man
-    this.dispPlayers = function (players) {
+    this.dispPlayers = function(players) {
         _userListContainer.removeAllChildren();
         var userListTitle = new createjs.Text("Players:", "32px " + FONT_GAME, "#ffffff");
         _userListContainer.addChild(userListTitle);

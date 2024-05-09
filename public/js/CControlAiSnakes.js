@@ -7,7 +7,14 @@ function CControlAiSnakes() {
     };
 
     this.addSnakeToAI = function (oSnake) {
-        var oSubAI = new CSubAISnake(oSnake, AI_SNAKES[oSnake.getType()].time_follow);
+        var selected_snake = {};
+        for (var i = 0; i < AI_SNAKES.length; i++) {
+            if (oSnake.getType() == AI_SNAKES[i].type) {
+                selected_snake = AI_SNAKES[i];
+            }
+        }
+
+        var oSubAI = new CSubAISnake(oSnake, selected_snake.time_follow);
         oSnake.setSubAI(oSubAI);
         _aAiSnakes.push({snake: oSnake, subAI: oSubAI});
         if (SHOW_FIELD_OF_VIEW) {
@@ -33,7 +40,10 @@ function CControlAiSnakes() {
                 this.setDirectionSnake(oSnake, oInfo.foods[iID], AI_FOODS);
             }
         } else if (oInfo.result === AI_PLAYER && !s_oGame.getPlayerSnake().getEaten()) {
-            this.setDirectionSnake(oSnake, oInfo, AI_PLAYER);
+            console.log(oInfo.vect.getY(), oInfo.vect.getX())
+            if (oSnake.isBot == true) {
+                this.setDirectionSnake(oSnake, oInfo, AI_PLAYER);
+            }
             oSnake.subAI.followTime();
             oSnake.subAI.playSoundFollow();
         } else {

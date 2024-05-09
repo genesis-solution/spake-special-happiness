@@ -1,6 +1,6 @@
 const request = require('request');
 const xml2js = require('xml2js');
-const { server_url, GAMEID } = require('./config/config');
+const { server_url, GAMEID, TOTAL_PLAYERS } = require('./config/config');
 
 let totalBotPlayers = [];
 let waitingPlayers = []; // Store players waiting to be matched
@@ -27,18 +27,63 @@ function handleSocketEvents(io) {
                 waitingPlayers.push(socket); // Add the player to the waiting list
 
                 // Try to match players when there are at least two waiting
-                if (waitingPlayers.length >= 2) {
-                    const player1 = waitingPlayers.shift();
-                    const player2 = waitingPlayers.shift();
+                if (waitingPlayers.length >= TOTAL_PLAYERS) {
+
+                    let players = [];
+
+                    for (let index_player = 0; index_player < TOTAL_PLAYERS; index_player++) {
+                        players.push(waitingPlayers.shift())
+                    }
 
                     const date = new Date();
                     const roomName = `Room-${date.getTime()}`;
                     console.log("created room", roomName)
 
+                    let Obj_players = [];
+                    let Token_IDs = '';
+                    for (let index_player = 0; index_player < players.length; index_player++) {
+                        Obj_players.push(
+                            { 
+                                id: players[index_player].id, 
+                                name: players[index_player].playerName, 
+                                username: players[index_player].playerName, 
+                                playerName: players[index_player].playerName, 
+                                CountryName: players[index_player].CountryName, 
+                                entityId: players[index_player].entityId, 
+                                TokenId: players[index_player].TokenId, 
+                                gameID: players[index_player].gameID, 
+                                Status: players[index_player].Status, 
+                                betUsd: players[index_player].betUsd, 
+                                CountryName: players[index_player].CountryName, 
+                                isBot: players[index_player].isBot 
+                            }
+                        );
 
-                    let obj_player1 = { id: player1.id, name: player1.playerName, username: player1.playerName, playerName: player1.playerName, CountryName: player1.CountryName, entityId: player1.entityId, TokenId: player1.TokenId, gameID: player1.gameID, Status: player1.Status, betUsd: player1.betUsd, CountryName: player1.CountryName, isBot: player1.isBot };
-                    let obj_player2 = { id: player2.id, name: player2.playerName, username: player2.playerName, playerName: player2.playerName, CountryName: player2.CountryName, entityId: player2.entityId, TokenId: player2.TokenId, gameID: player2.gameID, Status: player2.Status, betUsd: player2.betUsd, CountryName: player2.CountryName, isBot: player2.isBot };
+                        Token_IDs = Token_IDs + `<item xsi:type="xsd:string">`+players[index_player].TokenId+`</item>`;
+                    }
 
+
+                    //// For test
+                    let obj_room = {}
+                    for (let index_obj_player = 0; index_obj_player < Obj_players.length; index_obj_player++) {
+                        Obj_players[index_obj_player]['games_entryID'] = 111;
+                        Obj_players[index_obj_player]['prizeUSD'] = 1;
+
+                        obj_room['player'+(index_obj_player + 1)] = Obj_players[index_obj_player];
+                    }
+
+                    rooms[roomName] = obj_room;
+
+                    for (let index_obj_player = 0; index_obj_player < Obj_players.length; index_obj_player++) {
+                        players[index_obj_player].join(roomName);
+                        players[index_obj_player].emit('joinedRoom', roomName);
+                    }
+
+                    io.to(roomName).emit('startGamebySocket', [Obj_players, TOTAL_PLAYERS]);
+
+                    /// end for test
+
+                    if (false && Token_IDs != '')
                     try {
                         const url = server_url;
                         const func_name = "Entity_Entry_Update";
@@ -55,10 +100,9 @@ function handleSocketEvents(io) {
                             <env:Body>
                             <ns1:Entity_Entry_Update env:encodingStyle="http://www.w3.org/2003/05/soap-encoding">
                             <TokenIds enc:itemType="xsd:string" enc:arraySize="2" xsi:type="ns2:ArrayOfString">
-                            <item xsi:type="xsd:string">`+obj_player1.TokenId+`</item>
-                            <item xsi:type="xsd:string">`+obj_player2.TokenId+`</item>
+                            `+Token_IDs+`
                             </TokenIds>
-                            <gameID xsi:type="xsd:int">`+obj_player1.gameID+`</gameID>
+                            <gameID xsi:type="xsd:int">`+Obj_players[0].gameID+`</gameID>
                             <games_entryID xsi:type="xsd:int">0</games_entryID>
                             <NamesArray xsi:nil="true" xsi:type="ns2:ArrayOfString"/>
                             <ValuesArray xsi:nil="true" xsi:type="ns2:ArrayOfString"/></ns1:Entity_Entry_Update>
@@ -83,28 +127,27 @@ function handleSocketEvents(io) {
                                     var returnValue = JSON.parse(resultValue)
                     
                                     if (returnValue.ResultCode == 0 && returnValue.ResultMessage == 'OK') {
-                                        obj_player1['games_entryID'] = returnValue.games_entryID;
-                                        obj_player2['games_entryID'] = returnValue.games_entryID;
-                                        obj_player1['prizeUSD'] = returnValue.prizeUSD
-                                        obj_player2['prizeUSD'] = returnValue.prizeUSD
 
-                                        rooms[roomName] = {
-                                            player1: obj_player1,
-                                            player2: obj_player2
-                                        };
+                                        let obj_room = {};
+
+                                        for (let index_obj_player = 0; index_obj_player < Obj_players.length; index_obj_player++) {
+                                            Obj_players[index_obj_player]['games_entryID'] = returnValue.games_entryID;
+                                            Obj_players[index_obj_player]['prizeUSD'] = returnValue.prizeUSD;
+
+                                            obj_room['player'+(index_obj_player + 1)] = Obj_players[index_obj_player];
+                                        }
+
+                                        rooms[roomName] = obj_room;
                     
-                                        player1.join(roomName);
-                                        player2.join(roomName);
-                    
-                                        // Inform clients they joined the room
-                                        player1.emit('joinedRoom', roomName);
-                                        player2.emit('joinedRoom', roomName);
+                                        for (let index_obj_player = 0; index_obj_player < Obj_players.length; index_obj_player++) {
+                                            players[index_obj_player].join(roomName);
+                                            players[index_obj_player].emit('joinedRoom', roomName);
+                                        }
 
-
-                                        io.to(roomName).emit('startGamebySocket', [obj_player1, obj_player2]);
+                                        io.to(roomName).emit('startGamebySocket', [Obj_players, TOTAL_PLAYERS]);
                                     }
                                     else {
-                                      
+                                      console.log("startGamebySocket", returnValue.ResultMessage);
                                     }
                                   }
                                   else {
@@ -118,7 +161,7 @@ function handleSocketEvents(io) {
                           }
                         });
                     } catch (error) {
-                    console.error('start game:', error.message);
+                        console.error('start game:', error.message);
                     }
                 }
             } else {

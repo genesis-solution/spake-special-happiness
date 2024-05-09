@@ -21,7 +21,7 @@ var FRAMES_NUM_HELP = [null, 16, 17, 22];
 var BUFFER_ANIM_MONITOR = [null, 80, 80, 80];
 
 var PLAYER = 4;
-var ENEMY_SNAKES = [0, 1, 2, 3];
+var ENEMY_SNAKES = [];
 
 var AI_PLAYER = 0;
 var AI_FOODS = 1;
@@ -88,16 +88,9 @@ var MAX_FOODS_INSTANCE = 100;
 
 var FOOD_STATE = [4];
 
-var AI_SNAKES = [{type: ENEMY_SNAKES[0], x: 250, y: 250, time_follow: 0, name: 'John', country: 'Chile', score: 1, die: false},
-    {type: ENEMY_SNAKES[1], x: 2762, y: 250, time_follow: 0, name: 'Edward', country: 'Israel', score: 1, die: false},
-    {type: ENEMY_SNAKES[2], x: 250, y: 1798, time_follow: 0, name: 'Alex', country: 'Chile', score: 1, die: false},
-    {type: ENEMY_SNAKES[3], x: 2762, y: 1798, time_follow: 0, name: 'Miller', country: 'Russia', score: 1, die: false}];
-
 var MS_TIME_SHOW_WIN_PANEL = 1000;
 
 var WAIT_TIME_UPDATE_POS_QUEUE = 30;
-
-var START_QUEUE_SNAKES = [1, 1, 1, 1, 1];
 
 var MS_DECREASE_TIME_EATEN_QUEUE = 250;
 
@@ -159,15 +152,38 @@ var ALLOW_SPEED_UP = true;
 var HERO_START_X = 1511;
 var HERO_START_Y = 1024;
 
-var ME_SNAKE = {type: 4, x: 1511, y: 1024, time_follow: 0, name: 'me', country: 'Israel', score: 1, die: false, TokenId: '', betUsd: 1, entityId: ''};
-
+var ME_SNAKE = {
+    type: 0, 
+    x: 0, y: 0, 
+    time_follow: 0, name: 'me', country: 'Israel', 
+    score: 1, 
+    die: false, 
+    username: '',  
+    CountryName: '', 
+    TokenId: '', 
+    betUsd: 1, 
+    entityId: '', 
+    Status: 0,
+    games_entryID: '',
+    prizeUSD: 0
+};
+var AI_SNAKES = [];
+var TOTAL_PLAYERS = 1;
+var ENEMY_POSITIONS = [
+    { x: 1511, y: 1024 },
+    { x: 500, y: 500 },
+    { x: 2762, y: 500 },
+    { x: 500, y: 1798 },
+    { x: 2762, y: 1798 },
+    { x: 1756, y: 1274 }
+]
 var HERO_ACCELLERATION;
 
 var MAX_HERO_SPEED;
 var ENABLE_FULLSCREEN;
 var ENABLE_CHECK_ORIENTATION;
 
-var MAX_TIMER = 6000;
+var MAX_TIMER = 600000;
 var START_DATE;
 
 /*!
@@ -247,7 +263,83 @@ function Draw() {
   
     return results;
 }
+var shareTitle = 'Highscore on Play Checkers is [SCORE]';//social share score title
+var shareMessage = 'I just won $[SCORE] on player1.win, Let’s play Connect Four with real money bets! Are you in? Join now.'; //social share score message
 
+function gtag(){dataLayer.push(arguments);}
 
+function share(action){
+	gtag('event','click',{'event_category':'share','event_label':action});
+	window.dataLayer = window.dataLayer || [];
+
+	var loc = 'https://www.player1.win/games/3/snakes'//location.href
+
+	var curr_loc = location.href
+	curr_loc = curr_loc.substring(0, curr_loc.lastIndexOf("/") + 1);
+	
+	var title = '';
+	var text = '';
+
+	var prizeUSD = 0;
+
+	if (ME_SNAKE.betUsd != null && parseInt(ME_SNAKE.betUsd) > 0)
+	{
+		prizeUSD = parseInt(ME_SNAKE.betUsd);
+	}
+	
+	title = shareTitle.replace("[SCORE]", prizeUSD);
+	text = shareMessage.replace("[SCORE]", prizeUSD);
+	
+	var shareurl = '';
+	
+	if( action == 'tiktok' ) {
+		shareurl = 'https://www.tiktok.com/@exampleuser/video/1234567890123456789?text=' + encodeURIComponent(text) + " " + encodeURIComponent(loc);
+	}else if( action == 'facebook' ){
+		shareurl = 'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(curr_loc+'share?desc='+text+'&title='+title+'&url='+loc+'&thumb='+loc+'share.jpg&width=590&height=300');
+	}else if( action == 'google' ){
+		shareurl = 'https://plus.google.com/share?url='+loc;
+	}else if( action == 'whatsapp' ) {
+		shareurl = "whatsapp://send?text=" + encodeURIComponent(text) + " " + encodeURIComponent(loc);
+	}
+	
+	window.open(shareurl);
+}
+
+var ROOMNAME;
+let socket;
+function createSocket() {
+    socket = io();
+
+    socket.on('joinedRoom', (roomName) => {
+		ROOMNAME = roomName
+	});
+}
+
+function joinGame(isBot) {
+    if (socket != null && ME_SNAKE.username != '')
+	{
+        socket.emit('joinGame', {playerName: ME_SNAKE.username, player: ME_SNAKE, isBot: isBot});
+    }
+}
+
+function redirectToWithAuth(url, authToken, noError) {
+    var form = document.createElement('form');
+    form.method = 'GET';
+    form.action = url;
+
+    var headerInput = document.createElement('input');
+    headerInput.type = 'hidden';
+
+    if (noError == 1)
+    {
+        headerInput.name = 't';
+    } else {
+        headerInput.name = 'e';
+    }
+    headerInput.value = authToken; 
+    form.appendChild(headerInput);
+    document.body.appendChild(form);
+    form.submit();
+}
 
 

@@ -59,7 +59,7 @@ function CGame(oData) {
 
         this.createPlayerSnake();
 
-        _iScore = _iBestScore = START_QUEUE_SNAKES[PLAYER];
+        _iScore = _iBestScore = 1;
 
         this.resetCameraOnPlayer();
 
@@ -90,6 +90,12 @@ function CGame(oData) {
         createjs.Tween.get(_oFade).to({alpha: 0}, MS_FADE_TIME, createjs.Ease.cubicOut).call(function () {
             _oFade.visible = false;
         });
+
+        let display_users = [];
+        display_users = [ME_SNAKE];
+        display_users = display_users.concat(AI_SNAKES);
+
+        _oInterface.dispPlayers(display_users);
     };
 
     this.resetCameraOnPlayer = function () {
@@ -114,12 +120,6 @@ function CGame(oData) {
     };
 
     this.createPlayerSnake = function () {
-        // var iType = PLAYER;
-        // var oSpritePlayer = s_oSpriteLibrary.getSprite('snake_head_' + iType);
-        // _oPlayerSnake = new CSnake(HERO_START_X, HERO_START_Y, oSpritePlayer, iType, START_QUEUE_SNAKES[iType], null, s_oScrollStage);
-        // _aSnakes.push(_oPlayerSnake);
-
-
         var iType = ME_SNAKE.type;
         var oSpritePlayer = s_oSpriteLibrary.getSprite('snake_head_' + iType);
         _oPlayerSnake = new CSnake(ME_SNAKE.x, ME_SNAKE.y, oSpritePlayer, iType, ME_SNAKE.score, null, s_oScrollStage);
@@ -670,7 +670,7 @@ function CGame(oData) {
             }
             else {
                 $(s_oMain).trigger("end_session");
-                _oInterface.toggleResultContainer(true, 'win');
+                _oInterface.toggleResultContainer(true, 'win'); // win or fail
             }
         }
     };
@@ -700,11 +700,6 @@ function CGame(oData) {
     SNAKES_AI_SPEED = oData.snakes_AI_speed;
 
     if (oData != null && oData.data != null && oData.data != undefined) {
-        ME_SNAKE.name = oData.data.username;
-        ME_SNAKE.country = oData.data.CountryName;
-        ME_SNAKE.TokenId = oData.data.TokenId;
-        ME_SNAKE.betUsd = oData.data.betUsd;
-        ME_SNAKE.entityId = oData.data.entityId;
         this._init();
     }
     
