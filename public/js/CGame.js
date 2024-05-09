@@ -53,6 +53,11 @@ function CGame(oData) {
 
         _oFoods = new CManageFoods(s_oScrollStage);
 
+        if (PLAYER == 0)
+        {
+            _oFoods.createRandomFoods();
+        }
+
         _oAiSnakes = new CControlAiSnakes();
 
         _iPlayerSpeed = HERO_SPEED;
@@ -131,13 +136,66 @@ function CGame(oData) {
 
                             AI_SNAKES[indexAISnakes].x = moveData.pos.x;
                             AI_SNAKES[indexAISnakes].y = moveData.pos.y;
-
                         }
+                    }
+
+                    var isExistingOpponent = true;
+
+                    for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
+                        if (false == AI_SNAKES[index_ai].die) {
+                            isExistingOpponent = false;
+                            break;
+                        }
+                    }
+
+                    if (isExistingOpponent == true) {
+                        var isWin = true;
+                        for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
+                            if (_iScore <= AI_SNAKES[index_ai].score) {
+                                isWin = false;
+                                break;
+                            }
+                        }
+                        if (isWin == true)
+                            this.submitResult();
                     }
                 }
             });
+
+            this.shareFoods();
+
+            socket.on('total_foods', (foods) => {
+                if (foods.player != PLAYER) {
+                    _oFoods.setManageFoods(foods.data);
+                    _oFoods.update();
+                }
+            })
+
         }
     };
+
+    this.shareFoods = function () {
+        if (PLAYER == 0)
+        {
+            var attrFoods = [];
+            var totalFoods = _oFoods.getFoods();
+
+            for (let index_food = 0; index_food < totalFoods.length; index_food++) {
+
+                attrFoods.push(
+                    {
+                        type: totalFoods[index_food].getType(),
+                        section: totalFoods[index_food].getSectionID(),
+                        state: totalFoods[index_food].getState(),
+                        pos: totalFoods[index_food].getPos()
+                    }
+                );
+            }
+
+            if (socket != null)
+            socket.emit('total_foods', {data: attrFoods, player: PLAYER});
+        }
+    }
 
     this.resetCameraOnPlayer = function () {
         s_oScrollStage.x += _oPlayerSnake.getDir().getX() * HERO_SPEED + (PLAYER_CAMERA_OFFSET.x - _oPlayerSnake.getLocalPos().x);
@@ -697,10 +755,11 @@ function CGame(oData) {
             _oPlayerSnake.update(_iPlayerSpeed);
 
             this.scrollStage(_oPlayerSnake, _iPlayerSpeed);
+            
             _oFoods.update();
+
             this.manageCollision();
             _oAiSnakes.update();
-
 
             var currentDate = new Date();
             if (START_DATE == null || START_DATE == '') {
@@ -717,8 +776,6 @@ function CGame(oData) {
                     var last_elapsedTime = Math.floor((currentDate.getTime() - LAST_UPDATE_TIME.getTime()));
                     if (last_elapsedTime > MAX_SOCKET_ELAPS) {
                         LAST_UPDATE_TIME = new Date();
-
-                        
                     }
 
                     var curr_type = _oPlayerSnake.getType(); 
@@ -745,11 +802,41 @@ function CGame(oData) {
                 }
             }
             else {
-                $(s_oMain).trigger("end_session");
-                _oInterface.toggleResultContainer(true, 'win'); // win or fail
+                this.submitResult();
+            }
+
+            if (_oPlayerSnake.getEaten()) {
+
+                for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
+                    if (_iScore < AI_SNAKES[index_ai].score) {
+                        this.submitResult();
+                        break;
+                    }
+                }
+
             }
         }
     };
+
+    this.submitResult = function () {
+        _oInterface.dispPlayers([]);
+        var result = 'win';
+        for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
+            if (_iScore <= AI_SNAKES[index_ai].score) {
+                result = 'fail';
+                break;
+            }
+        }
+        
+        if (result == 'win') {
+
+        } else {
+
+        }
+
+        $(s_oMain).trigger("end_session");
+        _oInterface.toggleResultContainer(true, result); // win or fail
+    }
 
     this.update = function () {
         switch (_iGameState) {

@@ -183,8 +183,19 @@ function handleSocketEvents(io) {
                         io.to(roomName).emit('opponentMove', moveData);
                     }
                 }
-            } else {
-                console.log("room not found");
+            }
+        });
+
+        // Handle player moves
+        socket.on('total_foods', (attrFoods) => {
+            const roomName1 = findRoomBySocketId(socket.id);
+            if (roomName1) {
+                for (const roomName in rooms) {
+                    if (rooms.hasOwnProperty(roomName)) {
+                        const room = rooms[roomName];
+                        io.to(roomName).emit('total_foods', attrFoods);
+                    }
+                }
             }
         });
 
