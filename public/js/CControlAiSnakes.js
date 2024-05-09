@@ -41,9 +41,7 @@ function CControlAiSnakes() {
             }
         } else if (oInfo.result === AI_PLAYER && !s_oGame.getPlayerSnake().getEaten()) {
             console.log(oInfo.vect.getY(), oInfo.vect.getX())
-            if (oSnake.isBot == true) {
-                this.setDirectionSnake(oSnake, oInfo, AI_PLAYER);
-            }
+            this.setDirectionSnake(oSnake, oInfo, AI_PLAYER);
             oSnake.subAI.followTime();
             oSnake.subAI.playSoundFollow();
         } else {

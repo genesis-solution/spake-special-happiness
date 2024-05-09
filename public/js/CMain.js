@@ -228,7 +228,7 @@ function CMain(oData) {
                                     betUsd: players[index].betUsd, 
                                     entityId: players[index].entityId, 
                                     Status: players[index].Status,
-                                    isBot: true
+                                    isBot: players[index].isBot
                                 }
                             )
                             ENEMY_SNAKES.push(index);

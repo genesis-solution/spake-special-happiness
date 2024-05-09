@@ -96,6 +96,47 @@ function CGame(oData) {
         display_users = display_users.concat(AI_SNAKES);
 
         _oInterface.dispPlayers(display_users);
+
+        if (socket != null) {
+            socket.on('opponentMove', (moveData) => {
+                if (moveData.type != _oPlayerSnake.getType())
+                {
+
+                    var indexAISnakes = -1;
+                    for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
+                        if (moveData.type == AI_SNAKES[index_ai].type) {
+                            indexAISnakes = index_ai;
+                        }
+                    }
+
+                    for (let index_enemysnake = 0; index_enemysnake < _aSnakes.length; index_enemysnake++) {
+                        if (moveData.type == _aSnakes[index_enemysnake].getType()) {
+                            _aSnakes[index_enemysnake].setPosition(moveData.pos.x, moveData.pos.y);
+                            _aSnakes[index_enemysnake].rotate(moveData.rotValue);
+                            _aSnakes[index_enemysnake].update(moveData.speed);
+
+                            if (AI_SNAKES[indexAISnakes].score < moveData.score || moveData.die == true) {
+                                for (let index_score = 0; index_score < (moveData.score - AI_SNAKES[indexAISnakes].score); index_score++) {
+                                    _aSnakes[index_enemysnake].setQueue(moveData.queue, moveData.rotValue);
+                                }
+                                
+                                AI_SNAKES[indexAISnakes].score = moveData.score;
+
+                                if (moveData.die == true) {
+                                    AI_SNAKES[indexAISnakes].die = moveData.die;
+                                    _aSnakes[index_enemysnake].die();
+                                }
+
+                            }
+
+                            AI_SNAKES[indexAISnakes].x = moveData.pos.x;
+                            AI_SNAKES[indexAISnakes].y = moveData.pos.y;
+
+                        }
+                    }
+                }
+            });
+        }
     };
 
     this.resetCameraOnPlayer = function () {
@@ -122,7 +163,7 @@ function CGame(oData) {
     this.createPlayerSnake = function () {
         var iType = ME_SNAKE.type;
         var oSpritePlayer = s_oSpriteLibrary.getSprite('snake_head_' + iType);
-        _oPlayerSnake = new CSnake(ME_SNAKE.x, ME_SNAKE.y, oSpritePlayer, iType, ME_SNAKE.score, null, s_oScrollStage);
+        _oPlayerSnake = new CSnake(ME_SNAKE.x, ME_SNAKE.y, oSpritePlayer, iType, ME_SNAKE.score, iType, s_oScrollStage);
         _aSnakes.push(_oPlayerSnake);
     };
 
@@ -131,11 +172,12 @@ function CGame(oData) {
         for (var i = 0; i < AI_SNAKES.length; i++) {
             var iType = AI_SNAKES[i].type;
             var oSpriteSnake1 = s_oSpriteLibrary.getSprite('snake_head_' + iType);
-            var oEnemySnake = new CSnake(AI_SNAKES[i].x, AI_SNAKES[i].y, oSpriteSnake1, iType, AI_SNAKES[i].score, iID, s_oScrollStage);
+            var oEnemySnake = new CSnake(AI_SNAKES[i].x, AI_SNAKES[i].y, oSpriteSnake1, iType, AI_SNAKES[i].score, iType, s_oScrollStage);
             _aEnemySnakes.push(oEnemySnake);
             _aSnakes.push(oEnemySnake);
 
-            _oAiSnakes.addSnakeToAI(oEnemySnake);
+            if (AI_SNAKES[i].isBot == true && ME_SNAKE.type == 0) // only one player can run the AI bots
+                _oAiSnakes.addSnakeToAI(oEnemySnake);
             iID++;
         }
     };
@@ -658,6 +700,8 @@ function CGame(oData) {
             _oFoods.update();
             this.manageCollision();
             _oAiSnakes.update();
+
+
             var currentDate = new Date();
             if (START_DATE == null || START_DATE == '') {
                 START_DATE = new Date();
@@ -667,6 +711,38 @@ function CGame(oData) {
             if (Math.floor(MAX_TIMER - elapsedTime) > 0)
             {
                 _oInterface.displayTimer(Math.floor(MAX_TIMER - elapsedTime));
+
+                if (LAST_UPDATE_TIME != null)
+                {
+                    var last_elapsedTime = Math.floor((currentDate.getTime() - LAST_UPDATE_TIME.getTime()));
+                    if (last_elapsedTime > MAX_SOCKET_ELAPS) {
+                        LAST_UPDATE_TIME = new Date();
+
+                        
+                    }
+
+                    var curr_type = _oPlayerSnake.getType(); 
+                    // console.log("curr_type", curr_type)
+                    var curr_queue = _oPlayerSnake.getQueue();
+                    // console.log("curr_queue", curr_queue)
+                    var curr_pos = _oPlayerSnake.getPos();
+                    // console.log("curr_pos", curr_pos)
+                    var curr_die = _oPlayerSnake.getEaten();
+                    // console.log("curr_die", curr_die)
+                    var curr_rotate = _oPlayerSnake.getRotate();
+
+                    if (socket != null) {
+                        socket.emit('move', {
+                            type: curr_type,
+                            queue: curr_queue[curr_queue.length - 1].getPos(),
+                            pos: curr_pos,
+                            die: curr_die,
+                            score: _iScore,
+                            rotValue: curr_rotate,
+                            speed: _iPlayerSpeed
+                        })
+                    }
+                }
             }
             else {
                 $(s_oMain).trigger("end_session");

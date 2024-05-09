@@ -68,6 +68,7 @@ function handleSocketEvents(io) {
                     for (let index_obj_player = 0; index_obj_player < Obj_players.length; index_obj_player++) {
                         Obj_players[index_obj_player]['games_entryID'] = 111;
                         Obj_players[index_obj_player]['prizeUSD'] = 1;
+                        Obj_players[index_obj_player]['isBot'] = true;
 
                         obj_room['player'+(index_obj_player + 1)] = Obj_players[index_obj_player];
                     }
@@ -179,8 +180,7 @@ function handleSocketEvents(io) {
                 for (const roomName in rooms) {
                     if (rooms.hasOwnProperty(roomName)) {
                         const room = rooms[roomName];
-                        io.to(room.player2.id).emit('opponentMove', moveData);
-                        io.to(room.player1.id).emit('opponentMove', moveData);
+                        io.to(roomName).emit('opponentMove', moveData);
                     }
                 }
             } else {

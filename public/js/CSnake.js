@@ -150,6 +150,23 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
         _oSnake.gotoAndStop(szState);
     };
 
+    // Created by Sup man
+    this.setQueue = function(lastQueue, rotV) {
+        var oQueue = new CSingleQueue(lastQueue.x, lastQueue.y, rotV, iType, _oContainer);
+        if (_aQueue.length > 0) {
+            var iLast = _aQueue.length - 1;
+            _aQueue[iLast].changeState("body");
+            _aQueue[iLast].setRegY(_aQueue[iLast].getRegY() - REG_Y_OFFSET_QUEUE);
+//            _aQueue[iLast].setScale(0);
+//            _aQueue[iLast].spawnAnim();
+            _oContainer.swapChildren(_oSnake, oQueue.getObj());
+            //  _oContainer.swapChildren(oQueue.getObj(), _aQueue[_aQueue.length - 1].getObj());
+            _oContainer.setChildIndex(oQueue.getObj(), 1);
+        }
+        oQueue.stopTimeline(0);
+        _aQueue.push(oQueue);
+    }
+
     this.createAQueque = function (iX, iY) {
         var oQueue = new CSingleQueue(iX, iY, _oSnake.rotation, iType, _oContainer);
         if (_aQueue.length > 0) {
@@ -244,7 +261,8 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
 
        var oScope = this;
        createjs.Tween.get(_oSnake).wait(750).to({scaleX: 0, scaleY: 0}, 1000).call(function () {
-           oScope.unload();
+       //    oScope.unload();
+
         //    if (oFunc !== "undefined") {
         //        oFunc(_iID);
         //    }
@@ -312,6 +330,10 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
     this.getY = function () {
         return _oSnake.y;
     };
+
+    this.getRotate = function() {
+        return _oSnake.rotation;
+    }
 
     this.getSprite = function () {
         return _oSnake;

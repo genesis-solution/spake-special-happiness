@@ -169,14 +169,24 @@ var ME_SNAKE = {
 };
 var AI_SNAKES = [];
 var TOTAL_PLAYERS = 1;
+// var ENEMY_POSITIONS = [
+//     { x: 1511, y: 1024 },
+//     { x: 500, y: 500 },
+//     { x: 2762, y: 500 },
+//     { x: 500, y: 1798 },
+//     { x: 2762, y: 1798 },
+//     { x: 1756, y: 1274 }
+// ]
+
 var ENEMY_POSITIONS = [
-    { x: 1511, y: 1024 },
-    { x: 500, y: 500 },
-    { x: 2762, y: 500 },
-    { x: 500, y: 1798 },
-    { x: 2762, y: 1798 },
-    { x: 1756, y: 1274 }
+    { x: 394, y: 1024 },
+    { x: 788, y: 1024 },
+    { x: 1182, y: 1024 },
+    { x: 1576, y: 1024 },
+    { x: 1970, y: 1024 },
+    { x: 2364, y: 1024 }
 ]
+
 var HERO_ACCELLERATION;
 
 var MAX_HERO_SPEED;
@@ -185,6 +195,8 @@ var ENABLE_CHECK_ORIENTATION;
 
 var MAX_TIMER = 600000;
 var START_DATE;
+var LAST_UPDATE_TIME = new Date();
+var MAX_SOCKET_ELAPS = 1000;
 
 /*!
  * 
