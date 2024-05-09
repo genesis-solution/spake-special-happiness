@@ -63,7 +63,14 @@ function CSubAISnake(oSnake, iTimeFollow) {
             } else {
                 _bIgnorePlayer = false;
                 _iTimeIgnore = AI_TIME_IGNORE_PLAYER;
-                _iTimeFollow = AI_SNAKES[_oSnake.getType()].time_follow;
+
+                var selected_snake = {};
+                for (var i = 0; i < AI_SNAKES.length; i++) {
+                    if (_oSnake.getType() == AI_SNAKES[i].type) {
+                        selected_snake = AI_SNAKES[i];
+                    }
+                }
+                _iTimeFollow = selected_snake.time_follow;
 
             }
         }
@@ -74,8 +81,11 @@ function CSubAISnake(oSnake, iTimeFollow) {
     };
 
     this.update = function () {
-        this.setRandomDirection();
-        this.ignorePlayerTime();
+        if (_oSnake.isBot != null && _oSnake.isBot == true)
+        {
+            this.setRandomDirection();
+            this.ignorePlayerTime();
+        }
     };
 
     this._init();

@@ -155,11 +155,6 @@ function CMenu() {
                     spread: 180,
                     startVelocity: 80,
                     origin: { x: 0.5, y: 1 }
-                    // origin: {
-                    //     x: Math.random(),
-                    //     // since they fall down, start a bit higher than random
-                    //     y: Math.random() - 0.2
-                    // }
                 });
     
                 if (Date.now() > _endTime) {

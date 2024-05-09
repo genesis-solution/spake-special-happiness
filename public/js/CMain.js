@@ -188,11 +188,82 @@ function CMain(oData) {
     this.gotoMenu = function () {
         _oMenu = new CMenu();
         _iState = STATE_MENU;
+
+        if (socket == null) {
+
+            createSocket();
+
+            socket.on('startGamebySocket', (_players, TOTAL_PLAYER_COUNT) => {
+                var players = _players[0];
+
+                if (players != null && players.length > 0) {
+                    TOTAL_PLAYERS = TOTAL_PLAYER_COUNT
+
+                    ENEMY_SNAKES = [];
+                    AI_SNAKES = [];
+                    for (let index = 0; index < players.length; index++) {
+                        
+                        if (players[index].entityId == ME_SNAKE.entityId) {
+                            PLAYER = index;
+                            ME_SNAKE.type = index;
+                            ME_SNAKE.isBot = false;
+                            ME_SNAKE.games_entryID = players[index].games_entryID;
+                            ME_SNAKE.prizeUSD = players[index].prizeUSD;
+                        }
+                        else {
+                            
+                            AI_SNAKES.push(
+                                { 
+                                    type: index, 
+                                    x: ENEMY_POSITIONS[index].x, y: ENEMY_POSITIONS[index].y, 
+                                    time_follow: 1, 
+                                    name: players[index].username, 
+                                    country: players[index].CountryName, 
+                                    score: 1, die: false, 
+                                    username: players[index].username,  
+                                    CountryName: players[index].CountryName, 
+                                    TokenId: players[index].TokenId, 
+                                    betUsd: players[index].betUsd, 
+                                    entityId: players[index].entityId, 
+                                    Status: players[index].Status,
+                                    isBot: true
+                                }
+                            )
+                            ENEMY_SNAKES.push(index);
+                        }
+                    }
+                    
+                    _oMenu._onButPlayRelease();
+                }
+
+            });
+        
+            socket.on('nameTaken', () => {
+                if (socket != null) {
+                    socket.emit('giveup', ME_SNAKE.entityId);
+                }
+                console.log("You are already playing");
+                redirectToWithAuth('/login', "You are already playing", "");
+            });
+
+        }
+
+        if (_oData != null && _oData.data != null && _oData.data != undefined) {
+            ME_SNAKE.name = _oData.data.username;
+            ME_SNAKE.username = _oData.data.username;
+            ME_SNAKE.country = _oData.data.CountryName;
+            ME_SNAKE.CountryName = _oData.data.CountryName;
+            ME_SNAKE.TokenId = _oData.data.TokenId;
+            ME_SNAKE.betUsd = _oData.data.betUsd;
+            ME_SNAKE.entityId = _oData.data.entityId;
+            ME_SNAKE.Status = _oData.data.Status;
+
+            joinGame(0);
+        }
     };
 
     this.gotoGame = function () {
         _oGame = new CGame(_oData);
-
         _iState = STATE_GAME;
     };
 

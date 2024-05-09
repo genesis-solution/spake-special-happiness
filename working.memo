@@ -17,19 +17,6 @@ this._spawnRandomFoods = function // CManageFoods.js
 
 var aSnakes = s_oGame.getSnakesArray();
 
-- Bot
-
-var AI_SNAKES = [{type: ENEMY_SNAKES[0], x: 250, y: 250, time_follow: 0},
-    {type: ENEMY_SNAKES[1], x: 2762, y: 250, time_follow: 0},
-    {type: ENEMY_SNAKES[2], x: 250, y: 1798, time_follow: 0},
-    {type: ENEMY_SNAKES[3], x: 2762, y: 1798, time_follow: 0}];
-
-- Queue Length
-
-var START_QUEUE_SNAKES = [1, 1, 1, 1, 1];
-
-
-
 - Collision
 
 snakesHeadQueueCollision // CGame.js

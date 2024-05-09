@@ -205,27 +205,6 @@
             } catch (error) {
                 redirectToWithAuth('https://www.player1.win/games/3/snakes', 'Token not found', 0);
             }
-
-
-            function redirectToWithAuth(url, authToken, noError) {
-                var form = document.createElement('form');
-                form.method = 'GET';
-                form.action = url;
-
-                var headerInput = document.createElement('input');
-                headerInput.type = 'hidden';
-
-                if (noError == 1)
-                {
-                headerInput.name = 't';
-                } else {
-                headerInput.name = 'e';
-                }
-                headerInput.value = authToken; 
-                form.appendChild(headerInput);
-                document.body.appendChild(form);
-                form.submit();
-            }
         </script>
     </body>
 </html>
