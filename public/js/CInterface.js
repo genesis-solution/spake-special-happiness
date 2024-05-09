@@ -351,7 +351,7 @@ function CInterface() {
     };
 
     // Added by Sup man
-    this.dispPlayers = function (players) {
+    this.dispPlayers = function(players) {
         _userListContainer.removeAllChildren();
         var userListTitle = new createjs.Text("Players:", "32px " + FONT_GAME, "#ffffff");
         _userListContainer.addChild(userListTitle);

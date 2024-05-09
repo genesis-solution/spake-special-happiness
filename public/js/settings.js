@@ -152,8 +152,9 @@ var ALLOW_SPEED_UP = true;
 var HERO_START_X = 1511;
 var HERO_START_Y = 1024;
 
-var ME_SNAKE = {type: 0, 
-    x: 1511, y: 1024, 
+var ME_SNAKE = {
+    type: 0, 
+    x: 0, y: 0, 
     time_follow: 0, name: 'me', country: 'Israel', 
     score: 1, 
     die: false, 
@@ -169,9 +170,10 @@ var ME_SNAKE = {type: 0,
 var AI_SNAKES = [];
 var TOTAL_PLAYERS = 1;
 var ENEMY_POSITIONS = [
-    { x: 250, y: 250 },
-    { x: 2762, y: 250 },
-    { x: 250, y: 1798 },
+    { x: 1511, y: 1024 },
+    { x: 500, y: 500 },
+    { x: 2762, y: 500 },
+    { x: 500, y: 1798 },
     { x: 2762, y: 1798 },
     { x: 1756, y: 1274 }
 ]

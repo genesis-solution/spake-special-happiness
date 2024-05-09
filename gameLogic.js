@@ -62,7 +62,28 @@ function handleSocketEvents(io) {
                         Token_IDs = Token_IDs + `<item xsi:type="xsd:string">`+players[index_player].TokenId+`</item>`;
                     }
 
-                    if (Token_IDs != '')
+
+                    //// For test
+                    let obj_room = {}
+                    for (let index_obj_player = 0; index_obj_player < Obj_players.length; index_obj_player++) {
+                        Obj_players[index_obj_player]['games_entryID'] = 111;
+                        Obj_players[index_obj_player]['prizeUSD'] = 1;
+
+                        obj_room['player'+(index_obj_player + 1)] = Obj_players[index_obj_player];
+                    }
+
+                    rooms[roomName] = obj_room;
+
+                    for (let index_obj_player = 0; index_obj_player < Obj_players.length; index_obj_player++) {
+                        players[index_obj_player].join(roomName);
+                        players[index_obj_player].emit('joinedRoom', roomName);
+                    }
+
+                    io.to(roomName).emit('startGamebySocket', [Obj_players, TOTAL_PLAYERS]);
+
+                    /// end for test
+
+                    if (false && Token_IDs != '')
                     try {
                         const url = server_url;
                         const func_name = "Entity_Entry_Update";
@@ -140,7 +161,7 @@ function handleSocketEvents(io) {
                           }
                         });
                     } catch (error) {
-                    console.error('start game:', error.message);
+                        console.error('start game:', error.message);
                     }
                 }
             } else {

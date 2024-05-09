@@ -209,6 +209,8 @@ function CMain(oData) {
                             ME_SNAKE.isBot = false;
                             ME_SNAKE.games_entryID = players[index].games_entryID;
                             ME_SNAKE.prizeUSD = players[index].prizeUSD;
+                            ME_SNAKE.x = ENEMY_POSITIONS[index].x;
+                            ME_SNAKE.y = ENEMY_POSITIONS[index].y;
                         }
                         else {
                             
