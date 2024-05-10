@@ -146,8 +146,8 @@ function CMenu() {
     this.update = function () {
         _oAnimMenu.update();
 
-        if (_endTime != null) {
-            (function frame(onButPlayRelease) {
+        if (_endTime != null && s_oMain.getGameState() != STATE_GAME) {
+            (function frame(onJoinGameForBot, OWNER, _STATE_GAME) {
                 // launch a few confetti from the left edge
                 confetti({
                     particleCount: 3,
@@ -157,10 +157,36 @@ function CMenu() {
                     origin: { x: 0.5, y: 1 }
                 });
     
-                if (Date.now() > _endTime) {
-                    onButPlayRelease();
+                if (Date.now() > _endTime && OWNER == 0) {
+
+                    $.ajax({
+                        url: '/bot/info',
+                        type: 'GET',
+                        data: {
+                                't': localStorage.getItem('t'),
+                                'gameID': 3,
+                                betUsd: ME_SNAKE.betUsd
+                            },
+                        success: function(response) {
+                            onJoinGameForBot(response, 1);
+                        },
+                        error: function(xhr, status, error) {
+                            // Handle errors
+                            
+                            if (socket != null) {
+                                socket.disconnect();
+                            }
+                            if (xhr.status === 400) {
+                                redirectToWithAuth('https://www.player1.win/games/3/snakes', 'Token invalid', 0);
+                            } else {
+                                console.error('Error:', error);
+                                redirectToWithAuth('https://www.player1.win/games/3/snakes', 'Not found Bot', 0);
+                            }
+                        }
+                    });   
+                    
                 }
-            }(this._onButPlayRelease));
+            }(joinGameForBot, PLAYER, STATE_GAME));
         }
     };
 

@@ -65,9 +65,11 @@ function CAreYouSurePanel(oParentContainer) {
     };
 
     this._onButYes = function () {
+        if (socket != null) {
+            socket.emit('giveup', ME_SNAKE.entityId);
+        }
         this.unload();
-        s_oGame.onExit();
-        _oFade.removeAllEventListeners();
+        // _oFade.removeAllEventListeners();
     };
 
     this._onButNo = function () {

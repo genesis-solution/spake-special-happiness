@@ -254,7 +254,7 @@ function CInterface() {
                 if (winStatus == 'win') {
                     textTitle = "You won!!!!";
                     textMessage = "Congratulations, you won:"
-                    resultPriceTxt.text = "$" + ME_SNAKE.betUsd;
+                    resultPriceTxt.text = "$" + ME_SNAKE.prizeUSD;
                     resultTitleTxt.font = "60px " + FONT_GAME;
 
                     particles = [];
@@ -265,6 +265,10 @@ function CInterface() {
                 }
                 else {
                     textTitle = "The outcome of this game favors the opponent.\n\n 🙁  \n\n"
+
+                    if (winStatus == 'draw') {
+                        textTitle = "Draw!"
+                    }
                     textMessage = "\n\nOne more try,\nyou've got this!";
                     resultTitleTxt.font = "20px " + FONT_GAME;
 
@@ -359,7 +363,9 @@ function CInterface() {
         for (var i = 0; i < players.length; i++) {
             
             var flagImage = new Image();
-            flagImage.src = `https://www.player1.win/assets/images/flags/`+players[i].country+`.png`
+            var flagName = players[i].country.replace(' ', '-');
+            flagName = players[i].country.replace(' ', '-');
+            flagImage.src = `https://www.player1.win/assets/images/flags/`+ flagName +`.png`
 
 			const flagWidth = 36; // Set your desired width here
 			const flagHeight = 27; // Set your desired height here

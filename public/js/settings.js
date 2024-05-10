@@ -20,7 +20,7 @@ var FRAMES_NUM_HELP = [null, 16, 17, 22];
 
 var BUFFER_ANIM_MONITOR = [null, 80, 80, 80];
 
-var PLAYER = 4;
+var PLAYER = 0;
 var ENEMY_SNAKES = [];
 
 var AI_PLAYER = 0;
@@ -165,7 +165,8 @@ var ME_SNAKE = {
     entityId: '', 
     Status: 0,
     games_entryID: '',
-    prizeUSD: 0
+    prizeUSD: 0,
+    isBot: 0
 };
 var AI_SNAKES = [];
 var TOTAL_PLAYERS = 1;
@@ -331,6 +332,13 @@ function joinGame(isBot) {
     if (socket != null && ME_SNAKE.username != '')
 	{
         socket.emit('joinGame', {playerName: ME_SNAKE.username, player: ME_SNAKE, isBot: isBot});
+    }
+}
+
+function joinGameForBot(data, isBot) {
+    if (socket != null && data.username != '')
+	{
+        socket.emit('joinGameForBot', {playerName: data.username, player: data, isBot: isBot});
     }
 }
 

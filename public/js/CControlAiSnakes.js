@@ -40,7 +40,6 @@ function CControlAiSnakes() {
                 this.setDirectionSnake(oSnake, oInfo.foods[iID], AI_FOODS);
             }
         } else if (oInfo.result === AI_PLAYER && !s_oGame.getPlayerSnake().getEaten()) {
-            console.log(oInfo.vect.getY(), oInfo.vect.getX())
             this.setDirectionSnake(oSnake, oInfo, AI_PLAYER);
             oSnake.subAI.followTime();
             oSnake.subAI.playSoundFollow();

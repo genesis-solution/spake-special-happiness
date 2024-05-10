@@ -1,5 +1,5 @@
 const { queryDatabase } = require('../config/database');
-const { secretKey, server_url, GAMEID} = require('../config/config');
+const { secretKey, server_url, GAMEID, TOTAL_PLAYERS} = require('../config/config');
 const jwt = require('jsonwebtoken');
 const request = require('request');
 const xml2js = require('xml2js');
@@ -136,17 +136,17 @@ async function generateJWTtoken(req, res) {
 
 async function result(req, res) {
 
-    var { score, user, opponentScore, oppenent, room, winner } = req.body;
+    var { user, oppenents , winner, result_status} = req.body;
 
     try {
       const url = server_url;
 
-      if (winner != '')
+      if (result_status != 'draw')
       {
         let func_name = "Entity_Entry_Log";
         let game_result = 2;
 
-        if (user.entityId == winner) game_result = 2;
+        if (result_status == 'win') game_result = 2;
         else game_result = 3;
 
         var soapOptions = {
@@ -170,108 +170,84 @@ async function result(req, res) {
         
         request(soapOptions, function(_err, _resp) {
           if (_err == null) {
-              if (opponentScore.entityId == winner) game_result = 2;
-              else game_result = 3;
 
-              var soapOptions3 = {
-                uri: url,
-                headers: {
-                    'Content-Type': 'text/xml; charset=utf-8',
-                    'Connection': 'keep-alive'
-                },
-                method: 'POST',
-                body: `
-                  <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:ns1="urn:Player1.Intf-IPlayer1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2003/05/soap-encoding">
+            var strTokens = `<item xsi:type="xsd:string">`+user.TokenId+`</item>`;
+            for (let index_opponent = 0; index_opponent < oppenents.length; index_opponent++) {
+              strTokens = strTokens + `<item xsi:type="xsd:string">`+oppenents[index_opponent].TokenId+`</item>`
+            }
+
+            func_name = 'Entity_Entry_Update';
+            var soapOptions0 = {
+              uri: url,
+              headers: {
+                  'Content-Type': 'text/xml; charset=utf-8',
+                  'Connection': 'keep-alive'
+              },
+              method: 'POST',
+              body: `
+                  <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:ns1="urn:Player1.Intf-IPlayer1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:enc="http://www.w3.org/2003/05/soap-encoding" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns2="urn:CommonWSTypes">
                   <env:Body>
                   <ns1:`+func_name+` env:encodingStyle="http://www.w3.org/2003/05/soap-encoding">
-                  <tokenID xsi:type="xsd:string">`+opponentScore.TokenId+`</tokenID>
-                  <status xsi:type="xsd:int">`+game_result+`</status>
-                  </ns1:Entity_Entry_Log>
+                  <TokenIds enc:itemType="xsd:string" enc:arraySize="`+TOTAL_PLAYERS+`" xsi:type="ns2:ArrayOfString">
+                  `+strTokens+`
+                  </TokenIds>
+                  <gameID xsi:type="xsd:int">`+GAMEID+`</gameID>
+                  <games_entryID xsi:type="xsd:int">`+user.games_entryID+`</games_entryID>
+                  <NamesArray enc:itemType="xsd:string" enc:arraySize="1" xsi:type="ns2:ArrayOfString">
+                  <item xsi:type="xsd:string">won_EntityId</item>
+                  </NamesArray>
+                  <ValuesArray enc:itemType="xsd:string" enc:arraySize="1" xsi:type="ns2:ArrayOfString">
+                  <item xsi:type="xsd:string">`+winner.entityId+`</item>
+                  </ValuesArray>
+                  </ns1:Entity_Entry_Update>
                   </env:Body>
                   </env:Envelope>
-                    `
-              };
-              
-              request(soapOptions3, function(_err3, _resp3) {
-                if (_err3 == null) {
-                  func_name = "Entity_Entry_Update";
-  
-                    var soapOptions0 = {
-                      uri: url,
-                      headers: {
-                          'Content-Type': 'text/xml; charset=utf-8',
-                          'Connection': 'keep-alive'
-                      },
-                      method: 'POST',
-                      body: `
-                          <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:ns1="urn:Player1.Intf-IPlayer1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:enc="http://www.w3.org/2003/05/soap-encoding" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns2="urn:CommonWSTypes">
-                          <env:Body>
-                          <ns1:`+func_name+` env:encodingStyle="http://www.w3.org/2003/05/soap-encoding">
-                          <TokenIds enc:itemType="xsd:string" enc:arraySize="2" xsi:type="ns2:ArrayOfString">
-                          <item xsi:type="xsd:string">`+user.TokenId+`</item>
-                          <item xsi:type="xsd:string">`+oppenent.TokenId+`</item>
-                          </TokenIds>
-                          <gameID xsi:type="xsd:int">`+GAMEID+`</gameID>
-                          <games_entryID xsi:type="xsd:int">`+user.games_entryID+`</games_entryID>
-                          <NamesArray enc:itemType="xsd:string" enc:arraySize="1" xsi:type="ns2:ArrayOfString">
-                          <item xsi:type="xsd:string">won_EntityId</item>
-                          </NamesArray>
-                          <ValuesArray enc:itemType="xsd:string" enc:arraySize="1" xsi:type="ns2:ArrayOfString">
-                          <item xsi:type="xsd:string">`+winner+`</item>
-                          </ValuesArray>
-                          </ns1:Entity_Entry_Update>
-                          </env:Body>
-                          </env:Envelope>
-                          `
-                    };
-                
-                    
-                    request(soapOptions0, function(r_err, r_resp) {
-                      if (r_err == null) {
-                        if (r_resp.statusCode == 200)
-                        {
-                          xml2js.parseString(r_resp.body, async (err, _result) => {
-                            if (err) {
-                                console.error('Error parsing XML response:', err);
-                                res.status(401).json({ error: 'Invalid credentials' });
-                            } else {
-                              if (_result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'] != undefined && _result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'].length > 0)
-                              {
-                                const resultValue_ = _result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'][0]['return'][0]['_'];
+                  `
+            };
+        
             
-                                try {
-                                  var returnValue = JSON.parse(resultValue_)
-                
-                                  if (returnValue.ResultCode == 0 && returnValue.ResultMessage == 'OK') {
-                                    res.json({success: true, PriseUsd: returnValue.prizeUSD})
-                                  }
-                                  else {
-                                    res.status(401).json({ error: returnValue.ResultMessage });
-                                  }
-                                } catch (error_) {
-                                  res.status(401).json({ error: error_ });
-                                }
-                              }
-                              else {
-                                
-                                res.status(401).json({ error: "Already joined" });
-                              }
-                            }
-                          });
-                        }
-                        else {
-                          res.status(401).json({ error: 'Invalid credentials' });
-                        }
-                      } else {
-                        console.log(r_err)
+            request(soapOptions0, function(r_err, r_resp) {
+              if (r_err == null) {
+                if (r_resp.statusCode == 200)
+                {
+                  xml2js.parseString(r_resp.body, async (err, _result) => {
+                    if (err) {
+                        console.error('Error parsing XML response:', err);
                         res.status(401).json({ error: 'Invalid credentials' });
+                    } else {
+                      if (_result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'] != undefined && _result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'].length > 0)
+                      {
+                        const resultValue_ = _result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'][0]['return'][0]['_'];
+    
+                        try {
+                          var returnValue = JSON.parse(resultValue_)
+        
+                          if (returnValue.ResultCode == 0 && returnValue.ResultMessage == 'OK') {
+                            res.json({success: true, PriseUsd: returnValue.prizeUSD})
+                          }
+                          else {
+                            res.status(400).json({ error: returnValue.ResultMessage });
+                          }
+                        } catch (error_) {
+                          console.log(error_)
+                          res.status(400).json({ error: error_ });
+                        }
                       }
-                    });
-                } else {
-                  console.log(_err)
-                  res.json({ error: 'Invalid credentials' });
+                      else {
+                        console.log("Already joined")
+                        res.status(400).json({ error: "Already joined" });
+                      }
+                    }
+                  });
                 }
-              });
+                else {
+                  res.status(401).json({ error: 'Invalid credentials' });
+                }
+              } else {
+                console.log(r_err)
+                res.status(401).json({ error: 'Invalid credentials' });
+              }
+            });
           }
         });
       } else {
@@ -311,62 +287,9 @@ async function result(req, res) {
                   var userInfo = JSON.parse(resultValue)
 
                   if (userInfo.ResultCode == 0 && userInfo.ResultMessage == 'OK') {
-                    
-                    var soapOptions3 = {
-                      uri: url,
-                      headers: {
-                          'Content-Type': 'text/xml; charset=utf-8',
-                          'Connection': 'keep-alive'
-                      },
-                      method: 'POST',
-                      body: `
-                        <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:ns1="urn:Player1.Intf-IPlayer1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2003/05/soap-encoding">
-                        <env:Body>
-                        <ns1:`+func_name+` env:encodingStyle="http://www.w3.org/2003/05/soap-encoding">
-                        <tokenID xsi:type="xsd:string">`+opponentScore.TokenId+`</tokenID>
-                        <status xsi:type="xsd:int">`+game_result+`</status>
-                        </ns1:Entity_Entry_Log>
-                        </env:Body>
-                        </env:Envelope>
-                          `
-                    };
-                    
-                    request(soapOptions3, function(_err3, _resp3) {
-                      if (_err3 == null) {
-                        if (_resp3.statusCode == 200)
-                        {
-                          xml2js.parseString(_resp3.body, async (err, result) => {
-                            if (err) {
-                                console.error('Error parsing XML response:', err);
-                                res.json({ error: 'Invalid credentials' });
-                            } else {
-                
-                              const resultValue3 = result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'][0]['return'][0]['_'];
-                              var userInfo = JSON.parse(resultValue3)
-                
-                              if (userInfo.ResultCode == 0 && userInfo.ResultMessage == 'OK') {
-                                res.json({
-                                  success: true
-                                })
-                              }
-                              else {
-                                res.json({
-                                  success: false,
-                                  message: userInfo.ResultMessage
-                                })
-                              }
-                            }
-                          });
-                        }
-                        else {
-                          res.json({ error: 'Invalid credentials' });
-                        }
-                      } else {
-                        console.log(_err)
-                        res.json({ error: 'Invalid credentials' });
-                      }
-                    });
-                    
+                    res.json({
+                      success: true
+                    })
                   }
                   else {
                     res.json({

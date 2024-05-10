@@ -81,10 +81,12 @@ function CSubAISnake(oSnake, iTimeFollow) {
     };
 
     this.update = function () {
-        if (_oSnake.isBot != null && _oSnake.isBot == true)
-        {
-            this.setRandomDirection();
-            this.ignorePlayerTime();
+        for (let index = 0; index < AI_SNAKES.length; index++) {
+            if (AI_SNAKES[index].type == _oSnake.getType() && AI_SNAKES[index].isBot == 1) {
+                this.setRandomDirection();
+                this.ignorePlayerTime();
+            }
+            
         }
     };
 

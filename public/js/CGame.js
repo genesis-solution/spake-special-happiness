@@ -151,7 +151,7 @@ function CGame(oData) {
                     if (isExistingOpponent == true) {
                         var isWin = true;
                         for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
-                            if (_iScore <= AI_SNAKES[index_ai].score) {
+                            if (AI_SNAKES[index_ai].isBot == 0 && _iScore <= AI_SNAKES[index_ai].score) {
                                 isWin = false;
                                 break;
                             }
@@ -169,7 +169,48 @@ function CGame(oData) {
                     _oFoods.setManageFoods(foods.data);
                     _oFoods.update();
                 }
-            })
+            });
+
+            socket.on('giveup', (playerName) => {
+                if (playerName == ME_SNAKE.entityId) {
+                    _oPlayerSnake.die();
+
+                    var isWin = true;
+                    for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
+                        if (AI_SNAKES[index_ai].isBot == 0 && _iScore <= AI_SNAKES[index_ai].score) {
+                            isWin = false;
+                            break;
+                        }
+                    }
+                    if (isWin == true)
+                        this.submitResult();
+                }
+            });
+
+            socket.on('playerDisconnected', (roomName) => {
+                console.log(roomName + ' was disconnected!');
+
+                var isExistingOpponent = true;
+
+                for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
+                    if (false == AI_SNAKES[index_ai].die) {
+                        isExistingOpponent = false;
+                        break;
+                    }
+                }
+
+                if (isExistingOpponent == true) {
+                    var isWin = true;
+                    for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
+                        if (AI_SNAKES[index_ai].isBot == 0 && _iScore <= AI_SNAKES[index_ai].score) {
+                            isWin = false;
+                            break;
+                        }
+                    }
+                    if (isWin == true)
+                        this.submitResult();
+                }
+            });
 
         }
     };
@@ -234,8 +275,10 @@ function CGame(oData) {
             _aEnemySnakes.push(oEnemySnake);
             _aSnakes.push(oEnemySnake);
 
-            if (AI_SNAKES[i].isBot == true && ME_SNAKE.type == 0) // only one player can run the AI bots
+            if (AI_SNAKES[i].isBot == 1) // only one player can run the AI bots
+            {
                 _oAiSnakes.addSnakeToAI(oEnemySnake);
+            }
             iID++;
         }
     };
@@ -828,12 +871,59 @@ function CGame(oData) {
             }
         }
         
+        let winnerScore = _iScore;
+        let winner = ME_SNAKE;
         if (result == 'win') {
-
+            winnerScore = _iScore;
         } else {
+            for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
+                if (winnerScore <= AI_SNAKES[index_ai].score) {
+                    winnerScore = AI_SNAKES[index_ai].score;
+                    winner = AI_SNAKES[index_ai];
+                }
+            }
 
+            if (winnerScore == _iScore) {
+                result = 'draw';
+            }
         }
 
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // Get the value of a specific parameter
+        const tokenkey = urlParams.get('t'); // Returns 'value1'
+        localStorage.setItem('t', tokenkey);
+
+        var tokenID = localStorage.getItem("t");
+        if (tokenID != undefined && tokenID != '')
+        {
+            localStorage.removeItem("t");
+
+            console.log({user: ME_SNAKE, oppenents: AI_SNAKES, winner: winner, t: tokenID, result_status: result, t: tokenID, gameID: 3})
+            $.ajax({
+                type: "POST",
+                url: '/result',
+                data: {user: ME_SNAKE, oppenents: AI_SNAKES, winner: winner, t: tokenID, result_status: result, t: tokenID, gameID: 3},
+                success: function (result) {
+
+                    console.log(result);
+                    if (result.success == true) {
+                        if (result.PriseUsd != undefined)
+                        {
+                        } else {
+                        }
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Handle errors
+                    // console.error(xhr.responseText);
+                }
+            });
+        }
+
+        if (socket != null) {
+            socket.emit('disconnect_game', {});
+        }
         $(s_oMain).trigger("end_session");
         _oInterface.toggleResultContainer(true, result); // win or fail
     }
