@@ -4,6 +4,7 @@ function CManageFoods(oParentContainer) {
     var _oParentContainer = oParentContainer;
     var _oContainer;
     var _fTimeSpawnFood = INTERVAL_SPAWN_FOOD;
+    var _generated_food;
 
     this._init = function () {
         _oContainer = new createjs.Container();
@@ -12,11 +13,35 @@ function CManageFoods(oParentContainer) {
 
         _aFoods = new Array();
         _aFoodsOccurrence = new Array();
-
-        this.updateOccurrence();
-
-        this.foodsInSections();
     };
+
+    this.createRandomFoods = function () {
+        this.updateOccurrence();
+        this.foodsInSections();
+    }
+
+    this.setManageFoods = function (foods) {
+        this.updateOccurrence();
+        _aFoods = [];
+
+        var iFoodsForSection = Math.floor(MAX_FOODS_INSTANCE / FIELD_SECTION_SUBDIVISION.tot);
+        var aSections = s_oManageSections.getSections();
+
+        for (let index = 0; index < foods.length; index++) {
+            
+            var oSprite = s_oSpriteLibrary.getSprite("food_" + foods[index].type);
+            var oFood = new CFood(foods[index].pos.x, foods[index].pos.y, 0, foods[index].type, foods[index].section, oSprite, _oContainer);
+            oFood.changeState(foods[index].state);
+            _aFoods.push(oFood);//iXPos, iYPos, iRotation, iType, oSprite, oParentContainer
+            aSections[foods[index].section].addFood(oFood);
+
+            if (SHOW_FOODS_ID) {
+                oFood.createTextID(_aFoods.length);
+            }
+
+        }
+        
+    }
 
     this.foodsInSections = function () {
         var iFoodsForSection = Math.floor(MAX_FOODS_INSTANCE / FIELD_SECTION_SUBDIVISION.tot);
@@ -156,10 +181,12 @@ function CManageFoods(oParentContainer) {
                     aFoods[j].changeState(iState);
                     aFoods[j].spawnAnim(Math.floor(Math.random() * MAXT_TIME_WAIT_FOOD_SPAWN_ANIM));
                     aFoods[j].setVisible(true);
-                    return;
+                    return aFoods;
                 }
             }
         }
+
+        return null;
     };
 
     this.restoresAllEatenFood = function () {
@@ -211,6 +238,10 @@ function CManageFoods(oParentContainer) {
         return _aFoods[iID];
     };
 
+    this.getReneratedFood = function () {
+        return _generated_food;
+    }
+
     this.updateVisibility = function () {
         for (var i = 0; i < _aFoods.length; i++) {
             if (!_aFoods[i].getEaten()) {
@@ -232,7 +263,8 @@ function CManageFoods(oParentContainer) {
             _fTimeSpawnFood -= s_iTimeElaps;
         } else {
             _fTimeSpawnFood = INTERVAL_SPAWN_FOOD;
-            this.restoresEatenFood();
+
+            _generated_food = this.restoresEatenFood();
         }
     };
 

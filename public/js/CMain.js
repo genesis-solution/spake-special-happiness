@@ -206,14 +206,14 @@ function CMain(oData) {
                         if (players[index].entityId == ME_SNAKE.entityId) {
                             PLAYER = index;
                             ME_SNAKE.type = index;
-                            ME_SNAKE.isBot = false;
+                            ME_SNAKE.isBot = 0;
                             ME_SNAKE.games_entryID = players[index].games_entryID;
                             ME_SNAKE.prizeUSD = players[index].prizeUSD;
                             ME_SNAKE.x = ENEMY_POSITIONS[index].x;
                             ME_SNAKE.y = ENEMY_POSITIONS[index].y;
                         }
                         else {
-                            
+
                             AI_SNAKES.push(
                                 { 
                                     type: index, 
@@ -228,7 +228,7 @@ function CMain(oData) {
                                     betUsd: players[index].betUsd, 
                                     entityId: players[index].entityId, 
                                     Status: players[index].Status,
-                                    isBot: true
+                                    isBot: players[index].isBot
                                 }
                             )
                             ENEMY_SNAKES.push(index);
@@ -241,12 +241,15 @@ function CMain(oData) {
             });
         
             socket.on('nameTaken', () => {
-                if (socket != null) {
-                    socket.emit('giveup', ME_SNAKE.entityId);
-                }
-                console.log("You are already playing");
                 redirectToWithAuth('/login', "You are already playing", "");
             });
+
+            socket.on('userPosition', (userPos) => {
+                if (userPos == true)
+                    PLAYER = 0;
+                else
+                    PLAYER = -1;
+            })
 
         }
 
@@ -273,6 +276,10 @@ function CMain(oData) {
         _oHelp = new CHelp();
         _iState = STATE_HELP;
     };
+
+    this.getGameState = function () {
+        return _iState;
+    }
 
     this.stopUpdate = function(){
         _bUpdate = false;

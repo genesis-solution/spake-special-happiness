@@ -20,7 +20,7 @@ var FRAMES_NUM_HELP = [null, 16, 17, 22];
 
 var BUFFER_ANIM_MONITOR = [null, 80, 80, 80];
 
-var PLAYER = 4;
+var PLAYER = 0;
 var ENEMY_SNAKES = [];
 
 var AI_PLAYER = 0;
@@ -52,7 +52,7 @@ var ON_MOUSE_OUT = 3;
 var ON_DRAG_START = 4;
 var ON_DRAG_END = 5;
 
-var MENU_SNAKES_VELOCITY = 20;
+var MENU_SNAKES_VELOCITY = 10;
 
 var MENU_SNAKE_GOOD_ROTATION = 9;
 var MENU_SNAKE_BAD_ROTATION = 5;
@@ -165,18 +165,29 @@ var ME_SNAKE = {
     entityId: '', 
     Status: 0,
     games_entryID: '',
-    prizeUSD: 0
+    prizeUSD: 0,
+    isBot: 0
 };
 var AI_SNAKES = [];
 var TOTAL_PLAYERS = 1;
+// var ENEMY_POSITIONS = [
+//     { x: 1511, y: 1024 },
+//     { x: 500, y: 500 },
+//     { x: 2762, y: 500 },
+//     { x: 500, y: 1798 },
+//     { x: 2762, y: 1798 },
+//     { x: 1756, y: 1274 }
+// ]
+
 var ENEMY_POSITIONS = [
-    { x: 1511, y: 1024 },
-    { x: 500, y: 500 },
-    { x: 2762, y: 500 },
-    { x: 500, y: 1798 },
-    { x: 2762, y: 1798 },
-    { x: 1756, y: 1274 }
+    { x: 394, y: 1024 },
+    { x: 788, y: 1024 },
+    { x: 1182, y: 1024 },
+    { x: 1576, y: 1024 },
+    { x: 1970, y: 1024 },
+    { x: 2364, y: 1024 }
 ]
+
 var HERO_ACCELLERATION;
 
 var MAX_HERO_SPEED;
@@ -185,6 +196,8 @@ var ENABLE_CHECK_ORIENTATION;
 
 var MAX_TIMER = 600000;
 var START_DATE;
+var LAST_UPDATE_TIME = new Date();
+var MAX_SOCKET_ELAPS = 1000;
 
 /*!
  * 
@@ -319,6 +332,13 @@ function joinGame(isBot) {
     if (socket != null && ME_SNAKE.username != '')
 	{
         socket.emit('joinGame', {playerName: ME_SNAKE.username, player: ME_SNAKE, isBot: isBot});
+    }
+}
+
+function joinGameForBot(data, isBot) {
+    if (socket != null && data.username != '')
+	{
+        socket.emit('joinGameForBot', {playerName: data.username, player: data, isBot: isBot});
     }
 }
 

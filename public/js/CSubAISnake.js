@@ -81,10 +81,36 @@ function CSubAISnake(oSnake, iTimeFollow) {
     };
 
     this.update = function () {
-        if (_oSnake.isBot != null && _oSnake.isBot == true)
-        {
-            this.setRandomDirection();
-            this.ignorePlayerTime();
+        
+        for (let index = 0; index < AI_SNAKES.length; index++) {
+            if (AI_SNAKES[index].type == _oSnake.getType() && AI_SNAKES[index].isBot == 1 && (s_oGame.getLivePlayer() != null && s_oGame.getLivePlayer() == PLAYER)) {
+                this.setRandomDirection();
+                this.ignorePlayerTime();
+
+                var curr_type = oSnake.getType(); 
+                // console.log("curr_type", curr_type)
+                var curr_queue = oSnake.getQueue();
+                // console.log("curr_queue", curr_queue)
+                var curr_pos = oSnake.getPos();
+                // console.log("curr_pos", curr_pos)
+                var curr_die = oSnake.getEaten();
+                // console.log("curr_die", curr_die)
+                var curr_rotate = oSnake.getRotate();
+
+                if (socket != null) {
+                    socket.emit('move', {
+                        type: curr_type,
+                        queue: curr_queue[curr_queue.length - 1].getPos(),
+                        pos: curr_pos,
+                        die: curr_die,
+                        score: oSnake.getQueue().length,
+                        rotValue: curr_rotate,
+                        speed: HERO_SPEED,
+                        isBot: 1
+                    })
+                }
+            }
+            
         }
     };
 

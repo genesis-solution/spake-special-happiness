@@ -2,19 +2,20 @@ const request = require('request');
 const xml2js = require('xml2js');
 const { server_url, GAMEID, TOTAL_PLAYERS } = require('./config/config');
 
-let totalBotPlayers = [];
 let waitingPlayers = []; // Store players waiting to be matched
 let rooms = {}; // Store game rooms
+let disConnectedSocketPlayers = [];
+let waitingBots = [];
 
 function handleSocketEvents(io) {
 
     io.on('connection', (socket) => {
         console.log('New client connected');
 
-        // Handle joinGame event
         socket.on('joinGame', (player) => {
+
             if (player.player.entityId != '' && !isNameTaken(player.player.entityId) && !isRoomTaken(player.player.entityId)) { // && !isNameTakenFromTotalPlayers(player.playerName)
-                // If the name is not taken, proceed
+                
                 socket.playerName = player.playerName; // Store the player's name in the socket object
                 socket.TokenId = player.player.TokenId;
                 socket.gameID = GAMEID;
@@ -24,7 +25,7 @@ function handleSocketEvents(io) {
                 socket.entityId = player.player.entityId;
                 socket.isBot = player.isBot; // 0 or 1
 
-                waitingPlayers.push(socket); // Add the player to the waiting list
+                waitingPlayers.push(socket);
 
                 // Try to match players when there are at least two waiting
                 if (waitingPlayers.length >= TOTAL_PLAYERS) {
@@ -32,8 +33,10 @@ function handleSocketEvents(io) {
                     let players = [];
 
                     for (let index_player = 0; index_player < TOTAL_PLAYERS; index_player++) {
-                        players.push(waitingPlayers.shift())
+                        players.push(waitingPlayers.shift());
                     }
+
+                    //console.log(players[0].entityId, players[1].entityId)
 
                     const date = new Date();
                     const roomName = `Room-${date.getTime()}`;
@@ -62,28 +65,7 @@ function handleSocketEvents(io) {
                         Token_IDs = Token_IDs + `<item xsi:type="xsd:string">`+players[index_player].TokenId+`</item>`;
                     }
 
-
-                    //// For test
-                    let obj_room = {}
-                    for (let index_obj_player = 0; index_obj_player < Obj_players.length; index_obj_player++) {
-                        Obj_players[index_obj_player]['games_entryID'] = 111;
-                        Obj_players[index_obj_player]['prizeUSD'] = 1;
-
-                        obj_room['player'+(index_obj_player + 1)] = Obj_players[index_obj_player];
-                    }
-
-                    rooms[roomName] = obj_room;
-
-                    for (let index_obj_player = 0; index_obj_player < Obj_players.length; index_obj_player++) {
-                        players[index_obj_player].join(roomName);
-                        players[index_obj_player].emit('joinedRoom', roomName);
-                    }
-
-                    io.to(roomName).emit('startGamebySocket', [Obj_players, TOTAL_PLAYERS]);
-
-                    /// end for test
-
-                    if (false && Token_IDs != '')
+                    if (Token_IDs != '')
                     try {
                         const url = server_url;
                         const func_name = "Entity_Entry_Update";
@@ -99,7 +81,7 @@ function handleSocketEvents(io) {
                             <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:ns1="urn:Player1.Intf-IPlayer1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:enc="http://www.w3.org/2003/05/soap-encoding" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns2="urn:CommonWSTypes">
                             <env:Body>
                             <ns1:Entity_Entry_Update env:encodingStyle="http://www.w3.org/2003/05/soap-encoding">
-                            <TokenIds enc:itemType="xsd:string" enc:arraySize="2" xsi:type="ns2:ArrayOfString">
+                            <TokenIds enc:itemType="xsd:string" enc:arraySize="`+TOTAL_PLAYERS+`" xsi:type="ns2:ArrayOfString">
                             `+Token_IDs+`
                             </TokenIds>
                             <gameID xsi:type="xsd:int">`+Obj_players[0].gameID+`</gameID>
@@ -164,11 +146,173 @@ function handleSocketEvents(io) {
                         console.error('start game:', error.message);
                     }
                 }
+                else {
+                    socket.emit('userPosition', waitingPlayers.length % TOTAL_PLAYERS == 1);
+                }
             } else {
                 // Inform client that the name is already taken
 
-                console.log("already joined!", player.player.entityId)
-                socket.emit('nameTaken');
+                if (player.isBot == 0)
+                {
+                    console.log("already joined!", player.player.entityId)
+                    socket.emit('nameTaken');
+                }
+            }
+        });
+
+        socket.on('joinGameForBot', (bot) => {
+
+            if (bot.player.entityId != '' && !isBotTaken(bot.player.entityId) && !isRoomTaken(bot.player.entityId)) {
+                var virtualSocket = {};
+                virtualSocket.playerName = bot.playerName; // Store the player's name in the socket object
+                virtualSocket.TokenId = bot.player.TokenId;
+                virtualSocket.gameID = GAMEID;
+                virtualSocket.Status = bot.player.Status;
+                virtualSocket.betUsd = bot.player.betUsd;
+                virtualSocket.CountryName = bot.player.CountryName;
+                virtualSocket.entityId = bot.player.entityId;
+                virtualSocket.isBot = bot.isBot; // 0 or 1
+                virtualSocket.id = socket.id + '_bot'; 
+
+                waitingBots.push(virtualSocket);
+
+                var countPlayers = waitingPlayers.length;
+                var countBots = waitingBots.length;
+
+                // Try to match players when there are at least two waiting
+                if (countPlayers > 0 && countPlayers + countBots >= TOTAL_PLAYERS) {
+
+                    let players = [];
+
+                    for (let index_player = 0; index_player < countPlayers; index_player++) {
+                        players.push(waitingPlayers.shift());
+                    }
+
+                    for (let index_player = 0; index_player < (TOTAL_PLAYERS - countPlayers); index_player++) {
+                        players.push(waitingBots.shift());
+                    }
+
+                    console.log(players[0].entityId, players[1].entityId)
+
+                    const date = new Date();
+                    const roomName = `Room-${date.getTime()}`;
+                    console.log("created room", roomName)
+
+                    let Obj_players = [];
+                    let Token_IDs = '';
+                    for (let index_player = 0; index_player < players.length; index_player++) {
+                        Obj_players.push(
+                            { 
+                                id: players[index_player].id, 
+                                name: players[index_player].playerName, 
+                                username: players[index_player].playerName, 
+                                playerName: players[index_player].playerName, 
+                                CountryName: players[index_player].CountryName, 
+                                entityId: players[index_player].entityId, 
+                                TokenId: players[index_player].TokenId, 
+                                gameID: players[index_player].gameID, 
+                                Status: players[index_player].Status, 
+                                betUsd: players[index_player].betUsd, 
+                                CountryName: players[index_player].CountryName, 
+                                isBot: players[index_player].isBot 
+                            }
+                        );
+
+                        Token_IDs = Token_IDs + `<item xsi:type="xsd:string">`+players[index_player].TokenId+`</item>`;
+                    }
+
+                    if (Token_IDs != '')
+                    try {
+                        const url = server_url;
+                        const func_name = "Entity_Entry_Update";
+                    
+                        var soapOptions = {
+                          uri: url,
+                          headers: {
+                              'Content-Type': 'text/xml; charset=utf-8',
+                              'Connection': 'keep-alive'
+                          },
+                          method: 'POST',
+                          body: `
+                            <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:ns1="urn:Player1.Intf-IPlayer1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:enc="http://www.w3.org/2003/05/soap-encoding" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns2="urn:CommonWSTypes">
+                            <env:Body>
+                            <ns1:Entity_Entry_Update env:encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+                            <TokenIds enc:itemType="xsd:string" enc:arraySize="`+TOTAL_PLAYERS+`" xsi:type="ns2:ArrayOfString">
+                            `+Token_IDs+`
+                            </TokenIds>
+                            <gameID xsi:type="xsd:int">`+Obj_players[0].gameID+`</gameID>
+                            <games_entryID xsi:type="xsd:int">0</games_entryID>
+                            <NamesArray xsi:nil="true" xsi:type="ns2:ArrayOfString"/>
+                            <ValuesArray xsi:nil="true" xsi:type="ns2:ArrayOfString"/></ns1:Entity_Entry_Update>
+                            </env:Body>
+                            </env:Envelope>
+                              `
+                        };
+                    
+                        
+                        request(soapOptions, function(_err, _resp) {
+                          if (_err == null) {
+                            if (_resp.statusCode == 200)
+                            {
+                              xml2js.parseString(_resp.body, async (err, result) => {
+                                if (err) {
+                                    console.error('Error parsing XML response:', err);
+                                    res.status(401).json({ error: 'Invalid credentials' });
+                                } else {
+                                  if (result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'] != undefined && result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'].length > 0)
+                                  {
+                                    const resultValue = result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'][0]['return'][0]['_'];
+                                    var returnValue = JSON.parse(resultValue)
+                    
+                                    if (returnValue.ResultCode == 0 && returnValue.ResultMessage == 'OK') {
+
+                                        let obj_room = {};
+
+                                        for (let index_obj_player = 0; index_obj_player < Obj_players.length; index_obj_player++) {
+                                            Obj_players[index_obj_player]['games_entryID'] = returnValue.games_entryID;
+                                            Obj_players[index_obj_player]['prizeUSD'] = returnValue.prizeUSD;
+
+                                            obj_room['player'+(index_obj_player + 1)] = Obj_players[index_obj_player];
+                                        }
+
+                                        rooms[roomName] = obj_room;
+                    
+                                        for (let index_obj_player = 0; index_obj_player < Obj_players.length; index_obj_player++) {
+                                            if (players[index_obj_player].isBot == 0)
+                                            {
+                                                players[index_obj_player].join(roomName);
+                                                players[index_obj_player].emit('joinedRoom', roomName);
+                                            }
+                                        }
+
+                                        io.to(roomName).emit('startGamebySocket', [Obj_players, TOTAL_PLAYERS]);
+                                    }
+                                    else {
+                                      console.log("startGamebySocket", returnValue.ResultMessage);
+                                    }
+                                  }
+                                  else {
+                                    
+                                  }
+                                }
+                              });
+                            }
+                          } else {
+                            console.log(_err)
+                          }
+                        });
+                    } catch (error) {
+                        console.error('start game:', error.message);
+                    }
+                }
+            } else {
+                // Inform client that the name is already taken
+
+                if (bot.isBot == 0)
+                {
+                    console.log("already joined!", player.player.entityId)
+                    socket.emit('nameTaken');
+                }
             }
         });
 
@@ -179,12 +323,22 @@ function handleSocketEvents(io) {
                 for (const roomName in rooms) {
                     if (rooms.hasOwnProperty(roomName)) {
                         const room = rooms[roomName];
-                        io.to(room.player2.id).emit('opponentMove', moveData);
-                        io.to(room.player1.id).emit('opponentMove', moveData);
+                        io.to(roomName).emit('opponentMove', moveData);
                     }
                 }
-            } else {
-                console.log("room not found");
+            }
+        });
+
+        // Handle player moves
+        socket.on('total_foods', (attrFoods) => {
+            const roomName1 = findRoomBySocketId(socket.id);
+            if (roomName1) {
+                for (const roomName in rooms) {
+                    if (rooms.hasOwnProperty(roomName)) {
+                        const room = rooms[roomName];
+                        io.to(roomName).emit('total_foods', attrFoods);
+                    }
+                }
             }
         });
 
@@ -195,9 +349,10 @@ function handleSocketEvents(io) {
                 for (const roomName in rooms) {
                     if (rooms.hasOwnProperty(roomName)) {
                         const room = rooms[roomName];
-                        if (room.player1.id === socket.id || room.player2.id === socket.id) {
-                            io.to(room.player1.id).emit('sendEmoji', emojiName);
-                            io.to(room.player2.id).emit('sendEmoji', emojiName);
+                        for (let index = 1; index <= TOTAL_PLAYERS; index++) {
+                            if (room['player'+index].id == socket.id) {
+                                io.to(roomName).emit('sendEmoji', emojiName);
+                            }
                         }
                     }
                 }
@@ -210,9 +365,10 @@ function handleSocketEvents(io) {
                 for (const roomName in rooms) {
                     if (rooms.hasOwnProperty(roomName)) {
                         const room = rooms[roomName];
-                        if (room.player1.id === socket.id || room.player2.id === socket.id) {
-                            io.to(room.player1.id).emit('updatetimer', timer);
-                            io.to(room.player2.id).emit('updatetimer', timer);
+                        for (let index = 1; index <= TOTAL_PLAYERS; index++) {
+                            if (room['player'+index].id == socket.id) {
+                                io.to(roomName).emit('updatetimer', timer);
+                            }
                         }
                     }
                 }
@@ -225,49 +381,23 @@ function handleSocketEvents(io) {
             for (const roomName in rooms) {
                 if (rooms.hasOwnProperty(roomName)) {
                     const room = rooms[roomName];
-                    if (room.player1.id === socket.id || room.player2.id === socket.id) {
-                        io.to(room.player1.id).emit('giveup', playerName);
-                        io.to(room.player2.id).emit('giveup', playerName);
+                    for (let index = 1; index <= TOTAL_PLAYERS; index++) {
+                        if (room['player'+index].id == socket.id) {
+                            io.to(roomName).emit('giveup', playerName);
+                        }
                     }
+
+                    disConnectedSocketPlayers.push(socket.id)
                 }
             }
             }
-        });
-
-        socket.on('toggleuser', (status) => {
-            const roomName1 = findRoomBySocketId(socket.id);
-            if (roomName1) {
-                // Broadcast move to the other player in the room
-                for (const roomName in rooms) {
-                if (rooms.hasOwnProperty(roomName)) {
-                    const room = rooms[roomName];
-                    if (room.player1.id === socket.id || room.player2.id === socket.id) {
-                        io.to(room.player1.id).emit('toggleuser', status);
-                        io.to(room.player2.id).emit('toggleuser', status);
-                    }
-                }
-            }
-            }
-        });
-
-        socket.on('beforeautogame', () => {
-            // const roomName = findRoomBySocketId(socket.id);
-            // const index = waitingPlayers.indexOf(socket);
-            // if (index !== -1) {
-            //     waitingPlayers.splice(index, 1);
-            // }
-
-            // if (roomName) {
-            //     // Inform the other player in the room about disconnection
-            //     socket.to(roomName).emit('playerDisconnected', roomName);
-            //     // Remove the room
-            //     console.log("disconnected", roomName)
-            //     delete rooms[roomName];
-            // }
         });
 
         socket.on('disconnect', () => {
+            console.log("disconnect");
+
             const roomName1 = findRoomBySocketId(socket.id);
+            disConnectedSocketPlayers.push(socket.id);
 
             const index = waitingPlayers.findIndex(obj => obj.id == socket.id);
             if (index !== -1) {
@@ -280,20 +410,33 @@ function handleSocketEvents(io) {
             }
 
             if (roomName1) {
+                let isSubmitResult = true;
                 for (const roomName in rooms) {
                     if (rooms.hasOwnProperty(roomName)) {
+
                         const room = rooms[roomName];
                         let winnerID = ''
-                        
-                        if (room.player1.isBot == 1) {
-                            winnerID = room.player1.entityId;
-                            Player= room.player1;
-                        } else if (room.player2.isBot == 1) {
-                            winnerID = room.player2.entityId;
-                            Player= room.player2;
+
+                        for (let index_players = 1; index_players <= TOTAL_PLAYERS; index_players++) {
+                            if (room['player'+index_players].isBot == 1) {
+                                if (winnerID != '')
+                                {
+                                    winnerID = room['player'+index_players].entityId;
+                                    Player= room['player'+index_players];
+                                }
+                            } else {
+                                if (isSubmitResult == true && !disConnectedSocketPlayers.includes(room['player'+index_players].id)) {
+                                    isSubmitResult = false;
+                                }
+                            }
                         }
-                        console.log("bot winner", winnerID)
-                        if (winnerID != '') {
+
+                        var strTokens = ''
+                        for (let index_players = 1; index_players <= TOTAL_PLAYERS; index_players++) {
+                            strTokens = strTokens + `<item xsi:type="xsd:string">`+room['player'+index_players].TokenId+`</item>`
+                        }
+                        
+                        if (winnerID != '' && isSubmitResult == true) {
                             try {
                                 const url = server_url;
                                 const func_name = "Entity_Entry_Update";
@@ -309,12 +452,11 @@ function handleSocketEvents(io) {
                                       <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:ns1="urn:Player1.Intf-IPlayer1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:enc="http://www.w3.org/2003/05/soap-encoding" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns2="urn:CommonWSTypes">
                                       <env:Body>
                                       <ns1:`+func_name+` env:encodingStyle="http://www.w3.org/2003/05/soap-encoding">
-                                      <TokenIds enc:itemType="xsd:string" enc:arraySize="2" xsi:type="ns2:ArrayOfString">
-                                      <item xsi:type="xsd:string">`+room.player1.TokenId+`</item>
-                                      <item xsi:type="xsd:string">`+room.player2.TokenId+`</item>
+                                      <TokenIds enc:itemType="xsd:string" enc:arraySize="`+TOTAL_PLAYERS+`" xsi:type="ns2:ArrayOfString">
+                                      `+strTokens+`
                                       </TokenIds>
                                       <gameID xsi:type="xsd:int">`+GAMEID+`</gameID>
-                                      <games_entryID xsi:type="xsd:int">`+room.player1.games_entryID+`</games_entryID>
+                                      <games_entryID xsi:type="xsd:int">`+Player.games_entryID+`</games_entryID>
                                       <NamesArray enc:itemType="xsd:string" enc:arraySize="1" xsi:type="ns2:ArrayOfString">
                                       <item xsi:type="xsd:string">won_EntityId</item>
                                       </NamesArray>
@@ -331,7 +473,7 @@ function handleSocketEvents(io) {
                                   if (_err == null) {
                                     if (_resp.statusCode == 200)
                                     {
-                                        console.log("bot win")
+                                        
                                     }
                                     else {
                                         console.log(_resp)
@@ -344,14 +486,18 @@ function handleSocketEvents(io) {
                                 console.error('Error:', error.message);
                               }
                         }
+                        break;
                     }
                 }
 
                 // Inform the other player in the room about disconnection
                 socket.to(roomName1).emit('playerDisconnected', roomName1);
-                // Remove the room
-                console.log("disconnected", roomName1)
-                delete rooms[roomName1];
+
+                if (isSubmitResult == true)
+                {
+                    // Remove the room
+                    delete rooms[roomName1];
+                }
             }
         });
 
@@ -374,7 +520,6 @@ function handleSocketEvents(io) {
                 // Inform the other player in the room about disconnection
                 socket.to(roomName1).emit('playerDisconnected', roomName1);
                 // Remove the room
-                console.log("disconnected", roomName1)
                 delete rooms[roomName1];
             }
         });
@@ -386,8 +531,10 @@ function findRoomBySocketId(socketId) {
     for (const roomName in rooms) {
         if (rooms.hasOwnProperty(roomName)) {
             const room = rooms[roomName];
-            if (room.player1.id === socketId || room.player2.id === socketId) {
-                return roomName;
+            for (let index = 1; index <= TOTAL_PLAYERS; index++) {
+                if (room['player'+index].id == socketId) {
+                    return roomName;
+                }
             }
         }
     }
@@ -397,7 +544,16 @@ function findRoomBySocketId(socketId) {
   // Helper function to check if the name is already taken
 function isNameTaken(playerName) {
     for (const player of waitingPlayers) {
-        if (player.entityId == playerName) {
+        if (player.entityId === playerName) {
+            return true;
+        }
+    }
+    return false;
+  }
+
+  function isBotTaken(playerName) {
+    for (const player of waitingBots) {
+        if (player.entityId === playerName) {
             return true;
         }
     }
@@ -408,8 +564,10 @@ function isNameTaken(playerName) {
     for (const roomName in rooms) {
       if (rooms.hasOwnProperty(roomName)) {
           const room = rooms[roomName];
-          if (room.player1.entityId === playerName || room.player2.entityId === playerName) {
-            return true;
+          for (let index = 1; index <= TOTAL_PLAYERS; index++) {
+            if (room['player'+index].entityId === playerName) {
+                return true;
+            }
           }
       }
     }

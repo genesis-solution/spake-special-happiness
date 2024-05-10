@@ -6,6 +6,7 @@ function CFood(iXPos, iYPos, iRotation, iType, iSection, oSprite, oParentContain
     var _iType;
     var _iSection = iSection;
     var _bEaten = false;
+    var _state;
 
     this._init = function (iXPos, iYPos, iType, oSprite, iRotation) {
 
@@ -50,12 +51,17 @@ function CFood(iXPos, iYPos, iRotation, iType, iSection, oSprite, oParentContain
     };
 
     this.changeState = function (iState) {
+        _state = iState;
         _oFood.gotoAndStop(iState);
     };
 
     this.getType = function () {
         return _iType;
     };
+
+    this.getState = function () {
+        return _state;
+    }
 
     this.getLocalPos = function () {
         return _oFood.localToGlobal(0, 0);
