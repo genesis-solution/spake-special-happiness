@@ -190,26 +190,32 @@ function CGame(oData) {
             socket.on('playerDisconnected', (roomName) => {
                 console.log(roomName + ' was disconnected!');
 
-                var isExistingOpponent = true;
+                if (_bStartGame == true) {
+                    var isExistingOpponent = true;
 
-                for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
-                    if (false == AI_SNAKES[index_ai].die) {
-                        isExistingOpponent = false;
-                        break;
-                    }
-                }
-
-                if (isExistingOpponent == true) {
-                    var isWin = true;
                     for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
-                        if (AI_SNAKES[index_ai].isBot == 0 && _iScore <= AI_SNAKES[index_ai].score) {
-                            isWin = false;
+                        if (false == AI_SNAKES[index_ai].die) {
+                            isExistingOpponent = false;
                             break;
                         }
                     }
-                    if (isWin == true)
-                        this.submitResult();
+
+                    if (isExistingOpponent == true) {
+                        var isWin = true;
+                        for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
+                            if (AI_SNAKES[index_ai].isBot == 0 && _iScore <= AI_SNAKES[index_ai].score) {
+                                isWin = false;
+                                break;
+                            }
+                        }
+                        if (isWin == true)
+                            this.submitResult();
+                    }
                 }
+            });
+
+            socket.on('updatetimer', (timer) => {
+                _oInterface.displayTimer(timer);
             });
 
         }
@@ -812,7 +818,12 @@ function CGame(oData) {
 
             if (Math.floor(MAX_TIMER - elapsedTime) > 0)
             {
-                _oInterface.displayTimer(Math.floor(MAX_TIMER - elapsedTime));
+                if (socket != null) {
+                    if (this.getLivePlayer() != null && this,this.getLivePlayer() == PLAYER)
+                    {
+                        socket.emit("updatetimer", Math.floor(MAX_TIMER - elapsedTime))
+                    }
+                }
 
                 if (LAST_UPDATE_TIME != null)
                 {
@@ -849,17 +860,29 @@ function CGame(oData) {
             }
 
             if (_oPlayerSnake.getEaten()) {
-
                 for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
                     if (_iScore < AI_SNAKES[index_ai].score) {
                         this.submitResult();
                         break;
                     }
                 }
-
             }
+
+          //  if (this.getLivePlayer() == null) this.submitResult();
         }
     };
+
+    this.getLivePlayer = function () {
+        if (_oPlayerSnake.getEaten() == false) return _oPlayerSnake.getType();
+
+        for (let index = 0; index < AI_SNAKES.length; index++) {
+            if (AI_SNAKES[index].die == false && AI_SNAKES[index].isBot == 0) {
+                return AI_SNAKES[index].type;
+            }
+        }
+
+        return null;
+    }
 
     this.submitResult = function () {
         _oInterface.dispPlayers([]);
@@ -899,7 +922,8 @@ function CGame(oData) {
         {
             localStorage.removeItem("t");
 
-            console.log({user: ME_SNAKE, oppenents: AI_SNAKES, winner: winner, t: tokenID, result_status: result, t: tokenID, gameID: 3})
+            _bStartGame = false;
+
             $.ajax({
                 type: "POST",
                 url: '/result',

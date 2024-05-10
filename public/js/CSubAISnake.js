@@ -81,8 +81,9 @@ function CSubAISnake(oSnake, iTimeFollow) {
     };
 
     this.update = function () {
+        
         for (let index = 0; index < AI_SNAKES.length; index++) {
-            if (AI_SNAKES[index].type == _oSnake.getType() && AI_SNAKES[index].isBot == 1) {
+            if (AI_SNAKES[index].type == _oSnake.getType() && AI_SNAKES[index].isBot == 1 && (s_oGame.getLivePlayer() != null && s_oGame.getLivePlayer() == PLAYER)) {
                 this.setRandomDirection();
                 this.ignorePlayerTime();
             }

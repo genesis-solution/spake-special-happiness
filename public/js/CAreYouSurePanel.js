@@ -31,7 +31,7 @@ function CAreYouSurePanel(oParentContainer) {
 
         _oContainer.addChild(_oBg);
 
-        _oMsgStroke = new createjs.Text(TEXT_ARE_SURE, "50px " + FONT_GAME, "#000");
+        _oMsgStroke = new createjs.Text(TEXT_ARE_SURE, "80px " + FONT_GAME, "#000");
         _oMsgStroke.x = CANVAS_WIDTH / 2;
         _oMsgStroke.y = CANVAS_HEIGHT_HALF - 100;
         _oMsgStroke.textAlign = "center";
@@ -39,7 +39,7 @@ function CAreYouSurePanel(oParentContainer) {
         _oMsgStroke.outline = 5;
         _oContainer.addChild(_oMsgStroke);
 
-        _oMsg = new createjs.Text(TEXT_ARE_SURE, "50px " + FONT_GAME, "#ff6c00");
+        _oMsg = new createjs.Text(TEXT_ARE_SURE, "80px " + FONT_GAME, "#ff6c00");
         _oMsg.x = CANVAS_WIDTH / 2;
         _oMsg.y =_oMsgStroke.y;
         _oMsg.textAlign = "center";
