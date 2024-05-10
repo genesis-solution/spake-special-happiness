@@ -67,6 +67,8 @@ function CAreYouSurePanel(oParentContainer) {
     this._onButYes = function () {
         if (socket != null) {
             socket.emit('giveup', ME_SNAKE.entityId);
+        } else {
+            s_oGame.submitResult()
         }
         this.unload();
         // _oFade.removeAllEventListeners();

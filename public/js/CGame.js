@@ -96,15 +96,10 @@ function CGame(oData) {
             _oFade.visible = false;
         });
 
-        let display_users = [];
-        display_users = [ME_SNAKE];
-        display_users = display_users.concat(AI_SNAKES);
-
-        _oInterface.dispPlayers(display_users);
-
         if (socket != null) {
             socket.on('opponentMove', (moveData) => {
-                if (moveData.type != _oPlayerSnake.getType())
+                
+                if ((moveData.isBot == 0 && moveData.type != _oPlayerSnake.getType()) || (moveData.isBot == 1 && (this.getLivePlayer() != null && this.getLivePlayer() != PLAYER)))
                 {
 
                     var indexAISnakes = -1;
@@ -172,6 +167,7 @@ function CGame(oData) {
             });
 
             socket.on('giveup', (playerName) => {
+                console.log("playerName", playerName)
                 if (playerName == ME_SNAKE.entityId) {
                     _oPlayerSnake.die();
 
@@ -222,7 +218,7 @@ function CGame(oData) {
     };
 
     this.shareFoods = function () {
-        if (PLAYER == 0)
+        if (this.getLivePlayer() != null && this.getLivePlayer() == PLAYER)
         {
             var attrFoods = [];
             var totalFoods = _oFoods.getFoods();
@@ -240,7 +236,7 @@ function CGame(oData) {
             }
 
             if (socket != null)
-            socket.emit('total_foods', {data: attrFoods, player: PLAYER});
+                socket.emit('total_foods', {data: attrFoods, player: PLAYER});
         }
     }
 
@@ -527,40 +523,14 @@ function CGame(oData) {
             _bKeyDown = false;
             oPlayerSnake.die();
             
-
-            let liveUsers = [];
             for (let i_AI = 0; i_AI < AI_SNAKES.length; i_AI++) {
                 if (oEnemySnake.getType() != null && AI_SNAKES[i_AI].type == oEnemySnake.getType()) {
                     AI_SNAKES[i_AI].die = true
-                }
-
-                if (AI_SNAKES[i_AI].die == false) {
-                    liveUsers.push(AI_SNAKES[i_AI]);
                 }
             }
 
             oEnemySnake.die();
 
-
-            ME_SNAKE.score = _iScore;
-            let display_users = [];
-            if (_oPlayerSnake.getEaten() == false) {
-                display_users = [ME_SNAKE];
-            }
-            display_users = display_users.concat(liveUsers)
-            display_users.sort((a, b) => {
-                let scoreA = parseInt(a.score); // Ignore upper and lowercase
-                let scoreB = parseInt(b.score); // Ignore upper and lowercase
-                if (scoreA < scoreB) {
-                    return 1;
-                }
-                if (scoreA > scoreB) {
-                    return -1;
-                }
-                // names must be equal
-                return 0;
-            });
-            _oInterface.dispPlayers(display_users);
           //  createjs.Tween.get(this).wait(MS_TIME_SHOW_WIN_PANEL).call(this.onDiePlayerSnake);
         }
     };
@@ -581,39 +551,16 @@ function CGame(oData) {
                 if (oSnake1.getCurrentAnimation() !== "damage_open" && oSnake1.getCurrentAnimation() !== "remain_damage") {
                     // oSnake2.changeState("damage_open");
                     
-                    let liveUsers = [];
                     for (let i_AI = 0; i_AI < AI_SNAKES.length; i_AI++) {
                         if (oSnake2.getType() != null && AI_SNAKES[i_AI].type == oSnake2.getType()) {
                             AI_SNAKES[i_AI].die = true
                         }
-
-                        if (AI_SNAKES[i_AI].die == false) liveUsers.push(AI_SNAKES[i_AI])
                     }
 
                     oSnake2.die();
                     this.cutQueueAt(oSnake2, 0);
 
                     this.snakeCloseMounthAnim(oSnake2);
-
-                    ME_SNAKE.score = _iScore;
-                    let display_users = [];
-                    if (_oPlayerSnake.getEaten() == false) {
-                        display_users = [ME_SNAKE];
-                    }
-                    display_users = display_users.concat(liveUsers)
-                    display_users.sort((a, b) => {
-                        let scoreA = parseInt(a.score); // Ignore upper and lowercase
-                        let scoreB = parseInt(b.score); // Ignore upper and lowercase
-                        if (scoreA < scoreB) {
-                            return 1;
-                        }
-                        if (scoreA > scoreB) {
-                            return -1;
-                        }
-                        // names must be equal
-                        return 0;
-                    });
-                    _oInterface.dispPlayers(display_users);
                 }
                 
                 break;
@@ -695,42 +642,14 @@ function CGame(oData) {
                     if (this.circleToCircleCollision(oPos, aFoods[j].getPos(), SNAKES_TOKEN_RADIUS_FOOD_DETECT, aFoods[j].getDim().w)) {
                         this.snakeEatenFood(_aSnakes[i], aFoods[j]);
 
-                        var liveUsers = []
                         for (let i_enemy = 0; i_enemy < AI_SNAKES.length; i_enemy++) {
                             if (_aSnakes[i].getType() != null && ENEMY_SNAKES[i_enemy] == _aSnakes[i].getType())
                             {
                                 var i_iScore = _aSnakes[i].getLengthQueue();
                                 AI_SNAKES[i_enemy].score = i_iScore;
                             }
-
-                            if (AI_SNAKES[i_enemy].die == false) {
-                                liveUsers.push(AI_SNAKES[i_enemy]);
-                            }
                         }
 
-                        ME_SNAKE.score = _iScore;
-                
-                        let display_users = [];
-
-                        if (_oPlayerSnake.getEaten() == false) {
-                            display_users = [ME_SNAKE];
-                        }
-
-                        display_users = display_users.concat(liveUsers)
-                        display_users.sort((a, b) => {
-                            let scoreA = parseInt(a.score); // Ignore upper and lowercase
-                            let scoreB = parseInt(b.score); // Ignore upper and lowercase
-                            if (scoreA < scoreB) {
-                                return 1;
-                            }
-                            if (scoreA > scoreB) {
-                                return -1;
-                            }
-                            // names must be equal
-                            return 0;
-                        });
-
-                        _oInterface.dispPlayers(display_users);
                     }
                 }
             }
@@ -830,6 +749,34 @@ function CGame(oData) {
                     var last_elapsedTime = Math.floor((currentDate.getTime() - LAST_UPDATE_TIME.getTime()));
                     if (last_elapsedTime > MAX_SOCKET_ELAPS) {
                         LAST_UPDATE_TIME = new Date();
+
+                        ME_SNAKE.score = _iScore;
+
+                        let display_users = [];
+                        display_users = [ME_SNAKE];
+
+                        let liveUsers = [];
+                        for (let i_AI = 0; i_AI < AI_SNAKES.length; i_AI++) {
+                            if (AI_SNAKES[i_AI].die == false) {
+                                liveUsers.push(AI_SNAKES[i_AI]);
+                            }
+                        }
+                        display_users = display_users.concat(liveUsers);
+
+                        display_users.sort((a, b) => {
+                            let scoreA = parseInt(a.score); // Ignore upper and lowercase
+                            let scoreB = parseInt(b.score); // Ignore upper and lowercase
+                            if (scoreA < scoreB) {
+                                return 1;
+                            }
+                            if (scoreA > scoreB) {
+                                return -1;
+                            }
+                            // names must be equal
+                            return 0;
+                        });
+
+                        _oInterface.dispPlayers(display_users);
                     }
 
                     var curr_type = _oPlayerSnake.getType(); 
@@ -850,7 +797,8 @@ function CGame(oData) {
                             die: curr_die,
                             score: _iScore,
                             rotValue: curr_rotate,
-                            speed: _iPlayerSpeed
+                            speed: _iPlayerSpeed,
+                            isBot: 0
                         })
                     }
                 }
@@ -930,7 +878,6 @@ function CGame(oData) {
                 data: {user: ME_SNAKE, oppenents: AI_SNAKES, winner: winner, t: tokenID, result_status: result, t: tokenID, gameID: 3},
                 success: function (result) {
 
-                    console.log(result);
                     if (result.success == true) {
                         if (result.PriseUsd != undefined)
                         {
