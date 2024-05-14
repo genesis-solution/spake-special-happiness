@@ -10,15 +10,15 @@ var EDGEBOARD_Y = 90;
 var DISABLE_SOUND_MOBILE = false;
 var FONT_GAME = "palamecia_titlingregular";
 
-var FPS = 30;
+var FPS = 100;
 
 var FPS_TIME = 1 / FPS;
 
 var SNAKE_TYPES = 5;
 
-var FRAMES_NUM_HELP = [null, 16, 17, 22];
+var FRAMES_NUM_HELP = [null, null, null, null, null]; // [null, 16, 17, 22];
 
-var BUFFER_ANIM_MONITOR = [null, 80, 80, 80];
+var BUFFER_ANIM_MONITOR = [null, null, null, null, null]; // [null, 80, 80, 80];
 
 var PLAYER = 0;
 var ENEMY_SNAKES = [];
@@ -197,7 +197,7 @@ var ENABLE_CHECK_ORIENTATION;
 var MAX_TIMER = 600000;
 var START_DATE;
 var LAST_UPDATE_TIME = new Date();
-var MAX_SOCKET_ELAPS = 1000;
+var MAX_SOCKET_ELAPS = 100;
 
 /*!
  * 
@@ -363,3 +363,30 @@ function redirectToWithAuth(url, authToken, noError) {
 }
 
 
+function compareArrays(arr1, arr2) {
+    // Check lengths
+    if (arr1.length !== arr2.length) {
+        return false;
+    }
+
+    // Iterate through elements of arr1
+    for (let i = 0; i < arr1.length; i++) {
+        const obj1 = arr1[i];
+        const obj2 = arr2[i];
+        
+        // Compare properties of objects
+        if (!isEqual(obj1, obj2)) {
+            return false;
+        }
+    }
+
+    // If all elements match, arrays are equal
+    return true;
+}
+
+// Define a custom equality check function
+function isEqual(obj1, obj2) {
+    // Define your custom comparison logic here
+    // For example, compare properties of objects
+    return obj1.country === obj2.country && obj1.name === obj2.name && obj1.score === obj2.score && obj1.die === obj2.die;
+}

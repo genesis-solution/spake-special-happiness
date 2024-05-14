@@ -269,7 +269,10 @@ function CMain(oData) {
 
     this.gotoGame = function () {
         _oGame = new CGame(_oData);
-        _iState = STATE_GAME;
+        
+        setTimeout(() => {
+            _iState = STATE_GAME;
+        }, 500);
     };
 
     this.gotoHelp = function () {
