@@ -270,9 +270,7 @@ function CMain(oData) {
     this.gotoGame = function () {
         _oGame = new CGame(_oData);
         
-        setTimeout(() => {
-            _iState = STATE_GAME;
-        }, 500);
+        // _iState = STATE_GAME;
     };
 
     this.gotoHelp = function () {
@@ -282,6 +280,10 @@ function CMain(oData) {
 
     this.getGameState = function () {
         return _iState;
+    }
+
+    this.setGameStart = function() {
+        _iState = STATE_GAME;
     }
 
     this.stopUpdate = function(){

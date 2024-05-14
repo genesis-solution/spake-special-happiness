@@ -144,6 +144,8 @@ function CGame(oData) {
                     _oFoods.setManageFoods(foods.data);
                     _oFoods.update();
                 }
+
+                s_oMain.setGameStart();
             });
 
             socket.on('giveup', (playerName) => {
@@ -164,8 +166,6 @@ function CGame(oData) {
             });
 
             socket.on('playerDisconnected', (roomName) => {
-                console.log(roomName + ' was disconnected!');
-
                 if (_bStartGame == true) {
                     this.submitResult();
                 }
@@ -238,10 +238,10 @@ function CGame(oData) {
             _aEnemySnakes.push(oEnemySnake);
             _aSnakes.push(oEnemySnake);
 
-            if (AI_SNAKES[i].isBot == 1) // only one player can run the AI bots
-            {
+            // if (AI_SNAKES[i].isBot == 1) // only one player can run the AI bots
+            // {
                 _oAiSnakes.addSnakeToAI(oEnemySnake);
-            }
+            // }
             iID++;
         }
     };
@@ -793,7 +793,6 @@ function CGame(oData) {
     }
 
     this.submitResult = function () {
-        console.log("submit");
         var result = 'win';
         for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
             if (_iScore <= AI_SNAKES[index_ai].score) {

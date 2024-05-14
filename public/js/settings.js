@@ -10,7 +10,7 @@ var EDGEBOARD_Y = 90;
 var DISABLE_SOUND_MOBILE = false;
 var FONT_GAME = "palamecia_titlingregular";
 
-var FPS = 100;
+var FPS = 60;
 
 var FPS_TIME = 1 / FPS;
 
@@ -136,6 +136,9 @@ var AI_TIME_CHANGE_DIR = {min: 2000, max: 5000};
 var AI_TIME_IGNORE_PLAYER = 1000;
 
 var AI_WAIT_TIME_FOR_CHANGE_DIR = {min: 250, max: 1000};
+
+var AI_SMALL_TIME_CHANGE_DIR = {min: 0, max: 0};
+var AI_SMALL_WAIT_TIME_FOR_CHANGE_DIR = {min: 0, max: 0};
 
 var CAN_PLAYER_EATEN_ENEMY = false;
 

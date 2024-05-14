@@ -25,6 +25,20 @@ function CSubAISnake(oSnake, iTimeFollow) {
         }
     };
 
+    this.setSmallRandomDirection = function () {
+        if (_fTimeChangeDir < 0) {
+            if (_fTimeTurn > 0) {
+                _oSnake.rotation(HERO_ROT_SPEED);
+                _fTimeTurn -= s_iTimeElaps;
+            } else {
+                _fTimeTurn = (Math.random() * (AI_SMALL_WAIT_TIME_FOR_CHANGE_DIR.max - AI_SMALL_WAIT_TIME_FOR_CHANGE_DIR.min)) + AI_SMALL_WAIT_TIME_FOR_CHANGE_DIR.min;
+                _fTimeChangeDir = (Math.random() * (AI_SMALL_TIME_CHANGE_DIR.max - AI_SMALL_TIME_CHANGE_DIR.min)) + AI_SMALL_TIME_CHANGE_DIR.min;
+            }
+        } else {
+            _fTimeChangeDir -= s_iTimeElaps;
+        }
+    };
+
     this.followTime = function () {
         if (_iTimeFollow < 0) {
             _bIgnorePlayer = true;
@@ -109,6 +123,10 @@ function CSubAISnake(oSnake, iTimeFollow) {
                         isBot: 1
                     })
                 }
+            }
+
+            if (AI_SNAKES[index].type == _oSnake.getType() && AI_SNAKES[index].isBot == 0 && (AI_SNAKES[index].die == false && _oSnake.getEaten() == false)) {
+                this.ignorePlayerTime();
             }
             
         }

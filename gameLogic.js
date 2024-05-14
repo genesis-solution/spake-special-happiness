@@ -10,9 +10,10 @@ let waitingBots = [];
 function handleSocketEvents(io) {
 
     io.on('connection', (socket) => {
-        console.log('New client connected');
 
         socket.on('joinGame', (player) => {
+
+            console.log('New client connected');
 
             if (player.player.entityId != '' && !isNameTaken(player.player.entityId) && !isRoomTaken(player.player.entityId)) { // && !isNameTakenFromTotalPlayers(player.playerName)
                 
@@ -161,6 +162,8 @@ function handleSocketEvents(io) {
         });
 
         socket.on('joinGameForBot', (bot) => {
+
+            console.log('New Bot connected');
 
             if (bot.player.entityId != '' && !isBotTaken(bot.player.entityId) && !isRoomTaken(bot.player.entityId)) {
                 var virtualSocket = {};
