@@ -124,10 +124,6 @@ function CSubAISnake(oSnake, iTimeFollow) {
                     })
                 }
             }
-
-            if (AI_SNAKES[index].type == _oSnake.getType() && AI_SNAKES[index].isBot == 0 && (AI_SNAKES[index].die == false && _oSnake.getEaten() == false)) {
-                this.ignorePlayerTime();
-            }
             
         }
     };

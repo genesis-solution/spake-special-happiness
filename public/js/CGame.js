@@ -201,6 +201,18 @@ function CGame(oData) {
         }
     }
 
+    this.setUpdateSnakes = function() {
+        for (let index_enemysnake = 0; index_enemysnake < _aSnakes.length; index_enemysnake++) {
+            for (let index = 0; index < AI_SNAKES.length; index++) {
+                if (AI_SNAKES[index].type == _aSnakes[index_enemysnake].getType() && AI_SNAKES[index].isBot == 0)
+                {
+                    _aSnakes[index_enemysnake].update(HERO_SPEED);
+                    break;
+                }   
+            }
+        }
+    }
+
     this.resetCameraOnPlayer = function () {
         s_oScrollStage.x += _oPlayerSnake.getDir().getX() * HERO_SPEED + (PLAYER_CAMERA_OFFSET.x - _oPlayerSnake.getLocalPos().x);
         s_oScrollStage.y += _oPlayerSnake.getDir().getY() * HERO_SPEED + (PLAYER_CAMERA_OFFSET.y - _oPlayerSnake.getLocalPos().y);
@@ -225,7 +237,7 @@ function CGame(oData) {
     this.createPlayerSnake = function () {
         var iType = ME_SNAKE.type;
         var oSpritePlayer = s_oSpriteLibrary.getSprite('snake_head_' + iType);
-        _oPlayerSnake = new CSnake(ME_SNAKE.x, ME_SNAKE.y, oSpritePlayer, iType, ME_SNAKE.score, iType, s_oScrollStage);
+        _oPlayerSnake = new CSnake(ME_SNAKE.x, ME_SNAKE.y, oSpritePlayer, iType, ME_SNAKE.score, iType, s_oScrollStage, ME_SNAKE.isBot);
         _aSnakes.push(_oPlayerSnake);
     };
 
@@ -234,14 +246,14 @@ function CGame(oData) {
         for (var i = 0; i < AI_SNAKES.length; i++) {
             var iType = AI_SNAKES[i].type;
             var oSpriteSnake1 = s_oSpriteLibrary.getSprite('snake_head_' + iType);
-            var oEnemySnake = new CSnake(AI_SNAKES[i].x, AI_SNAKES[i].y, oSpriteSnake1, iType, AI_SNAKES[i].score, iType, s_oScrollStage);
+            var oEnemySnake = new CSnake(AI_SNAKES[i].x, AI_SNAKES[i].y, oSpriteSnake1, iType, AI_SNAKES[i].score, iType, s_oScrollStage, AI_SNAKES[i].isBot);
             _aEnemySnakes.push(oEnemySnake);
             _aSnakes.push(oEnemySnake);
 
-            // if (AI_SNAKES[i].isBot == 1) // only one player can run the AI bots
-            // {
+            if (AI_SNAKES[i].isBot == 1) // only one player can run the AI bots
+            {
                 _oAiSnakes.addSnakeToAI(oEnemySnake);
-            // }
+            }
             iID++;
         }
     };
@@ -695,6 +707,8 @@ function CGame(oData) {
             this.manageCollision();
             _oAiSnakes.update();
 
+            this.setUpdateSnakes();
+
             var currentDate = new Date();
             if (START_DATE == null || START_DATE == '') {
                 START_DATE = new Date();
@@ -715,6 +729,7 @@ function CGame(oData) {
                     var last_elapsedTime = Math.floor((currentDate.getTime() - LAST_UPDATE_TIME.getTime()));
                     if (last_elapsedTime > MAX_SOCKET_ELAPS) {
                         LAST_UPDATE_TIME = new Date();
+                        ///////
                     }
 
                     ///////////////////////////////////////
@@ -740,7 +755,9 @@ function CGame(oData) {
                             score: _iScore,
                             rotValue: curr_rotate,
                             speed: _iPlayerSpeed,
-                            isBot: 0
+                            isBot: 0,
+
+
                         })
                     }
 
@@ -851,7 +868,8 @@ function CGame(oData) {
             });
         }
 
-        if (result == 'win' && socket != null) {
+        if (socket != null) {
+            if (result == 'win' || this.getLivePlayer() == null)
             socket.emit('disconnect_game', {});
         }
 

@@ -146,7 +146,7 @@ function CMenu() {
     this.update = function () {
         _oAnimMenu.update();
 
-        if (_endTime != null && s_oMain.getGameState() != STATE_GAME) {
+        if (_endTime != null && s_oMain.getGameState() != STATE_GAME && COUNT_OF_BOTS < 5) {
             (function frame(onJoinGameForBot, OWNER, _STATE_GAME) {
                 // launch a few confetti from the left edge
                 confetti({
@@ -158,6 +158,8 @@ function CMenu() {
                 });
     
                 if (Date.now() > _endTime && OWNER == 0) {
+
+                    COUNT_OF_BOTS += 1;
 
                     $.ajax({
                         url: '/bot/info',
@@ -186,6 +188,7 @@ function CMenu() {
                     });   
                     
                 }
+
             }(joinGameForBot, PLAYER, STATE_GAME));
         }
     };

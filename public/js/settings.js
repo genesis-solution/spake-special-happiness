@@ -10,15 +10,15 @@ var EDGEBOARD_Y = 90;
 var DISABLE_SOUND_MOBILE = false;
 var FONT_GAME = "palamecia_titlingregular";
 
-var FPS = 60;
+var FPS = 30;
 
 var FPS_TIME = 1 / FPS;
 
 var SNAKE_TYPES = 5;
 
-var FRAMES_NUM_HELP = [null, null, null, null, null]; // [null, 16, 17, 22];
+var FRAMES_NUM_HELP = [null, 16, 17, 22];
 
-var BUFFER_ANIM_MONITOR = [null, null, null, null, null]; // [null, 80, 80, 80];
+var BUFFER_ANIM_MONITOR = [null, 80, 80, 80];
 
 var PLAYER = 0;
 var ENEMY_SNAKES = [];
@@ -137,8 +137,8 @@ var AI_TIME_IGNORE_PLAYER = 1000;
 
 var AI_WAIT_TIME_FOR_CHANGE_DIR = {min: 250, max: 1000};
 
-var AI_SMALL_TIME_CHANGE_DIR = {min: 0, max: 0};
-var AI_SMALL_WAIT_TIME_FOR_CHANGE_DIR = {min: 0, max: 0};
+var AI_SMALL_TIME_CHANGE_DIR = {min: 20, max: 50};
+var AI_SMALL_WAIT_TIME_FOR_CHANGE_DIR = {min: 2, max: 10};
 
 var CAN_PLAYER_EATEN_ENEMY = false;
 
@@ -183,12 +183,12 @@ var TOTAL_PLAYERS = 1;
 // ]
 
 var ENEMY_POSITIONS = [
-    { x: 394, y: 1024 },
     { x: 788, y: 1024 },
     { x: 1182, y: 1024 },
     { x: 1576, y: 1024 },
     { x: 1970, y: 1024 },
-    { x: 2364, y: 1024 }
+    { x: 2364, y: 1024 },
+    { x: 394, y: 1024 }
 ]
 
 var HERO_ACCELLERATION;
@@ -279,6 +279,7 @@ function Draw() {
   
     return results;
 }
+
 var shareTitle = 'Highscore on Play Checkers is [SCORE]';//social share score title
 var shareMessage = 'I just won $[SCORE] on player1.win, Let’s play Connect Four with real money bets! Are you in? Join now.'; //social share score message
 
@@ -338,6 +339,7 @@ function joinGame(isBot) {
     }
 }
 
+var COUNT_OF_BOTS = 0;
 function joinGameForBot(data, isBot) {
     if (socket != null && data.username != '')
 	{

@@ -273,6 +273,10 @@ function CMain(oData) {
         // _iState = STATE_GAME;
     };
 
+    this.setGameStart = function() {
+        _iState = STATE_GAME;
+    }
+
     this.gotoHelp = function () {
         _oHelp = new CHelp();
         _iState = STATE_HELP;
@@ -280,10 +284,6 @@ function CMain(oData) {
 
     this.getGameState = function () {
         return _iState;
-    }
-
-    this.setGameStart = function() {
-        _iState = STATE_GAME;
     }
 
     this.stopUpdate = function(){

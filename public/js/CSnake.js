@@ -1,4 +1,4 @@
-function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer) {
+function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer, isBot) {
     var _oSnake;
     var _oCollision;
     var _oShape;
@@ -21,14 +21,16 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
     var _bIgnoreAnim = false;
     var _bEatingSoundPlayed = false;
     var _bScreamingSoundPlayed = false;
+    var _isBot = 0;
 
-    this._init = function (iX, iY, iType, iStartQueueLenght, oSprite) {
+    this._init = function (iX, iY, iType, iStartQueueLenght, oSprite, isBot) {
         _oContainer = new createjs.Container();
         _oParentContainer.addChild(_oContainer);
         _aQueue = new Array();
 
         _vDir = new CVector2(0, 1);
         _iType = iType;
+        _isBot = isBot;
 
         var iWidth;
         var iHeight;
@@ -95,6 +97,10 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
     this.getCurrentAnimation = function () {
         return _oSnake.currentAnimation;
     };
+
+    this.getIsBot = function () {
+        return _isBot;
+    }
 
     this.setSubAI = function (oSubAI) {
         _oSubAI = oSubAI;

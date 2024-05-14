@@ -7,6 +7,8 @@ let rooms = {}; // Store game rooms
 let disConnectedSocketPlayers = [];
 let waitingBots = [];
 
+let TotalMovements = [];
+
 function handleSocketEvents(io) {
 
     io.on('connection', (socket) => {
@@ -26,6 +28,7 @@ function handleSocketEvents(io) {
                 socket.entityId = player.player.entityId;
                 socket.isBot = player.isBot; // 0 or 1
 
+                waitingBots = [];
                 waitingPlayers.push(socket);
 
                 // Try to match players when there are at least two waiting
