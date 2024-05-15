@@ -39,6 +39,9 @@ function CMain(oData) {
         _oPreloader = new CPreloader();
 
         _bUpdate = true;
+
+        sessionStorage.clear();
+        sessionStorage.setItem("bots", 0)
     };
 
     this.soundLoaded = function () {

@@ -47,7 +47,7 @@ function CControlAiSnakes() {
             oSnake.subAI.setSoundFollow(false);
             oSnake.subAI.update();
         }
-        oSnake.snake.update(SNAKES_AI_SPEED[ oSnake.snake.getType()]);
+        oSnake.snake.update(SNAKES_AI_SPEED[ oSnake.snake.getType() ]);
         //  console.log(oSnake.snake.getPos());
     };
 

@@ -137,8 +137,8 @@ var AI_TIME_IGNORE_PLAYER = 1000;
 
 var AI_WAIT_TIME_FOR_CHANGE_DIR = {min: 250, max: 1000};
 
-var AI_SMALL_TIME_CHANGE_DIR = {min: 20, max: 50};
-var AI_SMALL_WAIT_TIME_FOR_CHANGE_DIR = {min: 2, max: 10};
+var AI_SMALL_TIME_CHANGE_DIR = {min: 0, max: 1};
+var AI_SMALL_WAIT_TIME_FOR_CHANGE_DIR = {min: 0, max: 1};
 
 var CAN_PLAYER_EATEN_ENEMY = false;
 
@@ -200,7 +200,10 @@ var ENABLE_CHECK_ORIENTATION;
 var MAX_TIMER = 600000;
 var START_DATE;
 var LAST_UPDATE_TIME = new Date();
-var MAX_SOCKET_ELAPS = 100;
+var LAST_AI_UPDATE_TIME = new Date();
+
+var MAX_SOCKET_ELAPS = 30;
+var MAX_SUB_SOCKET_ELAPS = 30;
 
 /*!
  * 
@@ -339,7 +342,6 @@ function joinGame(isBot) {
     }
 }
 
-var COUNT_OF_BOTS = 0;
 function joinGameForBot(data, isBot) {
     if (socket != null && data.username != '')
 	{

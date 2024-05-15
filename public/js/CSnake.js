@@ -40,17 +40,21 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
             iWidth = oSprite.width / 9;
             iHeight = oSprite.height / 2;
             oAnimation = {
+                // normal: 0,
+                // open: [1, 7, "remain_open"],
+                // remain_open: 7,
+                // close: [8, 12, "normal"],
+                // damage_open: [13, 16, "remain_damage"],
+                // remain_damage: [16, 16, "damage_close", 0.05],
+                // damage_close: {
+                //     frames: [16, 15, 14, 13],
+                //     next: "normal"
+                // },
+                // die: 17
                 normal: 0,
                 open: [1, 7, "remain_open"],
                 remain_open: 7,
-                close: [8, 12, "normal"],
-                damage_open: [13, 16, "remain_damage"],
-                remain_damage: [16, 16, "damage_close", 0.05],
-                damage_close: {
-                    frames: [16, 15, 14, 13],
-                    next: "normal"
-                },
-                die: 17
+                close: [8, 12, "normal"]
             };
         } else {
             iWidth = oSprite.width / 7;

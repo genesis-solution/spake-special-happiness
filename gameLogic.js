@@ -7,7 +7,8 @@ let rooms = {}; // Store game rooms
 let disConnectedSocketPlayers = [];
 let waitingBots = [];
 
-let TotalMovements = [];
+// Store data per room
+const roomData = {};
 
 function handleSocketEvents(io) {
 
@@ -328,8 +329,19 @@ function handleSocketEvents(io) {
             if (roomName1) {
                 for (const roomName in rooms) {
                     if (rooms.hasOwnProperty(roomName)) {
-                        const room = rooms[roomName];
-                        io.to(roomName).emit('opponentMove', moveData);
+
+                        // Find existing data with the same ID
+                        if (!roomData[roomName]) {
+                            roomData[roomName] = {};
+                        }
+
+                        if (!roomData[roomName][moveData.type]) {
+                            roomData[roomName][moveData.type] = [];
+                        }
+
+                        roomData[roomName][moveData.type].push(moveData);
+
+                        emitDataFromFirstElement(roomName);
                     }
                 }
             }
@@ -502,6 +514,7 @@ function handleSocketEvents(io) {
                 if (isSubmitResult == true)
                 {
                     // Remove the room
+                    if (roomData[roomName1]) delete roomData[roomName1];
                     delete rooms[roomName1];
                 }
             }
@@ -526,9 +539,46 @@ function handleSocketEvents(io) {
                 // Inform the other player in the room about disconnection
                 socket.to(roomName1).emit('playerDisconnected', roomName1);
                 // Remove the room
+                if (roomData[roomName1]) delete roomData[roomName1];
                 delete rooms[roomName1];
             }
         });
+
+        function emitDataFromFirstElement(room) {
+            if (roomData[room]) {
+
+                let index;
+                var isFullData = true;
+                for (index = 0; index < TOTAL_PLAYERS; index++) {
+                    if (!roomData[room][index]) {
+                        isFullData = false;
+                        break;
+                    }
+                }
+
+                if (isFullData == true) {
+                    var _playersData = {};
+
+                    var _isFullData = true;
+                    for (index = 0; index < TOTAL_PLAYERS; index++) {
+
+                        // if (roomData[room][index].length == 0) {
+                        //     _isFullData = false;
+                        //     break;
+                        // }
+                        _playersData[index] = roomData[room][index];
+                        roomData[room][index] = [];
+                    }
+
+                    if (_isFullData == true)
+                    {
+                        io.to(room).emit('opponentMove', _playersData);
+                    }
+                }
+            } else {
+              console.log(`No data in room ${room}`);
+            }
+          }
     });
 }
 

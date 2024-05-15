@@ -146,6 +146,13 @@ function CMenu() {
     this.update = function () {
         _oAnimMenu.update();
 
+        var COUNT_OF_BOTS = 0;
+        var savedCountOfBots = sessionStorage.getItem("bots");
+
+        if (savedCountOfBots != undefined && savedCountOfBots != null) {
+            COUNT_OF_BOTS = parseInt(savedCountOfBots);
+        }
+
         if (_endTime != null && s_oMain.getGameState() != STATE_GAME && COUNT_OF_BOTS < 5) {
             (function frame(onJoinGameForBot, OWNER, _STATE_GAME) {
                 // launch a few confetti from the left edge
@@ -159,7 +166,7 @@ function CMenu() {
     
                 if (Date.now() > _endTime && OWNER == 0) {
 
-                    COUNT_OF_BOTS += 1;
+                    sessionStorage.setItem("bots", COUNT_OF_BOTS + 1)
 
                     $.ajax({
                         url: '/bot/info',
