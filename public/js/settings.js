@@ -10,7 +10,7 @@ var EDGEBOARD_Y = 90;
 var DISABLE_SOUND_MOBILE = false;
 var FONT_GAME = "palamecia_titlingregular";
 
-var FPS = 30;
+var FPS = 50;
 
 var FPS_TIME = 1 / FPS;
 
@@ -137,6 +137,9 @@ var AI_TIME_IGNORE_PLAYER = 1000;
 
 var AI_WAIT_TIME_FOR_CHANGE_DIR = {min: 250, max: 1000};
 
+var AI_SMALL_TIME_CHANGE_DIR = {min: 0, max: 1};
+var AI_SMALL_WAIT_TIME_FOR_CHANGE_DIR = {min: 0, max: 1};
+
 var CAN_PLAYER_EATEN_ENEMY = false;
 
 var SHOW_COLLISION_SHAPE = false;
@@ -147,7 +150,7 @@ var SHOW_FOODS_ID = false;
 
 var SHOW_SECTION_SHAPE = false;
 
-var ALLOW_SPEED_UP = true;
+var ALLOW_SPEED_UP = false;
 
 var HERO_START_X = 1511;
 var HERO_START_Y = 1024;
@@ -180,12 +183,12 @@ var TOTAL_PLAYERS = 1;
 // ]
 
 var ENEMY_POSITIONS = [
-    { x: 394, y: 1024 },
     { x: 788, y: 1024 },
     { x: 1182, y: 1024 },
     { x: 1576, y: 1024 },
     { x: 1970, y: 1024 },
-    { x: 2364, y: 1024 }
+    { x: 2364, y: 1024 },
+    { x: 394, y: 1024 }
 ]
 
 var HERO_ACCELLERATION;
@@ -197,7 +200,10 @@ var ENABLE_CHECK_ORIENTATION;
 var MAX_TIMER = 600000;
 var START_DATE;
 var LAST_UPDATE_TIME = new Date();
-var MAX_SOCKET_ELAPS = 1000;
+var LAST_AI_UPDATE_TIME = new Date();
+
+var MAX_SOCKET_ELAPS = 30;
+var MAX_SUB_SOCKET_ELAPS = 30;
 
 /*!
  * 
@@ -276,6 +282,7 @@ function Draw() {
   
     return results;
 }
+
 var shareTitle = 'Highscore on Play Checkers is [SCORE]';//social share score title
 var shareMessage = 'I just won $[SCORE] on player1.win, Let’s play Connect Four with real money bets! Are you in? Join now.'; //social share score message
 
@@ -363,3 +370,34 @@ function redirectToWithAuth(url, authToken, noError) {
 }
 
 
+function compareArrays(arr1, arr2) {
+    // Check lengths
+    if (arr1.length !== arr2.length) {
+        return false;
+    }
+
+    // Iterate through elements of arr1
+    for (let i = 0; i < arr1.length; i++) {
+        const obj1 = arr1[i];
+        const obj2 = arr2[i];
+        
+        // Compare properties of objects
+        if (!isEqual(obj1, obj2)) {
+            return false;
+        }
+    }
+
+    // If all elements match, arrays are equal
+    return true;
+}
+
+// Define a custom equality check function
+function isEqual(obj1, obj2) {
+    // Define your custom comparison logic here
+    // For example, compare properties of objects
+    return obj1.country === obj2.country && obj1.name === obj2.name && obj1.score === obj2.score && obj1.die === obj2.die;
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}

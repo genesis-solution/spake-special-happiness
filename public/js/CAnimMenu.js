@@ -26,7 +26,7 @@ function CAnimMenu(oParentContainer) {
         var iTypeGood = 4;
         var iLengthGoodQueue = 15;
         _oGoodSnake = new CSnake(-100, CANVAS_HEIGHT_HALF, s_oSpriteLibrary.getSprite("snake_head_" + iTypeGood), iTypeGood,
-                iLengthGoodQueue, 0, _oContainer);
+                iLengthGoodQueue, 0, _oContainer, 0, 0);
 
         _oGoodSnake.rotate(90);
 

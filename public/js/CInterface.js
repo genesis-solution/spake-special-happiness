@@ -362,35 +362,38 @@ function CInterface() {
 
         for (var i = 0; i < players.length; i++) {
             
-            var flagImage = new Image();
-            var flagName = players[i].country.replace(' ', '-');
-            flagName = players[i].country.replace(' ', '-');
-            flagImage.src = `https://www.player1.win/assets/images/flags/`+ flagName +`.png`
+            if (players[i].die == false)
+            {
+                var flagImage = new Image();
+                var flagName = players[i].country.replace(' ', '-');
+                flagName = players[i].country.replace(' ', '-');
+                flagImage.src = `https://www.player1.win/assets/images/flags/`+ flagName +`.png`
 
-			const flagWidth = 36; // Set your desired width here
-			const flagHeight = 27; // Set your desired height here
+                const flagWidth = 36; // Set your desired width here
+                const flagHeight = 27; // Set your desired height here
 
-            flagImage.onload = (function(index) {
-                return function() {
-                    var listItem = new createjs.Container();
-                    listItem.y = (index + 1) * 38; // Adjust the positioning according to your needs
+                flagImage.onload = (function(index) {
+                    return function() {
+                        var listItem = new createjs.Container();
+                        listItem.y = (index + 1) * 38; // Adjust the positioning according to your needs
 
-                    var usernameText = new createjs.Text(players[index].name + '(' + players[index].score + ')', "28px " + FONT_GAME, "#ffffff");
+                        var usernameText = new createjs.Text(players[index].name + '(' + players[index].score + ')', "28px " + FONT_GAME, "#ffffff");
 
-                    var bitmap = new createjs.Bitmap(this);
-                    bitmap.scaleX = flagWidth / bitmap.image.width;
-                    bitmap.scaleY = flagHeight / bitmap.image.height;
-                    // Center the bitmap within the container
-                    // bitmap.regX = bitmap.image.width / 2;
-                    // bitmap.regY = 80;
-    
-                    usernameText.regX = usernameText.regX - bitmap.image.width - 20;
-    
-                    listItem.addChild(bitmap, usernameText);
-    
-                    _userListContainer.addChild(listItem);
-                };
-              })(i);
+                        var bitmap = new createjs.Bitmap(this);
+                        bitmap.scaleX = flagWidth / bitmap.image.width;
+                        bitmap.scaleY = flagHeight / bitmap.image.height;
+                        // Center the bitmap within the container
+                        // bitmap.regX = bitmap.image.width / 2;
+                        // bitmap.regY = 80;
+        
+                        usernameText.regX = usernameText.regX - bitmap.image.width - 20;
+        
+                        listItem.addChild(bitmap, usernameText);
+        
+                        _userListContainer.addChild(listItem);
+                    };
+                })(i);
+            }
         }
     };
 

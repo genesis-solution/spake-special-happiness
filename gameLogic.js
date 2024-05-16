@@ -7,12 +7,16 @@ let rooms = {}; // Store game rooms
 let disConnectedSocketPlayers = [];
 let waitingBots = [];
 
+// Store data per room
+const roomData = {};
+
 function handleSocketEvents(io) {
 
     io.on('connection', (socket) => {
-        console.log('New client connected');
 
         socket.on('joinGame', (player) => {
+
+            console.log('New client connected');
 
             if (player.player.entityId != '' && !isNameTaken(player.player.entityId) && !isRoomTaken(player.player.entityId)) { // && !isNameTakenFromTotalPlayers(player.playerName)
                 
@@ -25,6 +29,7 @@ function handleSocketEvents(io) {
                 socket.entityId = player.player.entityId;
                 socket.isBot = player.isBot; // 0 or 1
 
+                waitingBots = [];
                 waitingPlayers.push(socket);
 
                 // Try to match players when there are at least two waiting
@@ -162,6 +167,8 @@ function handleSocketEvents(io) {
 
         socket.on('joinGameForBot', (bot) => {
 
+            console.log('New Bot connected');
+
             if (bot.player.entityId != '' && !isBotTaken(bot.player.entityId) && !isRoomTaken(bot.player.entityId)) {
                 var virtualSocket = {};
                 virtualSocket.playerName = bot.playerName; // Store the player's name in the socket object
@@ -191,8 +198,6 @@ function handleSocketEvents(io) {
                     for (let index_player = 0; index_player < (TOTAL_PLAYERS - countPlayers); index_player++) {
                         players.push(waitingBots.shift());
                     }
-
-                    console.log(players[0].entityId, players[1].entityId)
 
                     const date = new Date();
                     const roomName = `Room-${date.getTime()}`;
@@ -318,12 +323,27 @@ function handleSocketEvents(io) {
 
         // Handle player moves
         socket.on('move', (moveData) => {
+
             const roomName1 = findRoomBySocketId(socket.id);
             if (roomName1) {
                 for (const roomName in rooms) {
                     if (rooms.hasOwnProperty(roomName)) {
-                        const room = rooms[roomName];
-                        io.to(roomName).emit('opponentMove', moveData);
+
+                        // Find existing data with the same ID
+                        if (!roomData[roomName]) {
+                            roomData[roomName] = {};
+                        }
+
+                        for (let key in moveData) {
+
+                            if (!roomData[roomName][key]) {
+                                roomData[roomName][key] = [];
+                            }
+
+                            roomData[roomName][key] = roomData[roomName][key].concat(moveData[key]);
+                        }
+
+                        emitDataFromFirstElement(roomName);
                     }
                 }
             }
@@ -496,6 +516,7 @@ function handleSocketEvents(io) {
                 if (isSubmitResult == true)
                 {
                     // Remove the room
+                    if (roomData[roomName1]) delete roomData[roomName1];
                     delete rooms[roomName1];
                 }
             }
@@ -520,9 +541,36 @@ function handleSocketEvents(io) {
                 // Inform the other player in the room about disconnection
                 socket.to(roomName1).emit('playerDisconnected', roomName1);
                 // Remove the room
+                if (roomData[roomName1]) delete roomData[roomName1];
                 delete rooms[roomName1];
             }
         });
+
+        function emitDataFromFirstElement(room) {
+            if (roomData[room]) {
+                var isFullData = false;
+                for (let index = 0; index < TOTAL_PLAYERS; index++) {
+                    if (roomData[room][index] && roomData[room][index].length > 20) {
+                        isFullData = true;
+                        break;
+                    }
+                }
+
+                if (isFullData == true) {
+                    var _playersData = {};
+
+                    for (let key in roomData[room]) {
+                        _playersData[key] = roomData[room][key];
+                        roomData[room][key] = [];
+                    }
+
+
+                    io.to(room).emit('opponentMove', _playersData);
+                }
+            } else {
+              console.log(`No data in room ${room}`);
+            }
+          }
     });
 }
 

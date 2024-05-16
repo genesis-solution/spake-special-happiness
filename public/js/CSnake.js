@@ -1,4 +1,4 @@
-function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer) {
+function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer, isBot) {
     var _oSnake;
     var _oCollision;
     var _oShape;
@@ -21,14 +21,16 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
     var _bIgnoreAnim = false;
     var _bEatingSoundPlayed = false;
     var _bScreamingSoundPlayed = false;
+    var _isBot = 0;
 
-    this._init = function (iX, iY, iType, iStartQueueLenght, oSprite) {
+    this._init = function (iX, iY, iType, iStartQueueLenght, oSprite, isBot) {
         _oContainer = new createjs.Container();
         _oParentContainer.addChild(_oContainer);
         _aQueue = new Array();
 
         _vDir = new CVector2(0, 1);
         _iType = iType;
+        _isBot = isBot;
 
         var iWidth;
         var iHeight;
@@ -38,17 +40,21 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
             iWidth = oSprite.width / 9;
             iHeight = oSprite.height / 2;
             oAnimation = {
+                // normal: 0,
+                // open: [1, 7, "remain_open"],
+                // remain_open: 7,
+                // close: [8, 12, "normal"],
+                // damage_open: [13, 16, "remain_damage"],
+                // remain_damage: [16, 16, "damage_close", 0.05],
+                // damage_close: {
+                //     frames: [16, 15, 14, 13],
+                //     next: "normal"
+                // },
+                // die: 17
                 normal: 0,
                 open: [1, 7, "remain_open"],
                 remain_open: 7,
-                close: [8, 12, "normal"],
-                damage_open: [13, 16, "remain_damage"],
-                remain_damage: [16, 16, "damage_close", 0.05],
-                damage_close: {
-                    frames: [16, 15, 14, 13],
-                    next: "normal"
-                },
-                die: 17
+                close: [8, 12, "normal"]
             };
         } else {
             iWidth = oSprite.width / 7;
@@ -95,6 +101,10 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
     this.getCurrentAnimation = function () {
         return _oSnake.currentAnimation;
     };
+
+    this.getIsBot = function () {
+        return _isBot;
+    }
 
     this.setSubAI = function (oSubAI) {
         _oSubAI = oSubAI;
@@ -374,6 +384,13 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
         this.moveRect();
     };
 
+    this.move0 = function (iSpeed) {
+        _oSnake.x -= _vDir.getX() * iSpeed;
+        _oSnake.y -= _vDir.getY() * iSpeed;
+
+        this.moveRect();
+    };
+
     this.getTarget = function () {
         return _oTarget;
     };
@@ -411,6 +428,13 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
         if (!_bDie) {
             this.queuePosition();
             this.move(iSpeed);
+        }
+    };
+
+    this.updateWithoutView = function (iSpeed) {
+        if (!_bDie) {
+            // this.move0(iSpeed);
+            this.queuePosition();
         }
     };
 

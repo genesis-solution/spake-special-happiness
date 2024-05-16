@@ -25,6 +25,20 @@ function CSubAISnake(oSnake, iTimeFollow) {
         }
     };
 
+    this.setSmallRandomDirection = function () {
+        if (_fTimeChangeDir < 0) {
+            if (_fTimeTurn > 0) {
+                _oSnake.rotation(HERO_ROT_SPEED);
+                _fTimeTurn -= s_iTimeElaps;
+            } else {
+                _fTimeTurn = (Math.random() * (AI_SMALL_WAIT_TIME_FOR_CHANGE_DIR.max - AI_SMALL_WAIT_TIME_FOR_CHANGE_DIR.min)) + AI_SMALL_WAIT_TIME_FOR_CHANGE_DIR.min;
+                _fTimeChangeDir = (Math.random() * (AI_SMALL_TIME_CHANGE_DIR.max - AI_SMALL_TIME_CHANGE_DIR.min)) + AI_SMALL_TIME_CHANGE_DIR.min;
+            }
+        } else {
+            _fTimeChangeDir -= s_iTimeElaps;
+        }
+    };
+
     this.followTime = function () {
         if (_iTimeFollow < 0) {
             _bIgnorePlayer = true;
@@ -84,6 +98,7 @@ function CSubAISnake(oSnake, iTimeFollow) {
         
         for (let index = 0; index < AI_SNAKES.length; index++) {
             if (AI_SNAKES[index].type == _oSnake.getType() && AI_SNAKES[index].isBot == 1 && (s_oGame.getLivePlayer() != null && s_oGame.getLivePlayer() == PLAYER)) {
+                
                 this.setRandomDirection();
                 this.ignorePlayerTime();
 
@@ -97,21 +112,25 @@ function CSubAISnake(oSnake, iTimeFollow) {
                 // console.log("curr_die", curr_die)
                 var curr_rotate = oSnake.getRotate();
 
-                if (socket != null) {
-                    socket.emit('move', {
+                s_oGame.addGameData(
+                    {
                         type: curr_type,
                         queue: curr_queue[curr_queue.length - 1].getPos(),
                         pos: curr_pos,
                         die: curr_die,
-                        score: oSnake.getQueue().length,
+                        score:  oSnake.getLengthQueue(),
                         rotValue: curr_rotate,
                         speed: HERO_SPEED,
-                        isBot: 1
-                    })
-                }
+                        isBot: 1,
+                        sender: ME_SNAKE.type
+                    }
+                );
+
             }
-            
         }
+
+        this.ignorePlayerTime();
+
     };
 
     this._init();

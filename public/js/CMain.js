@@ -39,6 +39,9 @@ function CMain(oData) {
         _oPreloader = new CPreloader();
 
         _bUpdate = true;
+
+        localStorage.clear();
+        localStorage.setItem("bots", 0)
     };
 
     this.soundLoaded = function () {
@@ -269,8 +272,13 @@ function CMain(oData) {
 
     this.gotoGame = function () {
         _oGame = new CGame(_oData);
-        _iState = STATE_GAME;
+        
+        // _iState = STATE_GAME;
     };
+
+    this.setGameStart = function() {
+        _iState = STATE_GAME;
+    }
 
     this.gotoHelp = function () {
         _oHelp = new CHelp();
