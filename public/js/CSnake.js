@@ -384,6 +384,13 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
         this.moveRect();
     };
 
+    this.move0 = function (iSpeed) {
+        _oSnake.x -= _vDir.getX() * iSpeed;
+        _oSnake.y -= _vDir.getY() * iSpeed;
+
+        this.moveRect();
+    };
+
     this.getTarget = function () {
         return _oTarget;
     };
@@ -421,6 +428,13 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
         if (!_bDie) {
             this.queuePosition();
             this.move(iSpeed);
+        }
+    };
+
+    this.updateWithoutView = function (iSpeed) {
+        if (!_bDie) {
+            // this.move0(iSpeed);
+            this.queuePosition();
         }
     };
 

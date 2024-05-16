@@ -10,7 +10,7 @@ var EDGEBOARD_Y = 90;
 var DISABLE_SOUND_MOBILE = false;
 var FONT_GAME = "palamecia_titlingregular";
 
-var FPS = 30;
+var FPS = 50;
 
 var FPS_TIME = 1 / FPS;
 
@@ -150,7 +150,7 @@ var SHOW_FOODS_ID = false;
 
 var SHOW_SECTION_SHAPE = false;
 
-var ALLOW_SPEED_UP = true;
+var ALLOW_SPEED_UP = false;
 
 var HERO_START_X = 1511;
 var HERO_START_Y = 1024;
@@ -396,4 +396,8 @@ function isEqual(obj1, obj2) {
     // Define your custom comparison logic here
     // For example, compare properties of objects
     return obj1.country === obj2.country && obj1.name === obj2.name && obj1.score === obj2.score && obj1.die === obj2.die;
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }

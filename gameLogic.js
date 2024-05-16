@@ -199,8 +199,6 @@ function handleSocketEvents(io) {
                         players.push(waitingBots.shift());
                     }
 
-                    console.log(players[0].entityId, players[1].entityId)
-
                     const date = new Date();
                     const roomName = `Room-${date.getTime()}`;
                     console.log("created room", roomName)
@@ -325,6 +323,7 @@ function handleSocketEvents(io) {
 
         // Handle player moves
         socket.on('move', (moveData) => {
+
             const roomName1 = findRoomBySocketId(socket.id);
             if (roomName1) {
                 for (const roomName in rooms) {
@@ -335,11 +334,14 @@ function handleSocketEvents(io) {
                             roomData[roomName] = {};
                         }
 
-                        if (!roomData[roomName][moveData.type]) {
-                            roomData[roomName][moveData.type] = [];
-                        }
+                        for (let key in moveData) {
 
-                        roomData[roomName][moveData.type].push(moveData);
+                            if (!roomData[roomName][key]) {
+                                roomData[roomName][key] = [];
+                            }
+
+                            roomData[roomName][key] = roomData[roomName][key].concat(moveData[key]);
+                        }
 
                         emitDataFromFirstElement(roomName);
                     }
@@ -546,12 +548,10 @@ function handleSocketEvents(io) {
 
         function emitDataFromFirstElement(room) {
             if (roomData[room]) {
-
-                let index;
-                var isFullData = true;
-                for (index = 0; index < TOTAL_PLAYERS; index++) {
-                    if (!roomData[room][index]) {
-                        isFullData = false;
+                var isFullData = false;
+                for (let index = 0; index < TOTAL_PLAYERS; index++) {
+                    if (roomData[room][index] && roomData[room][index].length > 20) {
+                        isFullData = true;
                         break;
                     }
                 }
@@ -559,21 +559,13 @@ function handleSocketEvents(io) {
                 if (isFullData == true) {
                     var _playersData = {};
 
-                    var _isFullData = true;
-                    for (index = 0; index < TOTAL_PLAYERS; index++) {
-
-                        // if (roomData[room][index].length == 0) {
-                        //     _isFullData = false;
-                        //     break;
-                        // }
-                        _playersData[index] = roomData[room][index];
-                        roomData[room][index] = [];
+                    for (let key in roomData[room]) {
+                        _playersData[key] = roomData[room][key];
+                        roomData[room][key] = [];
                     }
 
-                    if (_isFullData == true)
-                    {
-                        io.to(room).emit('opponentMove', _playersData);
-                    }
+
+                    io.to(room).emit('opponentMove', _playersData);
                 }
             } else {
               console.log(`No data in room ${room}`);

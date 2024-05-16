@@ -147,7 +147,7 @@ function CMenu() {
         _oAnimMenu.update();
 
         var COUNT_OF_BOTS = 0;
-        var savedCountOfBots = sessionStorage.getItem("bots");
+        var savedCountOfBots = localStorage.getItem("bots");
 
         if (savedCountOfBots != undefined && savedCountOfBots != null) {
             COUNT_OF_BOTS = parseInt(savedCountOfBots);
@@ -166,7 +166,7 @@ function CMenu() {
     
                 if (Date.now() > _endTime && OWNER == 0) {
 
-                    sessionStorage.setItem("bots", COUNT_OF_BOTS + 1)
+                    localStorage.setItem("bots", COUNT_OF_BOTS + 1)
 
                     $.ajax({
                         url: '/bot/info',

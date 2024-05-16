@@ -40,8 +40,8 @@ function CMain(oData) {
 
         _bUpdate = true;
 
-        sessionStorage.clear();
-        sessionStorage.setItem("bots", 0)
+        localStorage.clear();
+        localStorage.setItem("bots", 0)
     };
 
     this.soundLoaded = function () {
