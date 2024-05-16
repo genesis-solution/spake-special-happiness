@@ -380,19 +380,19 @@ function handleSocketEvents(io) {
         });
 
         socket.on('updatetimer', (timer) => {
-            const roomName1 = findRoomBySocketId(socket.id);
-            if (roomName1) {
-                for (const roomName in rooms) {
-                    if (rooms.hasOwnProperty(roomName)) {
-                        const room = rooms[roomName];
-                        for (let index = 1; index <= TOTAL_PLAYERS; index++) {
-                            if (room['player'+index].id == socket.id) {
-                                io.to(roomName).emit('updatetimer', timer);
-                            }
-                        }
-                    }
-                }
-            }
+            // const roomName1 = findRoomBySocketId(socket.id);
+            // if (roomName1) {
+            //     for (const roomName in rooms) {
+            //         if (rooms.hasOwnProperty(roomName)) {
+            //             const room = rooms[roomName];
+            //             for (let index = 1; index <= TOTAL_PLAYERS; index++) {
+            //                 if (room['player'+index].id == socket.id) {
+            //                     io.to(roomName).emit('updatetimer', timer);
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
         });
 
         socket.on('giveup', (playerName) => {
@@ -550,7 +550,7 @@ function handleSocketEvents(io) {
             if (roomData[room]) {
                 var isFullData = false;
                 for (let index = 0; index < TOTAL_PLAYERS; index++) {
-                    if (roomData[room][index] && roomData[room][index].length > 20) {
+                    if (roomData[room][index] && roomData[room][index].length > 5) {
                         isFullData = true;
                         break;
                     }

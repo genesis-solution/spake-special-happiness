@@ -107,6 +107,7 @@ function CGame(oData) {
                     var sleepTime = 1000 / FPS;
 
                     if (totalData[index_player] && index_player != _oPlayerSnake.getType()) {
+                        
                         for (let index_item = 0; index_item < totalData[index_player].length; index_item++) {
                             const moveData = totalData[index_player][index_item];
 
@@ -141,9 +142,9 @@ function CGame(oData) {
                                         AI_SNAKES[indexAISnakes].x = moveData.pos.x;
                                         AI_SNAKES[indexAISnakes].y = moveData.pos.y;
 
-                                        _aSnakes[index_enemysnake].update(moveData.speed);
-
                                         await sleep(sleepTime);
+
+                                        _aSnakes[index_enemysnake].update(1);
                                     }
                                 }
                             }
@@ -760,12 +761,13 @@ function CGame(oData) {
 
             if (Math.floor(MAX_TIMER - elapsedTime) > 0)
             {
-                if (socket != null) {
-                    if (this.getLivePlayer() != null && this,this.getLivePlayer() == PLAYER)
-                    {
-                        socket.emit("updatetimer", Math.floor(MAX_TIMER - elapsedTime))
-                    }
-                }
+                _oInterface.displayTimer(Math.floor(MAX_TIMER - elapsedTime));
+                // if (socket != null) {
+                //     if (this.getLivePlayer() != null && this,this.getLivePlayer() == PLAYER)
+                //     {
+                //         socket.emit("updatetimer", Math.floor(MAX_TIMER - elapsedTime))
+                //     }
+                // }
 
                 if (LAST_UPDATE_TIME != null)
                 {
@@ -792,7 +794,7 @@ function CGame(oData) {
                     });
 
                     var last_elapsedTime = Math.floor((currentDate.getTime() - LAST_UPDATE_TIME.getTime()));
-                    if (true || last_elapsedTime > MAX_SOCKET_ELAPS) {
+                    if (last_elapsedTime > MAX_SOCKET_ELAPS) {
                         LAST_UPDATE_TIME = new Date();
                         ///////
                         ///////////////////////////////////////
