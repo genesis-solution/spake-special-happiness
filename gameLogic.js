@@ -550,7 +550,7 @@ function handleSocketEvents(io) {
             if (roomData[room]) {
                 var isFullData = false;
                 for (let index = 0; index < TOTAL_PLAYERS; index++) {
-                    if (roomData[room][index] && roomData[room][index].length > 5) {
+                    if (roomData[room][index] && roomData[room][index].length > 50) {
                         isFullData = true;
                         break;
                     }

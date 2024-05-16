@@ -258,25 +258,9 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
             return;
         }
         _bDie = true;
-       // _vDir.set(0, 0);
+      //  _vDir.set(0, 0);
       //  this.stopState("die");
         this.cutQueueAtPoint(0);
-//        var oScope = this;
-//        createjs.Tween.get(_oSnake).wait(750).to({scaleX: 0, scaleY: 0}, 1000).call(function () {
-//            oScope.unload();
-//            if (oFunc !== "undefined") {
-//                oFunc(_iID);
-//            }
-//        });
-
-       var oScope = this;
-       createjs.Tween.get(_oSnake).wait(750).to({scaleX: 0, scaleY: 0}, 1000).call(function () {
-       //    oScope.unload();
-
-        //    if (oFunc !== "undefined") {
-        //        oFunc(_iID);
-        //    }
-       });
     };
 
     this.getOpenMounthDim = function () {

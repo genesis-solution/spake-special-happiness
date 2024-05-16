@@ -144,7 +144,7 @@ function CGame(oData) {
 
                                         await sleep(sleepTime);
 
-                                        _aSnakes[index_enemysnake].update(1);
+                                        _aSnakes[index_enemysnake].update(2);
                                     }
                                 }
                             }
@@ -238,6 +238,7 @@ function CGame(oData) {
         if (!_GameData[data.type]) {
             _GameData[data.type] = [];
         }
+        // if (data.die == false)
         _GameData[data.type].push(data);
     }
 
@@ -794,7 +795,7 @@ function CGame(oData) {
                     });
 
                     var last_elapsedTime = Math.floor((currentDate.getTime() - LAST_UPDATE_TIME.getTime()));
-                    if (last_elapsedTime > MAX_SOCKET_ELAPS) {
+                    if (last_elapsedTime > MAX_SOCKET_ELAPS) { // last_elapsedTime > MAX_SOCKET_ELAPS
                         LAST_UPDATE_TIME = new Date();
                         ///////
                         ///////////////////////////////////////

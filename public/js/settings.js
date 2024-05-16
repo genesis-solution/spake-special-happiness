@@ -10,7 +10,7 @@ var EDGEBOARD_Y = 90;
 var DISABLE_SOUND_MOBILE = false;
 var FONT_GAME = "palamecia_titlingregular";
 
-var FPS = 100;
+var FPS = 30;
 
 var FPS_TIME = 1 / FPS;
 
@@ -202,8 +202,8 @@ var START_DATE;
 var LAST_UPDATE_TIME = new Date();
 var LAST_AI_UPDATE_TIME = new Date();
 
-var MAX_SOCKET_ELAPS = 100;
-var MAX_SUB_SOCKET_ELAPS = 100;
+var MAX_SOCKET_ELAPS = 170;
+var MAX_SUB_SOCKET_ELAPS = 170;
 
 /*!
  * 
