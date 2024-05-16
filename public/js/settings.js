@@ -202,8 +202,8 @@ var START_DATE;
 var LAST_UPDATE_TIME = new Date();
 var LAST_AI_UPDATE_TIME = new Date();
 
-var MAX_SOCKET_ELAPS = 170;
-var MAX_SUB_SOCKET_ELAPS = 170;
+var MAX_SOCKET_ELAPS = 60;
+var MAX_SUB_SOCKET_ELAPS = 60;
 
 /*!
  * 

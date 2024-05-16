@@ -104,7 +104,7 @@ function CSubAISnake(oSnake, iTimeFollow) {
 
                 var curr_type = oSnake.getType(); 
                 // console.log("curr_type", curr_type)
-                var curr_queue = oSnake.getQueue();
+                // var curr_queue = oSnake.getQueue();
                 // console.log("curr_queue", curr_queue)
                 var curr_pos = oSnake.getPos();
                 // console.log("curr_pos", curr_pos)
@@ -115,7 +115,7 @@ function CSubAISnake(oSnake, iTimeFollow) {
                 s_oGame.addGameData(
                     {
                         type: curr_type,
-                        queue: curr_queue[curr_queue.length - 1].getPos(),
+                        // queue: curr_queue[curr_queue.length - 1].getPos(),
                         pos: curr_pos,
                         die: curr_die,
                         score:  oSnake.getLengthQueue(),
