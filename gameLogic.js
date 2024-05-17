@@ -4,8 +4,10 @@ const { server_url, GAMEID, TOTAL_PLAYERS } = require('./config/config');
 
 let waitingPlayers = []; // Store players waiting to be matched
 let rooms = {}; // Store game rooms
-let disConnectedSocketPlayers = [];
 let waitingBots = [];
+let disConnectedSocketPlayers = {};
+let gameResult = {};
+
 const socketIo = require('socket.io');
 
 // Store data per room
@@ -338,22 +340,20 @@ function handleSocketEvents(io) {
 
             const roomName1 = findRoomBySocketId(socket.id);
             if (roomName1) {
-                for (const roomName in rooms) {
-                    if (rooms.hasOwnProperty(roomName)) {
+                if (rooms.hasOwnProperty(roomName1)) {
 
-                        // Find existing data with the same ID
-                        if (!roomData[roomName]) {
-                            roomData[roomName] = {};
+                    // Find existing data with the same ID
+                    if (!roomData[roomName1]) {
+                        roomData[roomName1] = {};
+                    }
+
+                    for (let key in moveData) {
+
+                        if (!roomData[roomName1][key]) {
+                            roomData[roomName1][key] = [];
                         }
 
-                        for (let key in moveData) {
-
-                            if (!roomData[roomName][key]) {
-                                roomData[roomName][key] = [];
-                            }
-
-                            roomData[roomName][key] = roomData[roomName][key].concat(moveData[key]);
-                        }
+                        roomData[roomName1][key] = roomData[roomName1][key].concat(moveData[key]);
                     }
                 }
             }
@@ -362,13 +362,8 @@ function handleSocketEvents(io) {
         // Handle player moves
         socket.on('total_foods', (attrFoods) => {
             const roomName1 = findRoomBySocketId(socket.id);
-            if (roomName1) {
-                for (const roomName in rooms) {
-                    if (rooms.hasOwnProperty(roomName)) {
-                        const room = rooms[roomName];
-                        io.to(roomName).emit('total_foods', attrFoods);
-                    }
-                }
+            if (roomName1 && rooms.hasOwnProperty(roomName1)) {
+                io.to(roomName1).emit('total_foods', attrFoods);
             }
         });
 
@@ -376,13 +371,11 @@ function handleSocketEvents(io) {
         socket.on('sendEmoji', (emojiName) => {
             const roomName1 = findRoomBySocketId(socket.id);
             if (roomName1) {
-                for (const roomName in rooms) {
-                    if (rooms.hasOwnProperty(roomName)) {
-                        const room = rooms[roomName];
-                        for (let index = 1; index <= TOTAL_PLAYERS; index++) {
-                            if (room['player'+index].id == socket.id) {
-                                io.to(roomName).emit('sendEmoji', emojiName);
-                            }
+                if (rooms.hasOwnProperty(roomName1)) {
+                    const room = rooms[roomName1];
+                    for (let index = 1; index <= TOTAL_PLAYERS; index++) {
+                        if (room['player'+index].id == socket.id) {
+                            io.to(roomName1).emit('sendEmoji', emojiName);
                         }
                     }
                 }
@@ -408,26 +401,76 @@ function handleSocketEvents(io) {
         socket.on('giveup', (playerName) => {
             const roomName1 = findRoomBySocketId(socket.id);
             if (roomName1) {
-            for (const roomName in rooms) {
-                if (rooms.hasOwnProperty(roomName)) {
-                    const room = rooms[roomName];
+                if (!disConnectedSocketPlayers[roomName1]) { disConnectedSocketPlayers[roomName1] = []}
+                disConnectedSocketPlayers[roomName1].push(socket.id)
+
+                if (rooms.hasOwnProperty(roomName1)) {
+                    const room = rooms[roomName1];
                     for (let index = 1; index <= TOTAL_PLAYERS; index++) {
                         if (room['player'+index].id == socket.id) {
-                            io.to(roomName).emit('giveup', playerName);
+                            io.to(roomName1).emit('giveup', playerName);
+                        }
+                    }
+                }
+            }
+        });
+
+        socket.on("final_result", (_result) => {
+            const roomName1 = findRoomBySocketId(socket.id);
+
+            if (roomName1) {
+                if (!disConnectedSocketPlayers[roomName1]) { disConnectedSocketPlayers[roomName1] = []}
+                disConnectedSocketPlayers[roomName1].push(socket.id)
+
+                if (!gameResult[roomName1]) {
+                    gameResult[roomName1] = {}
+                }
+
+                if (!gameResult[roomName1][_result.type]) {
+                    gameResult[roomName1][_result.type] = {}
+                }
+
+                gameResult[roomName1][_result.type] = _result;
+
+                if (rooms.hasOwnProperty(roomName1)) {
+
+                    const room = rooms[roomName1];
+                    let winnerID = ''
+                    let isSubmitResult = true;
+
+                    for (let index_players = 1; index_players <= TOTAL_PLAYERS; index_players++) {
+
+                        if (room['player'+index_players].isBot == 0 && !disConnectedSocketPlayers[roomName1].includes(room['player'+index_players].id)) {
+                            isSubmitResult = false;
                         }
                     }
 
-                    disConnectedSocketPlayers.push(socket.id)
+                    if (isSubmitResult == true && gameResult[roomName1]) 
+                    {
+                        let final_score = 0;
+                        for (const type_id in gameResult[roomName1]) {
+
+                            if (gameResult[roomName1][type_id] && final_score < gameResult[roomName1][type_id].score) {
+                                winnerID = type_id;
+                                final_score = gameResult[roomName1][type_id].score;
+                            }
+
+                        }
+
+                        if (final_score > 0 && winnerID != '' && _result.isBot == 0) {
+                            io.to(roomName1).emit("winner", winnerID)
+                        }
+
+                    }
+
                 }
             }
-            }
-        });
+        })
 
         socket.on('disconnect', () => {
             console.log("disconnect");
 
             const roomName1 = findRoomBySocketId(socket.id);
-            disConnectedSocketPlayers.push(socket.id);
 
             const index = waitingPlayers.findIndex(obj => obj.id == socket.id);
             if (index !== -1) {
@@ -440,94 +483,99 @@ function handleSocketEvents(io) {
             }
 
             if (roomName1) {
+
+                if (!disConnectedSocketPlayers[roomName1]) { disConnectedSocketPlayers[roomName1] = []}
+                disConnectedSocketPlayers[roomName1].push(socket.id)
                 let isSubmitResult = true;
-                for (const roomName in rooms) {
-                    if (rooms.hasOwnProperty(roomName)) {
+                if (rooms.hasOwnProperty(roomName1)) {
 
-                        const room = rooms[roomName];
-                        let winnerID = ''
+                    const room = rooms[roomName1];
+                    let winnerID = ''
 
-                        for (let index_players = 1; index_players <= TOTAL_PLAYERS; index_players++) {
-                            if (room['player'+index_players].isBot == 1) {
-                                if (winnerID != '')
-                                {
-                                    winnerID = room['player'+index_players].entityId;
-                                    Player= room['player'+index_players];
-                                }
-                            } else {
-                                if (isSubmitResult == true && !disConnectedSocketPlayers.includes(room['player'+index_players].id)) {
-                                    isSubmitResult = false;
-                                }
+                    for (let index_players = 1; index_players <= TOTAL_PLAYERS; index_players++) {
+                        if (room['player'+index_players].isBot == 1) {
+                            if (winnerID != '')
+                            {
+                                winnerID = room['player'+index_players].entityId;
+                                Player= room['player'+index_players];
+                            }
+                        } else {
+                            if (isSubmitResult == true && !disConnectedSocketPlayers[roomName1].includes(room['player'+index_players].id)) {
+                                isSubmitResult = false;
                             }
                         }
 
-                        var strTokens = ''
-                        for (let index_players = 1; index_players <= TOTAL_PLAYERS; index_players++) {
-                            strTokens = strTokens + `<item xsi:type="xsd:string">`+room['player'+index_players].TokenId+`</item>`
+                        if (room['player'+index_players].id == socket.id) {
+                            console.log("disconnected_user", room['player'+index_players].entityId)
+                            io.to(roomName1).emit("disconnected_user", room['player'+index_players].entityId)
                         }
+                    }
+
+                    var strTokens = ''
+                    for (let index_players = 1; index_players <= TOTAL_PLAYERS; index_players++) {
+                        strTokens = strTokens + `<item xsi:type="xsd:string">`+room['player'+index_players].TokenId+`</item>`
+                    }
+                    
+                    if (winnerID != '' && isSubmitResult == true) {
+                        try {
+                            const url = server_url;
+                            const func_name = "Entity_Entry_Update";
                         
-                        if (winnerID != '' && isSubmitResult == true) {
-                            try {
-                                const url = server_url;
-                                const func_name = "Entity_Entry_Update";
+                            var soapOptions = {
+                              uri: url,
+                              headers: {
+                                  'Content-Type': 'text/xml; charset=utf-8',
+                                  'Connection': 'keep-alive'
+                              },
+                              method: 'POST',
+                              body: `
+                                  <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:ns1="urn:Player1.Intf-IPlayer1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:enc="http://www.w3.org/2003/05/soap-encoding" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns2="urn:CommonWSTypes">
+                                  <env:Body>
+                                  <ns1:`+func_name+` env:encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+                                  <TokenIds enc:itemType="xsd:string" enc:arraySize="`+TOTAL_PLAYERS+`" xsi:type="ns2:ArrayOfString">
+                                  `+strTokens+`
+                                  </TokenIds>
+                                  <gameID xsi:type="xsd:int">`+GAMEID+`</gameID>
+                                  <games_entryID xsi:type="xsd:int">`+Player.games_entryID+`</games_entryID>
+                                  <NamesArray enc:itemType="xsd:string" enc:arraySize="1" xsi:type="ns2:ArrayOfString">
+                                  <item xsi:type="xsd:string">won_EntityId</item>
+                                  </NamesArray>
+                                  <ValuesArray enc:itemType="xsd:string" enc:arraySize="1" xsi:type="ns2:ArrayOfString">
+                                  <item xsi:type="xsd:string">`+winnerID+`</item>
+                                  </ValuesArray>
+                                  </ns1:Entity_Entry_Update>
+                                  </env:Body>
+                                  </env:Envelope>
+                                  `
+                            };
                             
-                                var soapOptions = {
-                                  uri: url,
-                                  headers: {
-                                      'Content-Type': 'text/xml; charset=utf-8',
-                                      'Connection': 'keep-alive'
-                                  },
-                                  method: 'POST',
-                                  body: `
-                                      <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:ns1="urn:Player1.Intf-IPlayer1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:enc="http://www.w3.org/2003/05/soap-encoding" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns2="urn:CommonWSTypes">
-                                      <env:Body>
-                                      <ns1:`+func_name+` env:encodingStyle="http://www.w3.org/2003/05/soap-encoding">
-                                      <TokenIds enc:itemType="xsd:string" enc:arraySize="`+TOTAL_PLAYERS+`" xsi:type="ns2:ArrayOfString">
-                                      `+strTokens+`
-                                      </TokenIds>
-                                      <gameID xsi:type="xsd:int">`+GAMEID+`</gameID>
-                                      <games_entryID xsi:type="xsd:int">`+Player.games_entryID+`</games_entryID>
-                                      <NamesArray enc:itemType="xsd:string" enc:arraySize="1" xsi:type="ns2:ArrayOfString">
-                                      <item xsi:type="xsd:string">won_EntityId</item>
-                                      </NamesArray>
-                                      <ValuesArray enc:itemType="xsd:string" enc:arraySize="1" xsi:type="ns2:ArrayOfString">
-                                      <item xsi:type="xsd:string">`+winnerID+`</item>
-                                      </ValuesArray>
-                                      </ns1:Entity_Entry_Update>
-                                      </env:Body>
-                                      </env:Envelope>
-                                      `
-                                };
-                                
-                                request(soapOptions, function(_err, _resp) {
-                                  if (_err == null) {
-                                    if (_resp.statusCode == 200)
-                                    {
-                                        
-                                    }
-                                    else {
-                                        console.log(_resp)
-                                    }
-                                  } else {
-                                    console.log(_err)
-                                  }
-                                });
-                              } catch (error) {
-                                console.error('Error:', error.message);
+                            request(soapOptions, function(_err, _resp) {
+                              if (_err == null) {
+                                if (_resp.statusCode == 200)
+                                {
+                                    
+                                }
+                                else {
+                                    console.log(_resp)
+                                }
+                              } else {
+                                console.log(_err)
                               }
-                        }
-                        break;
+                            });
+                          } catch (error) {
+                            console.error('Error:', error.message);
+                          }
                     }
                 }
-
-                // Inform the other player in the room about disconnection
-                socket.to(roomName1).emit('playerDisconnected', roomName1);
 
                 if (isSubmitResult == true)
                 {
                     // Remove the room
                     if (roomData[roomName1]) delete roomData[roomName1];
+                    if (disConnectedSocketPlayers[roomName1]) delete disConnectedSocketPlayers[roomName1];
                     delete rooms[roomName1];
+
+                    io.to(roomName1).emit('playerDisconnected', roomName1);
                 }
             }
         });
@@ -549,9 +597,10 @@ function handleSocketEvents(io) {
 
             if (roomName1) {
                 // Inform the other player in the room about disconnection
-                socket.to(roomName1).emit('playerDisconnected', roomName1);
+                io.to(roomName1).emit('playerDisconnected', roomName1);
                 // Remove the room
                 if (roomData[roomName1]) delete roomData[roomName1];
+                if (disConnectedSocketPlayers[roomName1]) delete disConnectedSocketPlayers[roomName1];
                 delete rooms[roomName1];
             }
         });
@@ -586,7 +635,7 @@ function emitDataFromFirstElement(io) {
                     io.to(room).emit('opponentMove', _playersData);
                 }
             } else {
-              console.log(`No data in room ${room}`);
+              // console.log(`No data in room ${room}`);
             }
         }
     }, 30);

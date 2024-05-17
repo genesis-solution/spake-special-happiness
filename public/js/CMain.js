@@ -214,6 +214,7 @@ function CMain(oData) {
                             ME_SNAKE.prizeUSD = players[index].prizeUSD;
                             ME_SNAKE.x = ENEMY_POSITIONS[index].x;
                             ME_SNAKE.y = ENEMY_POSITIONS[index].y;
+                            ME_SNAKE.isSubmitted = false
                         }
                         else {
 
@@ -231,7 +232,8 @@ function CMain(oData) {
                                     betUsd: players[index].betUsd, 
                                     entityId: players[index].entityId, 
                                     Status: players[index].Status,
-                                    isBot: players[index].isBot
+                                    isBot: players[index].isBot,
+                                    isSubmitted: false
                                 }
                             )
                             ENEMY_SNAKES.push(index);
