@@ -4,7 +4,7 @@ const session = require('express-session');
 const { loginRoutes, gameRoutes } = require('../userRoutes');
 const { authenticateToken } = require('../middleware/middlewares');
 
-function routes(io) {
+function routes() {
   const app = express();
 
   // Middleware

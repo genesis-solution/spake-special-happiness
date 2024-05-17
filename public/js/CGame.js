@@ -27,6 +27,7 @@ function CGame(oData) {
     var _oListenerMouseDown;
     var _oListenerMouseUp;
     var _GameData;
+    var _iDataCount = 0;
 
     this._init = function () {
         _oContainerEdges = new createjs.Container();
@@ -93,8 +94,6 @@ function CGame(oData) {
 
         s_oStage.addChild(_oFade);
 
-        START_DATE = new Date();
-
         createjs.Tween.get(_oFade).to({alpha: 0}, MS_FADE_TIME, createjs.Ease.cubicOut).call(function () {
             _oFade.visible = false;
         });
@@ -102,11 +101,16 @@ function CGame(oData) {
         if (socket != null) {
             socket.on('opponentMove', async (totalData) => {
 
+                // var currentDate = new Date();
+                // var elapsedTime = Math.floor((currentDate.getTime() - RESPONSE_TIME.getTime()));
+                // RESPONSE_TIME = new Date();
+
                 for (let index_player = 0; index_player <= AI_SNAKES.length; index_player++) {
                     
-                    var sleepTime = 1000 / FPS;
-
                     if (totalData[index_player] && index_player != _oPlayerSnake.getType()) {
+
+                        var sleepTime = 1000 / FPS;
+
                         for (let index_item = 0; index_item < totalData[index_player].length; index_item++) {
                             const moveData = totalData[index_player][index_item];
 
@@ -123,27 +127,24 @@ function CGame(oData) {
                                         
                                         _aSnakes[index_enemysnake].setPosition(moveData.pos.x, moveData.pos.y);
                                         _aSnakes[index_enemysnake].rotate(moveData.rotValue);
+                                        _aSnakes[index_enemysnake].update(moveData.speed);
 
-                                        if (AI_SNAKES[indexAISnakes].score < moveData.score || moveData.die == true) {
+                                        // _aSnakes[index_enemysnake].createAQueque(moveData.queue.x, moveData.queue.y);
+                                        // _aSnakes[index_enemysnake].setQueue(moveData.queue, moveData.rotValue);
 
-                                            //for (let index_score = 0; index_score < (moveData.score - AI_SNAKES[indexAISnakes].score); index_score++) {
-                                                _aSnakes[index_enemysnake].setQueue(moveData.queue, moveData.rotValue);
-                                            //}
-                                            
-                                            AI_SNAKES[indexAISnakes].score = moveData.score;
+                                        AI_SNAKES[indexAISnakes].score = moveData.score;
 
-                                            if (moveData.die == true) {
-                                                AI_SNAKES[indexAISnakes].die = moveData.die;
-                                                _aSnakes[index_enemysnake].die();
-                                            }
+                                        if (moveData.die == true) {
+                                            AI_SNAKES[indexAISnakes].die = moveData.die;
+                                            _aSnakes[index_enemysnake].die();
                                         }
 
                                         AI_SNAKES[indexAISnakes].x = moveData.pos.x;
                                         AI_SNAKES[indexAISnakes].y = moveData.pos.y;
 
-                                        _aSnakes[index_enemysnake].update(moveData.speed);
-
                                         await sleep(sleepTime);
+
+                                        this.manageCollision();
                                     }
                                 }
                             }
@@ -151,9 +152,6 @@ function CGame(oData) {
                     }
                 }
 
-                _oFoods.update();
-                this.manageCollision();
-                
                 let display_users = [];
                 display_users = [ME_SNAKE];
                 display_users = display_users.concat(AI_SNAKES);
@@ -195,23 +193,20 @@ function CGame(oData) {
             socket.on('giveup', (playerName) => {
                 if (playerName == ME_SNAKE.entityId) {
                     _oPlayerSnake.die();
+
                     ME_SNAKE.die = true;
                     ME_SNAKE.score = 0;
-                    var isWin = true;
-                    for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
-                        if (AI_SNAKES[index_ai].isBot == 0 && _iScore <= AI_SNAKES[index_ai].score) {
-                            isWin = false;
-                            break;
-                        }
-                    }
-                    if (isWin == true)
-                        this.submitResult();
+                    _iScore = 0;
+                    this.submitResult();
                 }
             });
 
             socket.on('playerDisconnected', (roomName) => {
                 if (_bStartGame == true) {
                     this.submitResult();
+                } else {
+                    this.unpause(false);
+                    s_oMain.stopUpdate();
                 }
             });
 
@@ -220,6 +215,8 @@ function CGame(oData) {
             });
 
         }
+
+        _iDataCount = 0;
     };
 
     this.addGameData = function (data) {
@@ -237,6 +234,7 @@ function CGame(oData) {
         if (!_GameData[data.type]) {
             _GameData[data.type] = [];
         }
+
         _GameData[data.type].push(data);
     }
 
@@ -414,7 +412,7 @@ function CGame(oData) {
                 break;
                 //up
             case 38:
-                s_oGame.onKeyDownUp();
+                //s_oGame.onKeyDownUp();
                 break;
         }
 
@@ -492,9 +490,9 @@ function CGame(oData) {
 
     };
 
-    this.scrollStage = function (oFollow) {
-        s_oScrollStage.x += oFollow.getDir().getX() * HERO_SPEED + (PLAYER_CAMERA_OFFSET.x - oFollow.getLocalPos().x) * _fLerpCamera;
-        s_oScrollStage.y += oFollow.getDir().getY() * HERO_SPEED + (PLAYER_CAMERA_OFFSET.y - oFollow.getLocalPos().y) * _fLerpCamera;
+    this.scrollStage = function (oFollow, speed) {
+        s_oScrollStage.x += oFollow.getDir().getX() * speed + (PLAYER_CAMERA_OFFSET.x - oFollow.getLocalPos().x) * _fLerpCamera;
+        s_oScrollStage.y += oFollow.getDir().getY() * speed + (PLAYER_CAMERA_OFFSET.y - oFollow.getLocalPos().y) * _fLerpCamera;
 
         if (s_oScrollStage.x < _pStartScroll.xMin) {
             s_oScrollStage.x = _pStartScroll.xMin;
@@ -746,6 +744,8 @@ function CGame(oData) {
     this._updatePlay = function () {
         if (_bStartGame) {
 
+            _oFoods.update();
+
             if (_bKeyDown) {
                 _oPlayerSnake.rotation(_fRotationDir);
             }
@@ -753,25 +753,27 @@ function CGame(oData) {
             _oAiSnakes.update();
 
             var currentDate = new Date();
-            if (START_DATE == null || START_DATE == '') {
+            if (START_DATE == null || START_DATE == '' || RESPONSE_TIME == null || RESPONSE_TIME == '') {
                 START_DATE = new Date();
+                RESPONSE_TIME = new Date();
             }
             var elapsedTime = Math.floor((currentDate.getTime() - START_DATE.getTime()));
 
-            if (Math.floor(MAX_TIMER - elapsedTime) > 0)
+            if (Math.floor(MAX_TIMER - elapsedTime) > 0 && this.getLivePlayer() != null)
             {
-                if (socket != null) {
-                    if (this.getLivePlayer() != null && this,this.getLivePlayer() == PLAYER)
-                    {
-                        socket.emit("updatetimer", Math.floor(MAX_TIMER - elapsedTime))
-                    }
-                }
+                _oInterface.displayTimer(Math.floor(MAX_TIMER - elapsedTime));
+                // if (socket != null) {
+                //     if (this.getLivePlayer() != null && this,this.getLivePlayer() == PLAYER)
+                //     {
+                //         socket.emit("updatetimer", Math.floor(MAX_TIMER - elapsedTime))
+                //     }
+                // }
 
-                if (LAST_UPDATE_TIME != null)
+                if (LAST_UPDATE_TIME != null && _oPlayerSnake.getEaten() == false)
                 {
                     var curr_type = _oPlayerSnake.getType(); 
                     // console.log("curr_type", curr_type)
-                    var curr_queue = _oPlayerSnake.getQueue();
+                    // var curr_queue = _oPlayerSnake.getQueue();
                     // console.log("curr_queue", curr_queue)
                     var curr_pos = _oPlayerSnake.getPos();
                     // console.log("curr_pos", curr_pos)
@@ -781,7 +783,7 @@ function CGame(oData) {
 
                     this.addGameData({
                         type: curr_type,
-                        queue: curr_queue[curr_queue.length - 1].getPos(),
+                        // queue: curr_queue[curr_queue.length - 1].getPos(),
                         pos: curr_pos,
                         die: curr_die,
                         score: _oPlayerSnake.getLengthQueue(),
@@ -792,7 +794,7 @@ function CGame(oData) {
                     });
 
                     var last_elapsedTime = Math.floor((currentDate.getTime() - LAST_UPDATE_TIME.getTime()));
-                    if (true || last_elapsedTime > MAX_SOCKET_ELAPS) {
+                    if (last_elapsedTime > MAX_SOCKET_ELAPS) { // last_elapsedTime > MAX_SOCKET_ELAPS
                         LAST_UPDATE_TIME = new Date();
                         ///////
                         ///////////////////////////////////////
@@ -802,6 +804,7 @@ function CGame(oData) {
                         if (socket != null) {
                             socket.emit('move', _GameData);
                             _GameData = {};
+                            _iDataCount = 0;
                         }
 
                         ME_SNAKE.score = _oPlayerSnake.getLengthQueue();
@@ -837,13 +840,17 @@ function CGame(oData) {
                 this.submitResult();
             }
 
-            if (this.getLivePlayer() == null) this.submitResult();
+            if (this.isSubmitResult()) this.submitResult();
 
-            _oPlayerSnake.update(_iPlayerSpeed);
-            this.scrollStage(_oPlayerSnake, _iPlayerSpeed);
+            if (_oPlayerSnake.getEaten() == false)
+            {
+                _oPlayerSnake.update(_iPlayerSpeed);
+                this.scrollStage(_oPlayerSnake, _iPlayerSpeed - 10);
 
-            _oFoods.update();
-            this.manageCollision();
+                _oInterface.refreshScore(_oPlayerSnake.getLengthQueue());
+
+                this.manageCollision();
+            }
         }
     };
 
@@ -857,6 +864,18 @@ function CGame(oData) {
         }
 
         return null;
+    }
+
+    this.isSubmitResult = function () {
+        if (_oPlayerSnake.getEaten() == true) return true;
+
+        for (let index = 0; index < AI_SNAKES.length; index++) {
+            if ((AI_SNAKES[index].die == false && AI_SNAKES[index].isBot == 0) || (AI_SNAKES[index].die == true && AI_SNAKES[index].isBot == 0 && AI_SNAKES[index].score > _iScore)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     this.submitResult = function () {
@@ -888,14 +907,9 @@ function CGame(oData) {
         const urlParams = new URLSearchParams(window.location.search);
 
         // Get the value of a specific parameter
-        const tokenkey = urlParams.get('t'); // Returns 'value1'
-        localStorage.setItem('t', tokenkey);
-
-        var tokenID = localStorage.getItem("t");
+        const tokenID = urlParams.get('t');
         if (tokenID != undefined && tokenID != '')
         {
-            localStorage.removeItem("t");
-
             _bStartGame = false;
 
             $.ajax({
@@ -913,14 +927,19 @@ function CGame(oData) {
                 },
                 error: function(xhr, status, error) {
                     // Handle errors
-                    // console.error(xhr.responseText);
+                    console.log(xhr.responseText);
+                    console.log(error)
                 }
             });
         }
 
         if (socket != null) {
             if (result == 'win' || this.getLivePlayer() == null)
-            socket.emit('disconnect_game', {});
+            {
+                socket.emit('disconnect_game', {});
+                this.unpause(false);
+                s_oMain.stopUpdate();
+            }
         }
 
         $(s_oMain).trigger("end_session");

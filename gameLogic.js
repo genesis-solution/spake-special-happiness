@@ -6,11 +6,23 @@ let waitingPlayers = []; // Store players waiting to be matched
 let rooms = {}; // Store game rooms
 let disConnectedSocketPlayers = [];
 let waitingBots = [];
+const socketIo = require('socket.io');
 
 // Store data per room
 const roomData = {};
 
+let ioInstance;
+
+function initializeSocket(server) {
+    ioInstance = socketIo(server);
+    return ioInstance;
+}
+
 function handleSocketEvents(io) {
+
+    if (!io) {
+        throw new Error('Socket.IO has not been initialized.');
+    }
 
     io.on('connection', (socket) => {
 
@@ -342,8 +354,6 @@ function handleSocketEvents(io) {
 
                             roomData[roomName][key] = roomData[roomName][key].concat(moveData[key]);
                         }
-
-                        emitDataFromFirstElement(roomName);
                     }
                 }
             }
@@ -380,19 +390,19 @@ function handleSocketEvents(io) {
         });
 
         socket.on('updatetimer', (timer) => {
-            const roomName1 = findRoomBySocketId(socket.id);
-            if (roomName1) {
-                for (const roomName in rooms) {
-                    if (rooms.hasOwnProperty(roomName)) {
-                        const room = rooms[roomName];
-                        for (let index = 1; index <= TOTAL_PLAYERS; index++) {
-                            if (room['player'+index].id == socket.id) {
-                                io.to(roomName).emit('updatetimer', timer);
-                            }
-                        }
-                    }
-                }
-            }
+            // const roomName1 = findRoomBySocketId(socket.id);
+            // if (roomName1) {
+            //     for (const roomName in rooms) {
+            //         if (rooms.hasOwnProperty(roomName)) {
+            //             const room = rooms[roomName];
+            //             for (let index = 1; index <= TOTAL_PLAYERS; index++) {
+            //                 if (room['player'+index].id == socket.id) {
+            //                     io.to(roomName).emit('updatetimer', timer);
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
         });
 
         socket.on('giveup', (playerName) => {
@@ -545,34 +555,45 @@ function handleSocketEvents(io) {
                 delete rooms[roomName1];
             }
         });
+    });
+}
 
-        function emitDataFromFirstElement(room) {
+function emitDataFromFirstElement(io) {
+    if (!io) {
+        throw new Error('Socket.IO has not been initialized.');
+    }
+
+    // Emit events every 30ms to a specific room
+    setInterval(() => {
+        for (const room in rooms) {
             if (roomData[room]) {
                 var isFullData = false;
                 for (let index = 0; index < TOTAL_PLAYERS; index++) {
-                    if (roomData[room][index] && roomData[room][index].length > 20) {
+                    if (roomData[room][index] && roomData[room][index].length > 10) {
                         isFullData = true;
                         break;
                     }
                 }
-
+        
                 if (isFullData == true) {
                     var _playersData = {};
-
+        
                     for (let key in roomData[room]) {
                         _playersData[key] = roomData[room][key];
                         roomData[room][key] = [];
                     }
-
-
+        
+        
                     io.to(room).emit('opponentMove', _playersData);
                 }
             } else {
               console.log(`No data in room ${room}`);
             }
-          }
-    });
+        }
+    }, 30);
 }
+
+
 
 // Helper function to find room by socket ID
 function findRoomBySocketId(socketId) {
@@ -599,7 +620,7 @@ function isNameTaken(playerName) {
     return false;
   }
 
-  function isBotTaken(playerName) {
+function isBotTaken(playerName) {
     for (const player of waitingBots) {
         if (player.entityId === playerName) {
             return true;
@@ -608,7 +629,7 @@ function isNameTaken(playerName) {
     return false;
   }
 
-  function isRoomTaken(playerName) {
+function isRoomTaken(playerName) {
     for (const roomName in rooms) {
       if (rooms.hasOwnProperty(roomName)) {
           const room = rooms[roomName];
@@ -622,4 +643,4 @@ function isNameTaken(playerName) {
     return false;
   }
 
-module.exports = { handleSocketEvents };
+module.exports = { initializeSocket, handleSocketEvents, emitDataFromFirstElement};

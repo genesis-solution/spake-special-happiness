@@ -154,7 +154,7 @@ function CInterface() {
         resultShareTxt.text = 'SHARE YOUR SCORE:';
         
         resultTitleTxt = new createjs.Text();
-        resultTitleTxt.font = "60px " + FONT_GAME;
+        resultTitleTxt.font = "65px " + FONT_GAME;
         resultTitleTxt.color = '#ffffff';
         resultTitleTxt.textAlign = "center";
         resultTitleTxt.textBaseline='alphabetic';
