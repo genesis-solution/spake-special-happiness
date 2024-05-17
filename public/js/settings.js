@@ -10,7 +10,7 @@ var EDGEBOARD_Y = 90;
 var DISABLE_SOUND_MOBILE = false;
 var FONT_GAME = "palamecia_titlingregular";
 
-var FPS = 30;
+var FPS = 10;
 
 var FPS_TIME = 1 / FPS;
 
@@ -199,11 +199,12 @@ var ENABLE_CHECK_ORIENTATION;
 
 var MAX_TIMER = 600000;
 var START_DATE;
+var RESPONSE_TIME;
 var LAST_UPDATE_TIME = new Date();
 var LAST_AI_UPDATE_TIME = new Date();
 
-var MAX_SOCKET_ELAPS = 60;
-var MAX_SUB_SOCKET_ELAPS = 60;
+var MAX_SOCKET_ELAPS = 30;
+var MAX_SUB_SOCKET_ELAPS = 30;
 
 /*!
  * 
@@ -232,8 +233,7 @@ function confettiParticle(context, possibleColors) {
     this.y = Math.random() * CANVAS_HEIGHT - CANVAS_HEIGHT; // y
     this.r = randomFromTo(11, 33); // radius
     this.d = Math.random() * _maxConfettis + 11;
-    this.color =
-      possibleColors[Math.floor(Math.random() * possibleColors.length)];
+    this.color = possibleColors[Math.floor(Math.random() * possibleColors.length)];
     this.tilt = Math.floor(Math.random() * 33) - 11;
     this.tiltAngleIncremental = Math.random() * 0.07 + 0.05;
     this.tiltAngle = 0;

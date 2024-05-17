@@ -94,8 +94,6 @@ function CGame(oData) {
 
         s_oStage.addChild(_oFade);
 
-        START_DATE = new Date();
-
         createjs.Tween.get(_oFade).to({alpha: 0}, MS_FADE_TIME, createjs.Ease.cubicOut).call(function () {
             _oFade.visible = false;
         });
@@ -103,12 +101,25 @@ function CGame(oData) {
         if (socket != null) {
             socket.on('opponentMove', async (totalData) => {
 
+                var currentDate = new Date();
+                var elapsedTime = Math.floor((currentDate.getTime() - RESPONSE_TIME.getTime()));
+                RESPONSE_TIME = new Date();
+
+                console.log("Elapsed", elapsedTime);
+
                 for (let index_player = 0; index_player <= AI_SNAKES.length; index_player++) {
                     
-                    var sleepTime = 2000 / FPS;
-
                     if (totalData[index_player] && index_player != _oPlayerSnake.getType()) {
+
+                        // var timeStep = 1000 / FPS;
+
+                        // var examTime = totalData[index_player].length * timeStep;
                         
+                        // totalTime = elapsedTime + examTime;
+
+                        // var sleepTime = (totalTime) / totalData[index_player].length;
+                        var sleepTime = 1000 / FPS;
+
                         for (let index_item = 0; index_item < totalData[index_player].length; index_item++) {
                             const moveData = totalData[index_player][index_item];
 
@@ -231,14 +242,8 @@ function CGame(oData) {
         if (!_GameData[data.type]) {
             _GameData[data.type] = [];
         }
-        if (data.die == true || _iDataCount % 2 == 0)
-        {
-            _iDataCount += 1;
 
-            console.log(_iDataCount);
-
-            _GameData[data.type].push(data);
-        }
+        _GameData[data.type].push(data);
     }
 
     this.shareFoods = function () {
@@ -762,8 +767,9 @@ function CGame(oData) {
             _oAiSnakes.update();
 
             var currentDate = new Date();
-            if (START_DATE == null || START_DATE == '') {
+            if (START_DATE == null || START_DATE == '' || RESPONSE_TIME == null || RESPONSE_TIME == '') {
                 START_DATE = new Date();
+                RESPONSE_TIME = new Date();
             }
             var elapsedTime = Math.floor((currentDate.getTime() - START_DATE.getTime()));
 

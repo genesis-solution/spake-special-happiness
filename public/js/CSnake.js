@@ -236,11 +236,14 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
 //        var iDirX = _vDir.getX() * DISTANCE_SINGLE_QUEUE;
 //        var iDirY = _vDir.getY() * DISTANCE_SINGLE_QUEUE;
 
-        _aQueue[0].setPosition(_oSnake.x, _oSnake.y);
-        _aQueue[0].setRotation(_oSnake.rotation);
-        for (var i = _aQueue.length - 1; i > 0; i--) {
-            _aQueue[i].setPosition(_aQueue[i - 1].getLastPos().x, _aQueue[i - 1].getLastPos().y);
-            _aQueue[i].setRotation(_aQueue[i - 1].getRotation());
+        if (_aQueue != null)
+        {
+            _aQueue[0].setPosition(_oSnake.x, _oSnake.y);
+            _aQueue[0].setRotation(_oSnake.rotation);
+            for (var i = _aQueue.length - 1; i > 0; i--) {
+                _aQueue[i].setPosition(_aQueue[i - 1].getLastPos().x, _aQueue[i - 1].getLastPos().y);
+                _aQueue[i].setRotation(_aQueue[i - 1].getRotation());
+            }
         }
     };
 
@@ -282,6 +285,7 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
     };
 
     this.getLengthQueue = function () {
+        if (_aQueue == null) return 0;
         return _aQueue.length;
     };
 
