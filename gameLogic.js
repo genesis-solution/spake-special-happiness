@@ -583,7 +583,6 @@ function emitDataFromFirstElement(io) {
                         roomData[room][key] = [];
                     }
         
-        
                     io.to(room).emit('opponentMove', _playersData);
                 }
             } else {

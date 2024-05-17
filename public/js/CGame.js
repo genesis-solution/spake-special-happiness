@@ -879,9 +879,10 @@ function CGame(oData) {
     }
 
     this.submitResult = function () {
+
         var result = 'win';
         for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
-            if (_iScore <= AI_SNAKES[index_ai].score) {
+            if (_iScore < AI_SNAKES[index_ai].score && AI_SNAKES[index_ai].die == false) {
                 result = 'fail';
                 break;
             }
@@ -893,14 +894,14 @@ function CGame(oData) {
             winnerScore = _iScore;
         } else {
             for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
-                if (winnerScore <= AI_SNAKES[index_ai].score) {
+                if (winnerScore < AI_SNAKES[index_ai].score && AI_SNAKES[index_ai].die == false) {
                     winnerScore = AI_SNAKES[index_ai].score;
                     winner = AI_SNAKES[index_ai];
                 }
             }
 
             if (winnerScore == _iScore) {
-                result = 'draw';
+                result = 'fail';
             }
         }
 
