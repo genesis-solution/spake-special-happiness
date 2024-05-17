@@ -150,6 +150,8 @@ function CGame(oData) {
                                 }
                             }
                         }
+
+
                     }
                 }
 
@@ -177,6 +179,8 @@ function CGame(oData) {
                     
                     _oInterface.dispPlayers(display_users);
                 }
+
+                if (this.isSubmitResult()) this.submitResult();
                 
             });
 
@@ -200,7 +204,7 @@ function CGame(oData) {
 
                     if (socket != null && ME_SNAKE.isSubmitted == false) {
                         ME_SNAKE.die = true;
-                        ME_SNAKE.score = _iScore;
+                        ME_SNAKE.score = 0;
                         ME_SNAKE.isSubmitted = true;
                         socket.emit("final_result", ME_SNAKE)
                     }
@@ -932,8 +936,6 @@ function CGame(oData) {
                 this.submitResult();
             }
 
-            // if (this.isSubmitResult()) this.submitResult();
-
             if (_oPlayerSnake.getEaten() == false)
             {
                 _oPlayerSnake.update(_iPlayerSpeed);
@@ -946,7 +948,7 @@ function CGame(oData) {
             } else {
 
                 if (socket != null && ME_SNAKE.isSubmitted == false) {
-                    ME_SNAKE.score = _iScore;
+                    ME_SNAKE.score = 0;
                     ME_SNAKE.die = true;
                     ME_SNAKE.isSubmitted = true;
                     socket.emit("final_result", ME_SNAKE)
@@ -968,10 +970,9 @@ function CGame(oData) {
     }
 
     this.isSubmitResult = function () {
-        if (_oPlayerSnake.getEaten() == true) return true;
 
         for (let index = 0; index < AI_SNAKES.length; index++) {
-            if ((AI_SNAKES[index].die == false && AI_SNAKES[index].isBot == 1) || (AI_SNAKES[index].die == true && AI_SNAKES[index].isBot == 0 && AI_SNAKES[index].score > _iScore)) {
+            if ( (AI_SNAKES[index].die == false && AI_SNAKES[index].isBot == 0)) {
                 return false;
             }
         }

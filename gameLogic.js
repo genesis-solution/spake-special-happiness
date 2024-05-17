@@ -399,6 +399,16 @@ function handleSocketEvents(io) {
         });
 
         socket.on('giveup', (playerName) => {
+            const index = waitingPlayers.findIndex(obj => obj.id == socket.id);
+            if (index !== -1) {
+                waitingPlayers.splice(index, 1);
+            }
+
+            const index3 = waitingPlayers.findIndex(obj => obj.id == socket.id);
+            if (index3 !== -1) {
+                waitingPlayers.splice(index3, 1);
+            }
+            
             const roomName1 = findRoomBySocketId(socket.id);
             if (roomName1) {
                 if (!disConnectedSocketPlayers[roomName1]) { disConnectedSocketPlayers[roomName1] = []}
@@ -468,9 +478,6 @@ function handleSocketEvents(io) {
         })
 
         socket.on('disconnect', () => {
-            console.log("disconnect");
-
-            const roomName1 = findRoomBySocketId(socket.id);
 
             const index = waitingPlayers.findIndex(obj => obj.id == socket.id);
             if (index !== -1) {
@@ -481,6 +488,8 @@ function handleSocketEvents(io) {
             if (index3 !== -1) {
                 waitingPlayers.splice(index3, 1);
             }
+
+            const roomName1 = findRoomBySocketId(socket.id);
 
             if (roomName1) {
 
