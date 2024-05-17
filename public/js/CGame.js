@@ -101,15 +101,16 @@ function CGame(oData) {
         if (socket != null) {
             socket.on('opponentMove', async (totalData) => {
 
-                // var currentDate = new Date();
-                // var elapsedTime = Math.floor((currentDate.getTime() - RESPONSE_TIME.getTime()));
-                // RESPONSE_TIME = new Date();
-
                 for (let index_player = 0; index_player <= AI_SNAKES.length; index_player++) {
                     
                     if (totalData[index_player] && index_player != _oPlayerSnake.getType()) {
 
                         var sleepTime = 1000 / FPS;
+
+                        if (totalData[index_player].length > 0 && totalData[index_player][0].timer != '') {
+                            _oInterface.displayTimer(parseFloat(totalData[index_player][0].timer));
+                        }
+                        
 
                         for (let index_item = 0; index_item < totalData[index_player].length; index_item++) {
                             const moveData = totalData[index_player][index_item];
@@ -184,7 +185,10 @@ function CGame(oData) {
             socket.on('total_foods', (foods) => {
                 if (foods.player != PLAYER) {
                     _oFoods.setManageFoods(foods.data);
-                    _oFoods.update();
+                    
+                    setTimeout(() => {
+                        _oFoods.update();
+                    }, 500);
                 }
 
                 s_oMain.setGameStart();
@@ -194,20 +198,108 @@ function CGame(oData) {
                 if (playerName == ME_SNAKE.entityId) {
                     _oPlayerSnake.die();
 
-                    ME_SNAKE.die = true;
-                    ME_SNAKE.score = 0;
-                    _iScore = 0;
-                    this.submitResult();
+                    if (socket != null && ME_SNAKE.isSubmitted == false) {
+                        ME_SNAKE.die = true;
+                        ME_SNAKE.score = _iScore;
+                        ME_SNAKE.isSubmitted = true;
+                        socket.emit("final_result", ME_SNAKE)
+                    }
+                }
+                else {
+                    for (let index = 0; index < AI_SNAKES.length; index++) {
+                        if (AI_SNAKES[index].entityId == playerName) {
+                            AI_SNAKES[index].die = false;
+                        }
+                    }
+                }
+            });
+
+            socket.on('disconnected_user', (playerName) => {
+
+                for (let index = 0; index < AI_SNAKES.length; index++) {
+                    if (AI_SNAKES[index].entityId == playerName)
+                    {
+                        AI_SNAKES[index].die = true;
+
+                        for (let index_enemysnake = 0; index_enemysnake < _aSnakes.length; index_enemysnake++) {
+                            if (AI_SNAKES[index].type == _aSnakes[index_enemysnake].getType()) {
+                                _aSnakes[index_enemysnake].die();
+                                break;
+                            }
+                        }
+                    }
+                }
+
+            });
+
+            socket.on('winner', (winnertype) => {
+                console.log("winner", winnertype)
+                if (winnertype != null && winnertype != '') {
+
+                    var result = '';
+                    let winnerScore = 0;
+                    let winner = ME_SNAKE;
+
+                    if (ME_SNAKE.type == winnertype) {
+                        result = 'win';
+                        winnerScore = _iScore;
+                        winner = ME_SNAKE;
+                    }
+                    else {
+                        result = 'fail';
+
+                        for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
+                            if (winnertype == AI_SNAKES[index_ai].type) {
+                                winnerScore = AI_SNAKES[index_ai].score;
+                                winner = AI_SNAKES[index_ai];
+                                break;
+                            }
+                        }
+                    }
+
+                    const urlParams = new URLSearchParams(window.location.search);
+
+                    // Get the value of a specific parameter
+                    const tokenID = urlParams.get('t');
+                    if (tokenID != undefined && tokenID != '')
+                    {
+                        _bStartGame = false;
+
+                        $.ajax({
+                            type: "POST",
+                            url: '/result',
+                            data: {user: ME_SNAKE, oppenents: AI_SNAKES, winner: winner, t: tokenID, result_status: result, t: tokenID, gameID: 3},
+                            success: function (result) {
+
+                                if (result.success == true) {
+                                    if (result.PriseUsd != undefined)
+                                    {
+                                    } else {
+                                    }
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                // Handle errors
+                                console.log(xhr.responseText);
+                                console.log(error)
+                            }
+                        });
+                    }
+
+                    if (socket != null) {
+                        socket.emit('disconnect_game', {});
+                        this.unpause(false);
+                    }
+
+                    $(s_oMain).trigger("end_session");
+                    _oInterface.toggleResultContainer(true, result); // win or fail
                 }
             });
 
             socket.on('playerDisconnected', (roomName) => {
                 if (_bStartGame == true) {
-                    this.submitResult();
-                } else {
                     this.unpause(false);
-                    s_oMain.stopUpdate();
-                }
+                } 
             });
 
             socket.on('updatetimer', (timer) => {
@@ -753,13 +845,12 @@ function CGame(oData) {
             _oAiSnakes.update();
 
             var currentDate = new Date();
-            if (START_DATE == null || START_DATE == '' || RESPONSE_TIME == null || RESPONSE_TIME == '') {
+            if (START_DATE == null || START_DATE == '') {
                 START_DATE = new Date();
-                RESPONSE_TIME = new Date();
             }
             var elapsedTime = Math.floor((currentDate.getTime() - START_DATE.getTime()));
 
-            if (Math.floor(MAX_TIMER - elapsedTime) > 0 && this.getLivePlayer() != null)
+            if (Math.floor(MAX_TIMER - elapsedTime) > 0)
             {
                 _oInterface.displayTimer(Math.floor(MAX_TIMER - elapsedTime));
                 // if (socket != null) {
@@ -790,7 +881,8 @@ function CGame(oData) {
                         rotValue: curr_rotate,
                         speed: _iPlayerSpeed,
                         isBot: 0,
-                        sender: ME_SNAKE.type
+                        sender: ME_SNAKE.type,
+                        timer: Math.floor(MAX_TIMER - elapsedTime)
                     });
 
                     var last_elapsedTime = Math.floor((currentDate.getTime() - LAST_UPDATE_TIME.getTime()));
@@ -840,7 +932,7 @@ function CGame(oData) {
                 this.submitResult();
             }
 
-            if (this.isSubmitResult()) this.submitResult();
+            // if (this.isSubmitResult()) this.submitResult();
 
             if (_oPlayerSnake.getEaten() == false)
             {
@@ -850,6 +942,15 @@ function CGame(oData) {
                 _oInterface.refreshScore(_oPlayerSnake.getLengthQueue());
 
                 this.manageCollision();
+
+            } else {
+
+                if (socket != null && ME_SNAKE.isSubmitted == false) {
+                    ME_SNAKE.score = _iScore;
+                    ME_SNAKE.die = true;
+                    ME_SNAKE.isSubmitted = true;
+                    socket.emit("final_result", ME_SNAKE)
+                }
             }
         }
     };
@@ -870,7 +971,7 @@ function CGame(oData) {
         if (_oPlayerSnake.getEaten() == true) return true;
 
         for (let index = 0; index < AI_SNAKES.length; index++) {
-            if ((AI_SNAKES[index].die == false && AI_SNAKES[index].isBot == 0) || (AI_SNAKES[index].die == true && AI_SNAKES[index].isBot == 0 && AI_SNAKES[index].score > _iScore)) {
+            if ((AI_SNAKES[index].die == false && AI_SNAKES[index].isBot == 1) || (AI_SNAKES[index].die == true && AI_SNAKES[index].isBot == 0 && AI_SNAKES[index].score > _iScore)) {
                 return false;
             }
         }
@@ -879,71 +980,12 @@ function CGame(oData) {
     }
 
     this.submitResult = function () {
-        var result = 'win';
-        for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
-            if (_iScore <= AI_SNAKES[index_ai].score) {
-                result = 'fail';
-                break;
-            }
+
+        if (socket != null && ME_SNAKE.isSubmitted == false) {
+            ME_SNAKE.isSubmitted = true;
+            ME_SNAKE.score = _iScore;
+            socket.emit("final_result", ME_SNAKE)
         }
-        
-        let winnerScore = _iScore;
-        let winner = ME_SNAKE;
-        if (result == 'win') {
-            winnerScore = _iScore;
-        } else {
-            for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
-                if (winnerScore <= AI_SNAKES[index_ai].score) {
-                    winnerScore = AI_SNAKES[index_ai].score;
-                    winner = AI_SNAKES[index_ai];
-                }
-            }
-
-            if (winnerScore == _iScore) {
-                result = 'draw';
-            }
-        }
-
-        const urlParams = new URLSearchParams(window.location.search);
-
-        // Get the value of a specific parameter
-        const tokenID = urlParams.get('t');
-        if (tokenID != undefined && tokenID != '')
-        {
-            _bStartGame = false;
-
-            $.ajax({
-                type: "POST",
-                url: '/result',
-                data: {user: ME_SNAKE, oppenents: AI_SNAKES, winner: winner, t: tokenID, result_status: result, t: tokenID, gameID: 3},
-                success: function (result) {
-
-                    if (result.success == true) {
-                        if (result.PriseUsd != undefined)
-                        {
-                        } else {
-                        }
-                    }
-                },
-                error: function(xhr, status, error) {
-                    // Handle errors
-                    console.log(xhr.responseText);
-                    console.log(error)
-                }
-            });
-        }
-
-        if (socket != null) {
-            if (result == 'win' || this.getLivePlayer() == null)
-            {
-                socket.emit('disconnect_game', {});
-                this.unpause(false);
-                s_oMain.stopUpdate();
-            }
-        }
-
-        $(s_oMain).trigger("end_session");
-        _oInterface.toggleResultContainer(true, result); // win or fail
     }
 
     this.update = function () {

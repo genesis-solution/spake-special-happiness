@@ -122,9 +122,16 @@ function CSubAISnake(oSnake, iTimeFollow) {
                         rotValue: curr_rotate,
                         speed: HERO_SPEED,
                         isBot: 1,
-                        sender: ME_SNAKE.type
+                        sender: ME_SNAKE.type,
+                        timer: ''
                     }
                 );
+
+                
+                if (curr_die == true && socket != null && AI_SNAKES[index].isSubmitted == false) {
+                    AI_SNAKES[index].isSubmitted = true;
+                    socket.emit("final_result", AI_SNAKES[index])
+                }
 
             }
         }

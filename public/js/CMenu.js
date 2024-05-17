@@ -157,10 +157,10 @@ function CMenu() {
             (function frame(onJoinGameForBot, OWNER, _STATE_GAME) {
                 // launch a few confetti from the left edge
                 confetti({
-                    particleCount: 3,
+                    particleCount: 15,
                     angle: 60,
                     spread: 180,
-                    startVelocity: 80,
+                    startVelocity: 150,
                     origin: { x: 0.5, y: 1 }
                 });
     
