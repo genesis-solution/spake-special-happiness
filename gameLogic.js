@@ -399,6 +399,16 @@ function handleSocketEvents(io) {
         });
 
         socket.on('giveup', (playerName) => {
+            const index = waitingPlayers.findIndex(obj => obj.id == socket.id);
+            if (index !== -1) {
+                waitingPlayers.splice(index, 1);
+            }
+
+            const index3 = waitingPlayers.findIndex(obj => obj.id == socket.id);
+            if (index3 !== -1) {
+                waitingPlayers.splice(index3, 1);
+            }
+            
             const roomName1 = findRoomBySocketId(socket.id);
             if (roomName1) {
                 if (!disConnectedSocketPlayers[roomName1]) { disConnectedSocketPlayers[roomName1] = []}
@@ -468,9 +478,6 @@ function handleSocketEvents(io) {
         })
 
         socket.on('disconnect', () => {
-            console.log("disconnect");
-
-            const roomName1 = findRoomBySocketId(socket.id);
 
             const index = waitingPlayers.findIndex(obj => obj.id == socket.id);
             if (index !== -1) {
@@ -481,6 +488,8 @@ function handleSocketEvents(io) {
             if (index3 !== -1) {
                 waitingPlayers.splice(index3, 1);
             }
+
+            const roomName1 = findRoomBySocketId(socket.id);
 
             if (roomName1) {
 
@@ -618,7 +627,7 @@ function emitDataFromFirstElement(io) {
             if (roomData[room]) {
                 var isFullData = false;
                 for (let index = 0; index < TOTAL_PLAYERS; index++) {
-                    if (roomData[room][index] && roomData[room][index].length > 10) {
+                    if (roomData[room][index] && roomData[room][index].length > 30) {
                         isFullData = true;
                         break;
                     }
@@ -638,7 +647,7 @@ function emitDataFromFirstElement(io) {
               // console.log(`No data in room ${room}`);
             }
         }
-    }, 30);
+    }, 50);
 }
 
 
