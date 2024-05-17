@@ -101,23 +101,14 @@ function CGame(oData) {
         if (socket != null) {
             socket.on('opponentMove', async (totalData) => {
 
-                var currentDate = new Date();
-                var elapsedTime = Math.floor((currentDate.getTime() - RESPONSE_TIME.getTime()));
-                RESPONSE_TIME = new Date();
-
-                console.log("Elapsed", elapsedTime);
+                // var currentDate = new Date();
+                // var elapsedTime = Math.floor((currentDate.getTime() - RESPONSE_TIME.getTime()));
+                // RESPONSE_TIME = new Date();
 
                 for (let index_player = 0; index_player <= AI_SNAKES.length; index_player++) {
                     
                     if (totalData[index_player] && index_player != _oPlayerSnake.getType()) {
 
-                        // var timeStep = 1000 / FPS;
-
-                        // var examTime = totalData[index_player].length * timeStep;
-                        
-                        // totalTime = elapsedTime + examTime;
-
-                        // var sleepTime = (totalTime) / totalData[index_player].length;
                         var sleepTime = 1000 / FPS;
 
                         for (let index_item = 0; index_item < totalData[index_player].length; index_item++) {
@@ -205,16 +196,17 @@ function CGame(oData) {
 
                     ME_SNAKE.die = true;
                     ME_SNAKE.score = 0;
-                    var isWin = true;
+                    _iScore = 0;
                     this.submitResult();
-
-                    // s_oMain.stopUpdate();
                 }
             });
 
             socket.on('playerDisconnected', (roomName) => {
                 if (_bStartGame == true) {
                     this.submitResult();
+                } else {
+                    this.unpause(false);
+                    s_oMain.stopUpdate();
                 }
             });
 
@@ -420,7 +412,7 @@ function CGame(oData) {
                 break;
                 //up
             case 38:
-                s_oGame.onKeyDownUp();
+                //s_oGame.onKeyDownUp();
                 break;
         }
 
@@ -498,9 +490,9 @@ function CGame(oData) {
 
     };
 
-    this.scrollStage = function (oFollow) {
-        s_oScrollStage.x += oFollow.getDir().getX() * HERO_SPEED + (PLAYER_CAMERA_OFFSET.x - oFollow.getLocalPos().x) * _fLerpCamera;
-        s_oScrollStage.y += oFollow.getDir().getY() * HERO_SPEED + (PLAYER_CAMERA_OFFSET.y - oFollow.getLocalPos().y) * _fLerpCamera;
+    this.scrollStage = function (oFollow, speed) {
+        s_oScrollStage.x += oFollow.getDir().getX() * speed + (PLAYER_CAMERA_OFFSET.x - oFollow.getLocalPos().x) * _fLerpCamera;
+        s_oScrollStage.y += oFollow.getDir().getY() * speed + (PLAYER_CAMERA_OFFSET.y - oFollow.getLocalPos().y) * _fLerpCamera;
 
         if (s_oScrollStage.x < _pStartScroll.xMin) {
             s_oScrollStage.x = _pStartScroll.xMin;
@@ -554,8 +546,6 @@ function CGame(oData) {
             _bKeyDown = false;
             oPlayerSnake.die();
             ME_SNAKE.die = true;
-
-            // s_oMain.stopUpdate();
             
             for (let i_AI = 0; i_AI < AI_SNAKES.length; i_AI++) {
                 if (oEnemySnake.getType() != null && AI_SNAKES[i_AI].type == oEnemySnake.getType()) {
@@ -611,8 +601,6 @@ function CGame(oData) {
                     ME_SNAKE.die = true;
                     this.cutQueueAt(oSnake1, 0);
                     this.snakeCloseMounthAnim(oSnake1);
-
-                    // s_oMain.stopUpdate();
                 }
                 break;
             }
@@ -648,8 +636,6 @@ function CGame(oData) {
 
                     if (_aSnakes[j].getType() == ME_SNAKE.type) {
                         ME_SNAKE.die = true;
-
-                        // s_oMain.stopUpdate();
                     }
                 }
             }
@@ -854,12 +840,12 @@ function CGame(oData) {
                 this.submitResult();
             }
 
-            if (this.getLivePlayer() == null) this.submitResult();
+            if (this.isSubmitResult()) this.submitResult();
 
             if (_oPlayerSnake.getEaten() == false)
             {
                 _oPlayerSnake.update(_iPlayerSpeed);
-                this.scrollStage(_oPlayerSnake, _iPlayerSpeed);
+                this.scrollStage(_oPlayerSnake, _iPlayerSpeed - 10);
 
                 _oInterface.refreshScore(_oPlayerSnake.getLengthQueue());
 
@@ -878,6 +864,18 @@ function CGame(oData) {
         }
 
         return null;
+    }
+
+    this.isSubmitResult = function () {
+        if (_oPlayerSnake.getEaten() == true) return true;
+
+        for (let index = 0; index < AI_SNAKES.length; index++) {
+            if ((AI_SNAKES[index].die == false && AI_SNAKES[index].isBot == 0) || (AI_SNAKES[index].die == true && AI_SNAKES[index].isBot == 0 && AI_SNAKES[index].score > _iScore)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     this.submitResult = function () {
@@ -909,14 +907,9 @@ function CGame(oData) {
         const urlParams = new URLSearchParams(window.location.search);
 
         // Get the value of a specific parameter
-        const tokenkey = urlParams.get('t'); // Returns 'value1'
-        localStorage.setItem('t', tokenkey);
-
-        var tokenID = localStorage.getItem("t");
+        const tokenID = urlParams.get('t');
         if (tokenID != undefined && tokenID != '')
         {
-            localStorage.removeItem("t");
-
             _bStartGame = false;
 
             $.ajax({
@@ -934,14 +927,19 @@ function CGame(oData) {
                 },
                 error: function(xhr, status, error) {
                     // Handle errors
-                    // console.error(xhr.responseText);
+                    console.log(xhr.responseText);
+                    console.log(error)
                 }
             });
         }
 
         if (socket != null) {
             if (result == 'win' || this.getLivePlayer() == null)
-            socket.emit('disconnect_game', {});
+            {
+                socket.emit('disconnect_game', {});
+                this.unpause(false);
+                s_oMain.stopUpdate();
+            }
         }
 
         $(s_oMain).trigger("end_session");

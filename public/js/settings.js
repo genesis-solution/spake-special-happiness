@@ -203,8 +203,8 @@ var RESPONSE_TIME;
 var LAST_UPDATE_TIME = new Date();
 var LAST_AI_UPDATE_TIME = new Date();
 
-var MAX_SOCKET_ELAPS = 30;
-var MAX_SUB_SOCKET_ELAPS = 30;
+var MAX_SOCKET_ELAPS = 20;
+var MAX_SUB_SOCKET_ELAPS = 20;
 
 /*!
  * 
@@ -252,7 +252,7 @@ function Draw() {
     const results = [];
   
     // Magical recursive functional love
-    requestAnimationFrame(Draw);
+    // requestAnimationFrame(Draw);
   
     //context.clearRect(0, 0, windowW, window.innerHeight);
   

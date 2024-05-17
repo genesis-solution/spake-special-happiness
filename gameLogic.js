@@ -555,9 +555,7 @@ function handleSocketEvents(io) {
                 delete rooms[roomName1];
             }
         });
-
     });
-    
 }
 
 function emitDataFromFirstElement(io) {

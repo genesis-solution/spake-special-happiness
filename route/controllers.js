@@ -167,6 +167,8 @@ async function result(req, res) {
             </env:Envelope>
               `
         };
+
+        console.log(req.body);
         
         request(soapOptions, function(_err, _resp) {
           if (_err == null) {
@@ -177,6 +179,8 @@ async function result(req, res) {
             }
 
             func_name = 'Entity_Entry_Update';
+
+            console.log(func_name);
             var soapOptions0 = {
               uri: url,
               headers: {
