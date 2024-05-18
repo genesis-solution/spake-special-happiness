@@ -10,7 +10,7 @@ var EDGEBOARD_Y = 90;
 var DISABLE_SOUND_MOBILE = false;
 var FONT_GAME = "palamecia_titlingregular";
 
-var FPS = 10;
+var FPS = 8;
 
 var FPS_TIME = 1 / FPS;
 
@@ -96,7 +96,7 @@ var MS_DECREASE_TIME_EATEN_QUEUE = 250;
 
 var LERP_RATE = 0.03;
 
-var DISTANCE_SINGLE_QUEUE = 4;
+var DISTANCE_SINGLE_QUEUE = 1;
 var REG_Y_OFFSET_QUEUE = -36;
 
 var INTERVAL_SPAWN_FOOD = 500;
@@ -402,3 +402,14 @@ function isEqual(obj1, obj2) {
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+document.addEventListener("keydown", function (event) {
+    if (event.key === "F5" || (event.key === "r" && event.ctrlKey)) {
+      if (socket != null) {
+        ME_SNAKE.die = true;
+        ME_SNAKE.score = 0;
+        socket.emit("giveup", ME_SNAKE.entityId);
+      }
+      
+    }
+});

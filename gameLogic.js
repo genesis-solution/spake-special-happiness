@@ -460,14 +460,14 @@ function handleSocketEvents(io) {
                         let final_score = 0;
                         for (const type_id in gameResult[roomName1]) {
 
-                            if (gameResult[roomName1][type_id] && final_score < gameResult[roomName1][type_id].score && gameResult[roomName1][type_id].die == false) {
+                            if (gameResult[roomName1][type_id] && final_score <= gameResult[roomName1][type_id].score && gameResult[roomName1][type_id].die == false) {
                                 winnerID = type_id;
                                 final_score = gameResult[roomName1][type_id].score;
                             }
 
                             if (winnerID == '') {
                                 final_score = 0;
-                                if (gameResult[roomName1][type_id] && final_score < gameResult[roomName1][type_id].score && gameResult[roomName1][type_id].die == true) {
+                                if (gameResult[roomName1][type_id] && final_score <= gameResult[roomName1][type_id].score && gameResult[roomName1][type_id].die == true) {
                                     winnerID = type_id;
                                     final_score = gameResult[roomName1][type_id].score;
                                 }
@@ -635,7 +635,7 @@ function emitDataFromFirstElement(io) {
             if (roomData[room]) {
                 var isFullData = false;
                 for (let index = 0; index < TOTAL_PLAYERS; index++) {
-                    if (roomData[room][index] && roomData[room][index].length > 30) {
+                    if (roomData[room][index] && roomData[room][index].length > 10) {
                         isFullData = true;
                         break;
                     }
@@ -655,7 +655,7 @@ function emitDataFromFirstElement(io) {
               // console.log(`No data in room ${room}`);
             }
         }
-    }, 50);
+    }, 20);
 }
 
 

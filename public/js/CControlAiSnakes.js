@@ -47,7 +47,17 @@ function CControlAiSnakes() {
             oSnake.subAI.setSoundFollow(false);
             oSnake.subAI.update();
         }
-        oSnake.snake.update(SNAKES_AI_SPEED[ oSnake.snake.getType() ]);
+        if (RESPONSE_TIME == null) {
+
+        }
+            // oSnake.snake.update(SNAKES_AI_SPEED[ oSnake.snake.getType() ] / 100);
+        else 
+            oSnake.snake.update(SNAKES_AI_SPEED[ oSnake.snake.getType() ]);
+
+            // oSnake.snake.setVisible(false);
+            // for (let index_queue = 0; index_queue < oSnake.snake.getQueue().length; index_queue++) {
+            //     oSnake.snake.getQueue()[index_queue].setVisible(false);
+            // }
         // oSnake.snake.updateWithoutView(SNAKES_AI_SPEED[ oSnake.snake.getType() ]);
         //  console.log(oSnake.snake.getPos());
     };

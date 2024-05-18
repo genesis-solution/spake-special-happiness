@@ -56,6 +56,10 @@ function CSingleQueue(iXPos, iYPos, iRotation, iType, oParentContainer) {
         return _oSprite.regY;
     };
 
+    this.setVisible = function (con) {
+        _oSprite.visible = con
+    }
+
     this.unload = function () {
         _oParentContainer.removeChild(_oSprite);
         _oSprite = null;
