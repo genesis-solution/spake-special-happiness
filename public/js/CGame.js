@@ -204,7 +204,6 @@ function CGame(oData) {
 
                     if (socket != null && ME_SNAKE.isSubmitted == false) {
                         ME_SNAKE.die = true;
-                        ME_SNAKE.score = 0;
                         ME_SNAKE.isSubmitted = true;
                         socket.emit("final_result", ME_SNAKE)
                     }
@@ -212,7 +211,7 @@ function CGame(oData) {
                 else {
                     for (let index = 0; index < AI_SNAKES.length; index++) {
                         if (AI_SNAKES[index].entityId == playerName) {
-                            AI_SNAKES[index].die = false;
+                            AI_SNAKES[index].die = true;
                         }
                     }
                 }
@@ -948,7 +947,6 @@ function CGame(oData) {
             } else {
 
                 if (socket != null && ME_SNAKE.isSubmitted == false) {
-                    ME_SNAKE.score = 0;
                     ME_SNAKE.die = true;
                     ME_SNAKE.isSubmitted = true;
                     socket.emit("final_result", ME_SNAKE)

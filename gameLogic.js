@@ -408,7 +408,7 @@ function handleSocketEvents(io) {
             if (index3 !== -1) {
                 waitingPlayers.splice(index3, 1);
             }
-            
+
             const roomName1 = findRoomBySocketId(socket.id);
             if (roomName1) {
                 if (!disConnectedSocketPlayers[roomName1]) { disConnectedSocketPlayers[roomName1] = []}
@@ -460,9 +460,17 @@ function handleSocketEvents(io) {
                         let final_score = 0;
                         for (const type_id in gameResult[roomName1]) {
 
-                            if (gameResult[roomName1][type_id] && final_score < gameResult[roomName1][type_id].score) {
+                            if (gameResult[roomName1][type_id] && final_score < gameResult[roomName1][type_id].score && gameResult[roomName1][type_id].die == false) {
                                 winnerID = type_id;
                                 final_score = gameResult[roomName1][type_id].score;
+                            }
+
+                            if (winnerID == '') {
+                                final_score = 0;
+                                if (gameResult[roomName1][type_id] && final_score < gameResult[roomName1][type_id].score && gameResult[roomName1][type_id].die == true) {
+                                    winnerID = type_id;
+                                    final_score = gameResult[roomName1][type_id].score;
+                                }
                             }
 
                         }

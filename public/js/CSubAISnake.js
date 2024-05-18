@@ -130,7 +130,7 @@ function CSubAISnake(oSnake, iTimeFollow) {
                 
                 if (curr_die == true && socket != null && AI_SNAKES[index].isSubmitted == false) {
                     AI_SNAKES[index].isSubmitted = true;
-                    AI_SNAKES[index].score = 0;
+                    AI_SNAKES[index].die = true;
                     socket.emit("final_result", AI_SNAKES[index])
                 }
 
