@@ -223,7 +223,7 @@ function CGame(oData) {
                         _oInterface.dispPlayers(display_users);
                     }
 
-                    // if (this.isSubmitResult()) this.submitResult();
+                    if (this.isSubmitResult()) this.submitResult();
                 }
                 
             });
@@ -1016,6 +1016,8 @@ function CGame(oData) {
                     socket.emit("final_result", ME_SNAKE)
                 }
             }
+
+            if (this.isSubmitResult()) this.submitResult();
         }
     };
 

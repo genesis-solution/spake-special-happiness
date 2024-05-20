@@ -635,7 +635,7 @@ function emitDataFromFirstElement(io) {
             if (roomData[room]) {
                 var isFullData = false;
                 for (let index = 0; index < TOTAL_PLAYERS; index++) {
-                    if (roomData[room][index] && roomData[room][index].length > 10) {
+                    if (roomData[room][index] && roomData[room][index].length > 5) {
                         isFullData = true;
                         break;
                     }
@@ -655,7 +655,7 @@ function emitDataFromFirstElement(io) {
               // console.log(`No data in room ${room}`);
             }
         }
-    }, 20);
+    }, 30);
 }
 
 
