@@ -291,7 +291,6 @@ function CGame(oData) {
             });
 
             socket.on('winner', (winnertype) => {
-                console.log(winnertype)
                 if (winnertype != null && winnertype != '') {
 
                     var result = '';

@@ -353,7 +353,24 @@ function handleSocketEvents(io) {
                             roomData[roomName1][key] = [];
                         }
 
-                        roomData[roomName1][key] = roomData[roomName1][key].concat(moveData[key]);
+                        if (!gameResult[roomName1]) {
+                            gameResult[roomName1] = {}
+                        }
+        
+                        if (!gameResult[roomName1][key]) {
+                            gameResult[roomName1][key] = {}
+                        }
+        
+                        if (moveData[key].length > 0)
+                        {
+                            var lastItemIndex = moveData[key].length;
+                            gameResult[roomName1][key] = {
+                                score: moveData[key][lastItemIndex- 1].score,
+                                die: moveData[key][lastItemIndex - 1].die
+                            };
+
+                            roomData[roomName1][key] = roomData[roomName1][key].concat(moveData[key]);
+                        }
                     }
                 }
             }
@@ -465,14 +482,20 @@ function handleSocketEvents(io) {
                                 final_score = gameResult[roomName1][type_id].score;
                             }
 
-                            if (winnerID == '') {
-                                final_score = 0;
+                        }
+
+                        if (winnerID == '')
+                        {
+                            final_score = 0;
+                            for (const type_id in gameResult[roomName1]) {
+
+                                
                                 if (gameResult[roomName1][type_id] && final_score <= gameResult[roomName1][type_id].score && gameResult[roomName1][type_id].die == true) {
                                     winnerID = type_id;
                                     final_score = gameResult[roomName1][type_id].score;
                                 }
+    
                             }
-
                         }
 
                         if (final_score > 0 && winnerID != '' && _result.isBot == 0) {

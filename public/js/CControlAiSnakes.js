@@ -171,9 +171,7 @@ function CControlAiSnakes() {
                 fAngleNeg = Math.abs(oLineNeg.angleBetweenVectors(vCast));
                 fAnglePos = Math.abs(oLinePos.angleBetweenVectors(vCast));
                 if (fAnglePos < fAngle && fAngleNeg < fAngle && fMagLinePos > vCast.length2() /*&& oSnake.getLengthQueue() > oPlayerSnake.getLengthQueue()*/) {
-                    console.log(vCast)
                     vCast.invert();
-                    console.log(vCast)
                     return {vect: vCast, result: AI_PLAYER};
                 } else {
                     oSnake.setTarget({result: false, target: null});
