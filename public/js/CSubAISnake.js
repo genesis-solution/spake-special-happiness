@@ -25,14 +25,50 @@ function CSubAISnake(oSnake, iTimeFollow) {
         }
     };
 
-    this.setSmallRandomDirection = function () {
+    this.setAIDirection = function () {
         if (_fTimeChangeDir < 0) {
             if (_fTimeTurn > 0) {
-                _oSnake.rotation(HERO_ROT_SPEED);
+                
+                var s_edgeRectangle = s_oGame.getEdgeRectangle();
+                // Check edge Rectangle
+                for (var i = 0; i < s_edgeRectangle.length; i++) {
+                    if (s_edgeRectangle[i].rect.intersects(_oSnake.getAIRectangle())) {
+                        _oSnake.bounce(s_edgeRectangle[i].normal);
+                    }
+                }
+
+                // // Check Snake collision
+                // if (oPlayerSnake.getEaten() == false) {
+                //     if (distance(oPlayerSnake.getPos(), _oSnake.getPos()) < HERO_SPEED * FPS * 1) {
+                //         _oSnake.rotation(HERO_ROT_SPEED);
+                //     }
+                // }
+                // for (var i = 0; i < _aEnemySnakes.length; i++) {
+                //     if (oPlayerSnake.getEaten() || oEnemySnake.getEaten()) {
+                //         return;
+                //     }
+                    
+                //     if (this.circleToCircleCollision(oPlayerSnake.getPos(), oEnemySnake.getPos(), oPlayerSnake.getDim().h, oEnemySnake.getDim().h)) {
+                //         _bKeyDown = false;
+                //         oPlayerSnake.die();
+                //         ME_SNAKE.die = true;
+                        
+                //         for (let i_AI = 0; i_AI < AI_SNAKES.length; i_AI++) {
+                //             if (oEnemySnake.getType() != null && AI_SNAKES[i_AI].type == oEnemySnake.getType()) {
+                //                 AI_SNAKES[i_AI].die = true
+                //             }
+                //         }
+            
+                //         oEnemySnake.die();
+            
+                //       //  createjs.Tween.get(this).wait(MS_TIME_SHOW_WIN_PANEL).call(this.onDiePlayerSnake);
+                //     }
+                // }
+
                 _fTimeTurn -= s_iTimeElaps;
             } else {
-                _fTimeTurn = (Math.random() * (AI_SMALL_WAIT_TIME_FOR_CHANGE_DIR.max - AI_SMALL_WAIT_TIME_FOR_CHANGE_DIR.min)) + AI_SMALL_WAIT_TIME_FOR_CHANGE_DIR.min;
-                _fTimeChangeDir = (Math.random() * (AI_SMALL_TIME_CHANGE_DIR.max - AI_SMALL_TIME_CHANGE_DIR.min)) + AI_SMALL_TIME_CHANGE_DIR.min;
+                _fTimeTurn = (Math.random() * (AI_WAIT_TIME_FOR_CHANGE_DIR.max - AI_WAIT_TIME_FOR_CHANGE_DIR.min)) + AI_WAIT_TIME_FOR_CHANGE_DIR.min;
+                _fTimeChangeDir = (Math.random() * (AI_TIME_CHANGE_DIR.max - AI_TIME_CHANGE_DIR.min)) + AI_TIME_CHANGE_DIR.min;
             }
         } else {
             _fTimeChangeDir -= s_iTimeElaps;
@@ -96,47 +132,14 @@ function CSubAISnake(oSnake, iTimeFollow) {
 
     this.update = function () {
         
-        for (let index = 0; index < AI_SNAKES.length; index++) {
-            if (AI_SNAKES[index].type == _oSnake.getType() && AI_SNAKES[index].isBot == 1 && (s_oGame.getLivePlayer() != null && s_oGame.getLivePlayer() == PLAYER)) {
+        // for (let index = 0; index < AI_SNAKES.length; index++) {
+        //     if (AI_SNAKES[index].type == _oSnake.getType() && AI_SNAKES[index].isBot == 1 && (s_oGame.getLivePlayer() != null && s_oGame.getLivePlayer() == PLAYER)) {
+        //         // this.setAIDirection();
                 
-                this.setRandomDirection();
-                this.ignorePlayerTime();
+        //     }
+        // }
 
-                var curr_type = oSnake.getType(); 
-                // console.log("curr_type", curr_type)
-                // var curr_queue = oSnake.getQueue();
-                // console.log("curr_queue", curr_queue)
-                var curr_pos = oSnake.getPos();
-                // console.log("curr_pos", curr_pos)
-                var curr_die = oSnake.getEaten();
-                // console.log("curr_die", curr_die)
-                var curr_rotate = oSnake.getRotate();
-
-                s_oGame.addGameData(
-                    {
-                        type: curr_type,
-                        // queue: curr_queue[curr_queue.length - 1].getPos(),
-                        pos: curr_pos,
-                        die: curr_die,
-                        score:  oSnake.getLengthQueue(),
-                        rotValue: curr_rotate,
-                        speed: HERO_SPEED,
-                        isBot: 1,
-                        sender: ME_SNAKE.type,
-                        timer: ''
-                    }
-                );
-
-                
-                if (curr_die == true && socket != null && AI_SNAKES[index].isSubmitted == false) {
-                    AI_SNAKES[index].isSubmitted = true;
-                    AI_SNAKES[index].die = true;
-                    socket.emit("final_result", AI_SNAKES[index])
-                }
-
-            }
-        }
-
+        this.setRandomDirection();
         this.ignorePlayerTime();
 
     };

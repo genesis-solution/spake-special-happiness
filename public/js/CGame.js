@@ -64,7 +64,7 @@ function CGame(oData) {
 
         _oAiSnakes = new CControlAiSnakes();
 
-        _iPlayerSpeed = parseInt(HERO_SPEED / 2);
+        _iPlayerSpeed = parseInt(HERO_SPEED);
 
         this.createPlayerSnake();
 
@@ -115,43 +115,61 @@ function CGame(oData) {
                             if (totalData[index_player].length > 0 && totalData[index_player][0].timer != '') {
                                 _oInterface.displayTimer(parseFloat(totalData[index_player][0].timer));
                             }
-                            
 
                             for (let index_item = 0; index_item < totalData[index_player].length; index_item++) {
                                 const moveData = totalData[index_player][index_item];
 
-                                if (moveData.sender != ME_SNAKE.type) {
-                                    var indexAISnakes = -1;
-                                    for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
-                                        if (moveData.type == AI_SNAKES[index_ai].type) {
-                                            indexAISnakes = index_ai;
-                                        }
+                                var indexAISnakes = -1;
+                                for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
+                                    if (moveData.type == AI_SNAKES[index_ai].type) {
+                                        indexAISnakes = index_ai;
                                     }
+                                }
 
-                                    for (let index_enemysnake = 0; index_enemysnake < _aSnakes.length; index_enemysnake++) {
-                                        if (moveData.type == _aSnakes[index_enemysnake].getType()) {
-                                            
+                                for (let index_enemysnake = 0; index_enemysnake < _aSnakes.length; index_enemysnake++) {
+                                    if (moveData.type == _aSnakes[index_enemysnake].getType()) {
+                                        
+                                        if (moveData.sender != ME_SNAKE.type)
+                                        {
                                             _aSnakes[index_enemysnake].setPosition(moveData.pos.x, moveData.pos.y);
                                             _aSnakes[index_enemysnake].rotate(moveData.rotValue);
-                                            _aSnakes[index_enemysnake].update(moveData.speed);
-
-                                            // _aSnakes[index_enemysnake].createAQueque(moveData.queue.x, moveData.queue.y);
-                                            // _aSnakes[index_enemysnake].setQueue(moveData.queue, moveData.rotValue);
-
-                                            AI_SNAKES[indexAISnakes].score = moveData.score;
-
-                                            if (moveData.die == true) {
-                                                AI_SNAKES[indexAISnakes].die = moveData.die;
-                                                _aSnakes[index_enemysnake].die();
-                                            }
-
-                                            AI_SNAKES[indexAISnakes].x = moveData.pos.x;
-                                            AI_SNAKES[indexAISnakes].y = moveData.pos.y;
-
-                                            await sleep(sleepTime);
-
-                                            this.manageCollision();
+                                            _aSnakes[index_enemysnake].update(HERO_SPEED);
                                         }
+
+                                        if (moveData.score > AI_SNAKES[indexAISnakes].score)
+                                        {
+                                            AI_SNAKES[indexAISnakes].score += 1;
+
+                                            if (moveData.sender != ME_SNAKE.type) {
+                                                _aSnakes[index_enemysnake].eatenEffect();
+
+                                                var aFoods = _oSection.getSectionByID(_aSnakes[index_enemysnake].getSectionID()).getFoodsSection();
+                                                for (var j = 0; j < aFoods.length; j++) {
+                                                    this.snakeOpenMounth(_aSnakes[index_enemysnake], aFoods[j]);
+                                                    if (!aFoods[j].getEaten()) {
+                                                        var oPos = _aSnakes[index_enemysnake].getPos();
+                                                        oPos.y += EATEN_OFFSET_DETECT * _aSnakes[index_enemysnake].getDir().getY();
+                                                        oPos.x += EATEN_OFFSET_DETECT * _aSnakes[index_enemysnake].getDir().getX();
+                                                        if (this.circleToCircleCollision(oPos, aFoods[j].getPos(), SNAKES_TOKEN_RADIUS_FOOD_DETECT, aFoods[j].getDim().w)) {
+                                                            aFoods[j].setEaten(true);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        
+
+                                        if (moveData.die == true) {
+                                            AI_SNAKES[indexAISnakes].die = moveData.die;
+                                            _aSnakes[index_enemysnake].die();
+                                        }
+
+                                        AI_SNAKES[indexAISnakes].x = moveData.pos.x;
+                                        AI_SNAKES[indexAISnakes].y = moveData.pos.y;
+
+                                        await sleep(sleepTime);
+
+                                        this.manageCollision();
                                     }
                                 }
                             }
@@ -184,9 +202,6 @@ function CGame(oData) {
                                     // for (let index_queue = 0; index_queue < _oPlayerSnake.getQueue().length; index_queue++) {
                                     //     _oPlayerSnake.getQueue()[index_queue].setVisible(true);
                                     // }
-
-                                    _oPlayerSnake.update(moveData.speed);
-                                    // this.scrollStage(_oPlayerSnake, moveData.speed);
                                     this.manageCollision();
 
                                     await sleep(sleepTime);
@@ -233,10 +248,6 @@ function CGame(oData) {
             socket.on('total_foods', (foods) => {
                 if (foods.player != PLAYER) {
                     _oFoods.setManageFoods(foods.data);
-                    
-                    setTimeout(() => {
-                        _oFoods.update();
-                    }, 1000);
                 }
 
                 s_oMain.setGameStart();
@@ -280,6 +291,7 @@ function CGame(oData) {
             });
 
             socket.on('winner', (winnertype) => {
+                console.log(winnertype)
                 if (winnertype != null && winnertype != '') {
 
                     var result = '';
@@ -364,17 +376,6 @@ function CGame(oData) {
     };
 
     this.addGameData = function (data) {
-        // {
-        //     type: curr_type,
-        //     queue: curr_queue[curr_queue.length - 1].getPos(),
-        //     pos: curr_pos,
-        //     die: curr_die,
-        //     score: _oPlayerSnake.getLengthQueue(),
-        //     rotValue: curr_rotate,
-        //     speed: _iPlayerSpeed,
-        //     isBot: 0,
-        //     sender: ME_SNAKE.type
-        // }
         if (!_GameData[data.type]) {
             _GameData[data.type] = [];
         }
@@ -635,8 +636,8 @@ function CGame(oData) {
     };
 
     this.scrollStage = function (oFollow, speed) {
-        s_oScrollStage.x += oFollow.getDir().getX() * speed / FPS * 3 + (PLAYER_CAMERA_OFFSET.x - oFollow.getLocalPos().x) * _fLerpCamera;
-        s_oScrollStage.y += oFollow.getDir().getY() * speed / FPS * 3 + (PLAYER_CAMERA_OFFSET.y - oFollow.getLocalPos().y) * _fLerpCamera;
+        s_oScrollStage.x += oFollow.getDir().getX() * speed * 0.8  + (PLAYER_CAMERA_OFFSET.x - oFollow.getLocalPos().x) * _fLerpCamera;
+        s_oScrollStage.y += oFollow.getDir().getY() * speed * 0.8  + (PLAYER_CAMERA_OFFSET.y - oFollow.getLocalPos().y) * _fLerpCamera;
 
         if (s_oScrollStage.x < _pStartScroll.xMin) {
             s_oScrollStage.x = _pStartScroll.xMin;
@@ -698,6 +699,7 @@ function CGame(oData) {
             }
 
             oEnemySnake.die();
+            this.submitResult();
 
           //  createjs.Tween.get(this).wait(MS_TIME_SHOW_WIN_PANEL).call(this.onDiePlayerSnake);
         }
@@ -707,13 +709,13 @@ function CGame(oData) {
         // if (oSnake2.getTarget().target !== AI_PLAYER || oSnake1.getEaten()) {
         //     return;
         // }
-        if (oSnake2.getEaten() || oSnake1.getEaten()) { // oSnake2.getTarget().target !== AI_PLAYER || 
+        if (oSnake2.getEaten() || oSnake1.getEaten()) {
             return;
         }
 
         var aQueue1 = oSnake1.getQueue();
         for (var j = aQueue1.length - 2; j > 0; j--) {
-            this.snakeOpenMounth(oSnake2, aQueue1[j]);
+           // this.snakeOpenMounth(oSnake2, aQueue1[j]);
             if (this.circleToCircleCollision(aQueue1[j].getPos(), oSnake2.getPos(), aQueue1[j].getDim().h, oSnake2.getDim().w)) {
               //  this.cutQueueAt(oSnake1, j);
                 if (oSnake1.getCurrentAnimation() !== "damage_open" && oSnake1.getCurrentAnimation() !== "remain_damage") {
@@ -726,7 +728,7 @@ function CGame(oData) {
                     }
 
                     oSnake2.die();
-                    this.cutQueueAt(oSnake2, 0);
+               //     this.cutQueueAt(oSnake2, 0);
                     //this.snakeCloseMounthAnim(oSnake2);
                 }
                 
@@ -736,15 +738,16 @@ function CGame(oData) {
 
         aQueue1 = oSnake2.getQueue();
         for (var j = aQueue1.length - 2; j > 0; j--) {
-            this.snakeOpenMounth(oSnake1, aQueue1[j]);
+          //  this.snakeOpenMounth(oSnake1, aQueue1[j]);
             if (this.circleToCircleCollision(aQueue1[j].getPos(), oSnake1.getPos(), aQueue1[j].getDim().h, oSnake1.getDim().w)) {
               //  this.cutQueueAt(oSnake1, j);
                 if (oSnake2.getCurrentAnimation() !== "damage_open" && oSnake2.getCurrentAnimation() !== "remain_damage") {
                     // oSnake1.changeState("damage_open");
                     oSnake1.die();
                     ME_SNAKE.die = true;
-                    this.cutQueueAt(oSnake1, 0);
+            //        this.cutQueueAt(oSnake1, 0);
                     //this.snakeCloseMounthAnim(oSnake1);
+                    this.submitResult();
                 }
                 break;
             }
@@ -780,11 +783,16 @@ function CGame(oData) {
 
                     if (_aSnakes[j].getType() == ME_SNAKE.type) {
                         ME_SNAKE.die = true;
+                        this.submitResult();
                     }
                 }
             }
         }
     };
+
+    this.getEdgeRectangle = function () {
+        return _oEdges.getRectangles();
+    }
 
     this.snakeEatenFood = function (oSnake, oFood) {
         if (oSnake.getType() === PLAYER) {
@@ -794,10 +802,13 @@ function CGame(oData) {
         oSnake.setTarget({result: false});
         oFood.setEaten(true);
         oFood.eatenAnim(oSnake.getPos());
-        oSnake.eatenEffect();
-        for (var i = 0; i < _aEnemySnakes.length; i++) {
-            if (oSnake.getType() === ENEMY_SNAKES[i] && oSnake.getLengthQueue() >= MAX_AI_QUEUE_LENGTH) {
-                return;
+
+        if (oSnake.getType() == ME_SNAKE.type)
+            oSnake.eatenEffect();
+        else {
+            for (let index = 0; index < AI_SNAKES.length; index++) {
+                if (AI_SNAKES[index].type == oSnake.getType() && AI_SNAKES[index].isBot == 1 && this.getLivePlayer() != null && this.getLivePlayer() == PLAYER)
+                    oSnake.eatenEffect();
             }
         }
     };
@@ -815,8 +826,9 @@ function CGame(oData) {
                         this.snakeEatenFood(_aSnakes[i], aFoods[j]);
 
                         for (let i_enemy = 0; i_enemy < AI_SNAKES.length; i_enemy++) {
-                            if (_aSnakes[i].getType() != null && ENEMY_SNAKES[i_enemy] == _aSnakes[i].getType())
+                            if (AI_SNAKES[i_enemy].type == _aSnakes[i].getType())
                             {
+                                // console.log(AI_SNAKES[i_enemy].type, _aSnakes[i].getLengthQueue())
                                 var i_iScore = _aSnakes[i].getLengthQueue();
                                 AI_SNAKES[i_enemy].score = i_iScore;
                             }
@@ -926,19 +938,16 @@ function CGame(oData) {
 
                     this.addGameData({
                         type: curr_type,
-                        // queue: curr_queue[curr_queue.length - 1].getPos(),
                         pos: curr_pos,
                         die: curr_die,
                         score: _oPlayerSnake.getLengthQueue(),
                         rotValue: curr_rotate,
-                        speed: _iPlayerSpeed,
-                        isBot: 0,
                         sender: ME_SNAKE.type,
                         timer: Math.floor(MAX_TIMER - elapsedTime)
                     });
 
                     var last_elapsedTime = Math.floor((currentDate.getTime() - LAST_UPDATE_TIME.getTime()));
-                    if (last_elapsedTime > MAX_SOCKET_ELAPS) { // last_elapsedTime > MAX_SOCKET_ELAPS
+                    if (last_elapsedTime > MAX_SOCKET_ELAPS) {
                         LAST_UPDATE_TIME = new Date();
                         ///////
                         ///////////////////////////////////////
@@ -1017,7 +1026,6 @@ function CGame(oData) {
                 }
             }
 
-            if (this.isSubmitResult()) this.submitResult();
         }
     };
 

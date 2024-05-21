@@ -1,4 +1,5 @@
 function CManageFoods(oParentContainer) {
+    var _posFoods;
     var _aFoods;
     var _aFoodsOccurrence;
     var _oParentContainer = oParentContainer;
@@ -13,11 +14,13 @@ function CManageFoods(oParentContainer) {
 
         _aFoods = new Array();
         _aFoodsOccurrence = new Array();
+        _posFoods = new Array();
     };
 
     this.createRandomFoods = function () {
         this.updateOccurrence();
         this.foodsInSections();
+        // this._availablePosData();
     }
 
     this.setManageFoods = function (foods) {
@@ -27,18 +30,17 @@ function CManageFoods(oParentContainer) {
         var iFoodsForSection = Math.floor(MAX_FOODS_INSTANCE / FIELD_SECTION_SUBDIVISION.tot);
         var aSections = s_oManageSections.getSections();
 
-        for (let index = 0; index < foods.length; index++) {
+        for (let index = 0; index < 100; index++) {
             
             var oSprite = s_oSpriteLibrary.getSprite("food_" + foods[index].type);
             var oFood = new CFood(foods[index].pos.x, foods[index].pos.y, 0, foods[index].type, foods[index].section, oSprite, _oContainer);
             oFood.changeState(foods[index].state);
-            _aFoods.push(oFood);//iXPos, iYPos, iRotation, iType, oSprite, oParentContainer
+            _aFoods.push(oFood);
             aSections[foods[index].section].addFood(oFood);
 
             if (SHOW_FOODS_ID) {
-                oFood.createTextID(_aFoods.length);
+                oFood.createTextID(_aFoods.length); 
             }
-
         }
         
     }
@@ -121,6 +123,46 @@ function CManageFoods(oParentContainer) {
 
     };
 
+    this._availablePosData = function () {
+        var iFoodsForSection = 15;
+        var aSections = s_oManageSections.getSections();
+        for (var i = 0; i < aSections.length; i++) {
+            for (var j = 0; j < iFoodsForSection; j++) {
+                var oSection = aSections[i];
+                var iRandType = Math.floor(Math.random() * _aFoodsOccurrence.length);
+                var iXRand;
+                var iYRand;
+                var oSprite = s_oSpriteLibrary.getSprite("food_" + _aFoodsOccurrence[iRandType]);
+                var iState = Math.floor(Math.random() * FOOD_STATE[_aFoodsOccurrence[iRandType]]);
+
+                var iWidth = oSprite.width / 4;
+                var iHeight = oSprite.height;
+
+                var iOffsetX = iWidth * 2;
+                var iOffsetY = iHeight * 2.2;
+
+                iXRand = (Math.random() * ((oSection.getRect().x + oSection.getRect().width - iOffsetX) - (oSection.getRect().x + iOffsetX))) + oSection.getRect().x + iOffsetX;
+                iYRand = (Math.random() * ((oSection.getRect().y + oSection.getRect().height - iOffsetY) - (oSection.getRect().y + iOffsetY))) + oSection.getRect().y + iOffsetY;
+
+                _posFoods.push(
+                    {
+                        type: iRandType,
+                        section: oSection.getID(),
+                        state: iState,
+                        pos: {
+                            x: iXRand,
+                            y: iYRand
+                        }
+                    }
+                )
+            }
+        }
+    };
+
+    this.getAvailablePosData = function() {
+        return _posFoods;
+    }
+
     this.checkCollisionFoodToObject = function (oObj, iRadius, iXRand, iYRand) {
         if (s_oGame.circleToCircleCollision({x: iXRand, y: iYRand}, oObj.getPos(), iRadius, oObj.getDim().w)) {
             return true;
@@ -176,6 +218,7 @@ function CManageFoods(oParentContainer) {
                         k++;
 
                     }
+                    
                     var iState = Math.floor(Math.random() * FOOD_STATE[aFoods[j].getType()]);
                     aFoods[j].setPosition(iXRand, iYRand);
                     aFoods[j].changeState(iState);
