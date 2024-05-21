@@ -347,13 +347,33 @@ function handleSocketEvents(io) {
                         roomData[roomName1] = {};
                     }
 
-                    for (let key in moveData) {
+                    if (moveData != null || moveData != '')
+                    {
+                        var arrMovement = moveData.split(';')
+                        var key = arrMovement[0]
+                        // if (!roomData[roomName1][key]) {
+                        //     roomData[roomName1][key] = [];
+                        // }
 
-                        if (!roomData[roomName1][key]) {
-                            roomData[roomName1][key] = [];
+                        if (!gameResult[roomName1]) {
+                            gameResult[roomName1] = {}
                         }
+        
+                        if (!gameResult[roomName1][key]) {
+                            gameResult[roomName1][key] = {}
+                        }
+        
+                        // if (moveData[key].length > 0)
+                        // {
+                        //     var lastItemIndex = moveData[key].length;
+                            gameResult[roomName1][key] = {
+                                score: arrMovement[1],
+                                die: parseInt(arrMovement[3]) == 1 ? true : false
+                            };
+                        // }
 
-                        roomData[roomName1][key] = roomData[roomName1][key].concat(moveData[key]);
+                        // roomData[roomName1][key] = roomData[roomName1].concat(moveData[key]);
+                        socket.to(roomName1).emit('opponentMove', moveData);
                     }
                 }
             }
@@ -382,21 +402,6 @@ function handleSocketEvents(io) {
             }
         });
 
-        socket.on('updatetimer', (timer) => {
-            // const roomName1 = findRoomBySocketId(socket.id);
-            // if (roomName1) {
-            //     for (const roomName in rooms) {
-            //         if (rooms.hasOwnProperty(roomName)) {
-            //             const room = rooms[roomName];
-            //             for (let index = 1; index <= TOTAL_PLAYERS; index++) {
-            //                 if (room['player'+index].id == socket.id) {
-            //                     io.to(roomName).emit('updatetimer', timer);
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }
-        });
 
         socket.on('giveup', (playerName) => {
             const index = waitingPlayers.findIndex(obj => obj.id == socket.id);
@@ -457,6 +462,7 @@ function handleSocketEvents(io) {
 
                     if (isSubmitResult == true && gameResult[roomName1]) 
                     {
+
                         let final_score = 0;
                         for (const type_id in gameResult[roomName1]) {
 
@@ -465,18 +471,24 @@ function handleSocketEvents(io) {
                                 final_score = gameResult[roomName1][type_id].score;
                             }
 
-                            if (winnerID == '') {
-                                final_score = 0;
+                        }
+
+                        if (winnerID == '')
+                        {
+                            final_score = 0;
+                            for (const type_id in gameResult[roomName1]) {
+
+                                
                                 if (gameResult[roomName1][type_id] && final_score <= gameResult[roomName1][type_id].score && gameResult[roomName1][type_id].die == true) {
                                     winnerID = type_id;
                                     final_score = gameResult[roomName1][type_id].score;
                                 }
+    
                             }
-
                         }
 
                         if (final_score > 0 && winnerID != '' && _result.isBot == 0) {
-                            io.to(roomName1).emit("winner", winnerID)
+                          //  io.to(roomName1).emit("winner", winnerID)
                         }
 
                     }
@@ -625,37 +637,37 @@ function handleSocketEvents(io) {
 }
 
 function emitDataFromFirstElement(io) {
-    if (!io) {
-        throw new Error('Socket.IO has not been initialized.');
-    }
+    // if (!io) {
+    //     throw new Error('Socket.IO has not been initialized.');
+    // }
 
-    // Emit events every 30ms to a specific room
-    setInterval(() => {
-        for (const room in rooms) {
-            if (roomData[room]) {
-                var isFullData = false;
-                for (let index = 0; index < TOTAL_PLAYERS; index++) {
-                    if (roomData[room][index] && roomData[room][index].length > 5) {
-                        isFullData = true;
-                        break;
-                    }
-                }
+    // // Emit events every 30ms to a specific room
+    // setInterval(() => {
+    //     for (const room in rooms) {
+    //         if (roomData[room]) {
+    //             var isFullData = false;
+    //             for (let index = 0; index < TOTAL_PLAYERS; index++) {
+    //                 if (roomData[room][index] && roomData[room][index].length >= 1) {
+    //                     isFullData = true;
+    //                     break;
+    //                 }
+    //             }
         
-                if (isFullData == true) {
-                    var _playersData = {};
+    //             if (isFullData == true) {
+    //                 var _playersData = {};
         
-                    for (let key in roomData[room]) {
-                        _playersData[key] = roomData[room][key];
-                        roomData[room][key] = [];
-                    }
+    //                 // for (let key in roomData[room]) {
+    //                 //     _playersData[key] = roomData[room][key];
+    //                 //     roomData[room][key] = [];
+    //                 // }
         
-                    io.to(room).emit('opponentMove', _playersData);
-                }
-            } else {
-              // console.log(`No data in room ${room}`);
-            }
-        }
-    }, 30);
+    //                 // io.to(room).emit('opponentMove', _playersData);
+    //             }
+    //         } else {
+    //           // console.log(`No data in room ${room}`);
+    //         }
+    //     }
+    // }, 1000);
 }
 
 
