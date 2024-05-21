@@ -27,10 +27,10 @@ function CManageFoods(oParentContainer) {
         this.updateOccurrence();
         _aFoods = [];
 
-        var iFoodsForSection = Math.floor(MAX_FOODS_INSTANCE / FIELD_SECTION_SUBDIVISION.tot);
+        // var iFoodsForSection = Math.floor(MAX_FOODS_INSTANCE / FIELD_SECTION_SUBDIVISION.tot);
         var aSections = s_oManageSections.getSections();
 
-        for (let index = 0; index < 100; index++) {
+        for (let index = 0; index < foods.length; index++) {
             
             var oSprite = s_oSpriteLibrary.getSprite("food_" + foods[index].type);
             var oFood = new CFood(foods[index].pos.x, foods[index].pos.y, 0, foods[index].type, foods[index].section, oSprite, _oContainer);

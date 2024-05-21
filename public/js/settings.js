@@ -10,7 +10,7 @@ var EDGEBOARD_Y = 90;
 var DISABLE_SOUND_MOBILE = false;
 var FONT_GAME = "palamecia_titlingregular";
 
-var FPS = 8;
+var FPS = 15;
 
 var FPS_TIME = 1 / FPS;
 
@@ -135,7 +135,7 @@ var AI_TIME_CHANGE_DIR = {min: 2000, max: 5000};
 
 var AI_TIME_IGNORE_PLAYER = 1000;
 
-var AI_WAIT_TIME_FOR_CHANGE_DIR = {min: 250, max: 1000};
+var AI_WAIT_TIME_FOR_CHANGE_DIR = {min: 250, max: 750};
 
 var AI_SMALL_TIME_CHANGE_DIR = {min: 0, max: 1};
 var AI_SMALL_WAIT_TIME_FOR_CHANGE_DIR = {min: 0, max: 1};
@@ -199,12 +199,12 @@ var ENABLE_CHECK_ORIENTATION;
 
 var MAX_TIMER = 600000;
 var START_DATE;
-var RESPONSE_TIME;
+var RESPONSE_TIME = new Date();;
 var RESPONSE_BOT_TIME;
 var LAST_UPDATE_TIME = new Date();
 var LAST_AI_UPDATE_TIME = new Date();
 
-var MAX_SOCKET_ELAPS = 20;
+var MAX_SOCKET_ELAPS = 1000;
 var MAX_SUB_SOCKET_ELAPS = 20;
 
 /*!

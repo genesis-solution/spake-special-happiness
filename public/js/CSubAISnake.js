@@ -8,20 +8,20 @@ function CSubAISnake(oSnake, iTimeFollow) {
     var _bSoundFollowPlayed = false;
 
     this._init = function () {
-        _fTimeTurn = (Math.random() * (AI_WAIT_TIME_FOR_CHANGE_DIR.max - AI_WAIT_TIME_FOR_CHANGE_DIR.min)) + AI_WAIT_TIME_FOR_CHANGE_DIR.min;
+        _fTimeTurn = (1 * (AI_WAIT_TIME_FOR_CHANGE_DIR.max - AI_WAIT_TIME_FOR_CHANGE_DIR.min)) + AI_WAIT_TIME_FOR_CHANGE_DIR.min;
     };
 
     this.setRandomDirection = function () {
         if (_fTimeChangeDir < 0) {
             if (_fTimeTurn > 0) {
                 _oSnake.rotation(HERO_ROT_SPEED);
-                _fTimeTurn -= s_iTimeElaps;
+                _fTimeTurn -= 100;
             } else {
-                _fTimeTurn = (Math.random() * (AI_WAIT_TIME_FOR_CHANGE_DIR.max - AI_WAIT_TIME_FOR_CHANGE_DIR.min)) + AI_WAIT_TIME_FOR_CHANGE_DIR.min;
-                _fTimeChangeDir = (Math.random() * (AI_TIME_CHANGE_DIR.max - AI_TIME_CHANGE_DIR.min)) + AI_TIME_CHANGE_DIR.min;
+                _fTimeTurn = (1 * (AI_WAIT_TIME_FOR_CHANGE_DIR.max - AI_WAIT_TIME_FOR_CHANGE_DIR.min)) + AI_WAIT_TIME_FOR_CHANGE_DIR.min;
+                _fTimeChangeDir = (1 * (AI_TIME_CHANGE_DIR.max - AI_TIME_CHANGE_DIR.min)) + AI_TIME_CHANGE_DIR.min;
             }
         } else {
-            _fTimeChangeDir -= s_iTimeElaps;
+            _fTimeChangeDir -= 100;
         }
     };
 
@@ -80,7 +80,7 @@ function CSubAISnake(oSnake, iTimeFollow) {
             _bIgnorePlayer = true;
             _fTimeChangeDir = -1;
         } else {
-            _iTimeFollow -= s_iTimeElaps;
+            _iTimeFollow -= 100;
 
         }
     };

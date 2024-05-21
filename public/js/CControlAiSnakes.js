@@ -66,38 +66,34 @@ function CControlAiSnakes() {
             }
         }
 
-        if (RESPONSE_TIME == null) {
+        oSnake.snake.update(HERO_SPEED);
 
-        }
-        else 
-        {
-            oSnake.snake.update(SNAKES_AI_SPEED[ oSnake.snake.getType()]);
-        }
-
-        var curr_type = oSnake.snake.getType(); 
-        var curr_pos = oSnake.snake.getPos();
+        // var curr_type = oSnake.snake.getType(); 
+        // var curr_pos = oSnake.snake.getPos();
         var curr_die = oSnake.snake.getEaten();
-        var curr_rotate = oSnake.snake.getRotate();
+        // var curr_rotate = oSnake.snake.getRotate();
+        var curr_score = oSnake.snake.getLengthQueue();
 
-        var pos_data = {
-            type: curr_type,
-            pos: curr_pos,
-            die: curr_die,
-            score:  oSnake.snake.getLengthQueue(),
-            rotValue: curr_rotate,
-            sender: ME_SNAKE.type,
-            timer: ''
-        }
+        // var pos_data = {
+        //     type: curr_type,
+        //     pos: curr_pos,
+        //     die: curr_die,
+        //     score:  oSnake.snake.getLengthQueue(),
+        //     rotValue: curr_rotate,
+        //     sender: ME_SNAKE.type,
+        //     timer: ''
+        // }
 
-        s_oGame.addGameData(
-            pos_data
-        );
+        // s_oGame.addGameData(
+        //     pos_data
+        // );
 
         for (let index = 0; index < AI_SNAKES.length; index++) {
             if (AI_SNAKES[index].type == oSnake.snake.getType() && AI_SNAKES[index].isBot == 1 && (s_oGame.getLivePlayer() != null && s_oGame.getLivePlayer() == PLAYER)) {
-                if (curr_die == true && socket != null && AI_SNAKES[index].isSubmitted == false) {
-                    AI_SNAKES[index].isSubmitted = true;
-                    AI_SNAKES[index].die = true;
+                if (socket != null && (AI_SNAKES[index].score != curr_score || AI_SNAKES[index].die != curr_die)) {
+                    // AI_SNAKES[index].isSubmitted = true;
+                    AI_SNAKES[index].die = curr_die;
+                    AI_SNAKES[index].score = curr_score;
                     socket.emit("final_result", AI_SNAKES[index])
                 }
             }
