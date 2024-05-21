@@ -101,6 +101,8 @@ function CGame(oData) {
         if (socket != null) {
             socket.on('opponentMove', async (totalData) => {
 
+                console.log(totalData)
+
                 var arrMovements = totalData.split(';');
 
                 //             type: curr_type,
@@ -191,14 +193,15 @@ function CGame(oData) {
                 
             });
 
-            this.shareFoods();
+            
 
             socket.on('total_foods', (foods) => {
                 if (foods.player != PLAYER) {
                     _oFoods.setManageFoods(foods.data);
                 }
 
-                s_oMain.setGameStart();
+                if (foods.data.length > 0)
+                    s_oMain.setGameStart();
             });
 
             socket.on('giveup', (playerName) => {
@@ -309,6 +312,8 @@ function CGame(oData) {
 
         }
 
+        this.shareFoods();
+        
         _iDataCount = 0;
 
         // Disable context menu "Reload"
@@ -341,8 +346,7 @@ function CGame(oData) {
     }
 
     this.shareFoods = function () {
-        if (this.getLivePlayer() != null && this.getLivePlayer() == PLAYER)
-        {
+        if (PLAYER == 0) {
             var attrFoods = [];
             var totalFoods = _oFoods.getFoods();
 
@@ -358,7 +362,7 @@ function CGame(oData) {
                 );
             }
 
-            if (socket != null)
+            if (socket != null && attrFoods.length > 0)
             {
                 socket.emit('total_foods', {data: attrFoods, player: PLAYER});
             }

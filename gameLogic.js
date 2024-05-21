@@ -488,7 +488,7 @@ function handleSocketEvents(io) {
                         }
 
                         if (final_score > 0 && winnerID != '' && _result.isBot == 0) {
-                          //  io.to(roomName1).emit("winner", winnerID)
+                            io.to(roomName1).emit("winner", winnerID)
                         }
 
                     }
