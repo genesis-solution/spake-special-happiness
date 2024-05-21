@@ -1,12 +1,13 @@
 const request = require('request');
 const xml2js = require('xml2js');
-const { server_url, GAMEID, TOTAL_PLAYERS } = require('./config/config');
+const { server_url, GAMEID } = require('./config/config');
 
 let waitingPlayers = []; // Store players waiting to be matched
 let rooms = {}; // Store game rooms
 let waitingBots = [];
 let disConnectedSocketPlayers = {};
 let gameResult = {};
+let TOTAL_PLAYERS = 0;
 
 const socketIo = require('socket.io');
 
@@ -17,6 +18,59 @@ let ioInstance;
 
 function initializeSocket(server) {
     ioInstance = socketIo(server);
+
+    const url = server_url;
+    var soapOptions = {
+        uri: url,
+        headers: {
+            'Content-Type': 'text/xml; charset=utf-8',
+            'Connection': 'keep-alive'
+        },
+        method: 'POST',
+        body: `<?xml version="1.0" encoding="UTF-8"?>
+        <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:ns1="urn:Player1.Intf-IPlayer1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:enc="http://www.w3.org/2003/05/soap-encoding" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns2="urn:CommonWSTypes"><env:Body><ns1:Games_Get env:encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+        <Fields enc:itemType="xsd:string" enc:arraySize="1" xsi:type="ns2:ArrayOfString">
+        <item xsi:type="xsd:string">participants_count</item>
+        </Fields>
+        <FilterFields enc:itemType="xsd:string" enc:arraySize="1" xsi:type="ns2:ArrayOfString">
+        <item xsi:type="xsd:string">gameID</item></FilterFields>
+        <FilterValues enc:itemType="xsd:string" enc:arraySize="1" xsi:type="ns2:ArrayOfString">
+        <item xsi:type="xsd:string">3</item>
+        </FilterValues>
+        <LimitFrom xsi:type="xsd:int">0</LimitFrom><LimitCount xsi:type="xsd:int">0</LimitCount>
+        </ns1:Games_Get>
+        </env:Body>
+        </env:Envelope>`
+      };
+
+      var func_name = 'Games_Get'
+  
+      
+      request(soapOptions, function(_err, _resp) {
+        if (_err == null) {
+            if (_resp.statusCode == 200)
+            {
+                xml2js.parseString(_resp.body, async (err, result) => {
+                    if (err) {
+                        console.error('Error parsing XML response:', err);
+                        res.status(401).json({ error: 'Invalid credentials' });
+                    } else {
+                        if (result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'] != undefined && result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'].length > 0)
+                        {
+                            const resultValue = result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'][0]['return'][0]['_'];
+                            var returnValue = JSON.parse(resultValue)
+                            if (returnValue.length > 0) {
+                                TOTAL_PLAYERS = returnValue[0].participants_count;
+                            }
+                            
+                        }
+                    }
+                })
+            }
+        }
+    })
+
+    
     return ioInstance;
 }
 
@@ -32,7 +86,7 @@ function handleSocketEvents(io) {
 
             console.log('New client connected');
 
-            if (player.player.entityId != '' && !isNameTaken(player.player.entityId) && !isRoomTaken(player.player.entityId)) { // && !isNameTakenFromTotalPlayers(player.playerName)
+            if (TOTAL_PLAYERS > 0 && player.player.entityId != '' && !isNameTaken(player.player.entityId) && !isRoomTaken(player.player.entityId)) { // && !isNameTakenFromTotalPlayers(player.playerName)
                 
                 socket.playerName = player.playerName; // Store the player's name in the socket object
                 socket.TokenId = player.player.TokenId;

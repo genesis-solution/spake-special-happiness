@@ -313,7 +313,7 @@ function CGame(oData) {
         }
 
         this.shareFoods();
-        
+
         _iDataCount = 0;
 
         // Disable context menu "Reload"
@@ -992,7 +992,7 @@ function CGame(oData) {
 
     this.submitResult = function () {
 
-        if (socket != null && ME_SNAKE.isSubmitted == false) {
+        if (socket != null) { // && ME_SNAKE.isSubmitted == false
             var curr_type = _oPlayerSnake.getType(); 
             // console.log("curr_type", curr_type)
             // var curr_queue = _oPlayerSnake.getQueue();

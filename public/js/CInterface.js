@@ -109,7 +109,7 @@ function CInterface() {
             _fRequestFullScreen = false;
         }
         
-        if (_fRequestFullScreen && screenfull.enabled){
+        if (true){ // _fRequestFullScreen && screenfull.enabled
             oSprite = s_oSpriteLibrary.getSprite('but_fullscreen');
             
             _oButFullscreen = new CToggle(_pStartPosFullscreen.x,_pStartPosFullscreen.y,oSprite,s_bFullscreen,s_oStage);
