@@ -10,7 +10,7 @@ var EDGEBOARD_Y = 90;
 var DISABLE_SOUND_MOBILE = false;
 var FONT_GAME = "palamecia_titlingregular";
 
-var FPS = 10;
+var FPS = 8;
 
 var FPS_TIME = 1 / FPS;
 
@@ -52,7 +52,7 @@ var ON_MOUSE_OUT = 3;
 var ON_DRAG_START = 4;
 var ON_DRAG_END = 5;
 
-var MENU_SNAKES_VELOCITY = 10;
+var MENU_SNAKES_VELOCITY = 30;
 
 var MENU_SNAKE_GOOD_ROTATION = 9;
 var MENU_SNAKE_BAD_ROTATION = 5;
@@ -96,7 +96,7 @@ var MS_DECREASE_TIME_EATEN_QUEUE = 250;
 
 var LERP_RATE = 0.03;
 
-var DISTANCE_SINGLE_QUEUE = 4;
+var DISTANCE_SINGLE_QUEUE = 1;
 var REG_Y_OFFSET_QUEUE = -36;
 
 var INTERVAL_SPAWN_FOOD = 500;
@@ -125,11 +125,11 @@ var MAX_SECOND_FOR_ANIM_VERTICAL_RECT = 10;
 var DISPLAY_SHOCK_X = 30;
 var DISPLAY_SHOCK_Y = 50;
 
-var DISTANCE_AI_DETECT_FOOD = 500;
+var DISTANCE_AI_DETECT_FOOD = 300;
 
-var AI_ANGLE_DETECT_FOODS = 30 * (Math.PI / 180);
+var AI_ANGLE_DETECT_FOODS = 60 * (Math.PI / 180);
 
-var COLLISION_DISTANCE_AI_PLAYER_FACTOR = 100;
+var COLLISION_DISTANCE_AI_PLAYER_FACTOR = 500;
 
 var AI_TIME_CHANGE_DIR = {min: 2000, max: 5000};
 
@@ -402,3 +402,14 @@ function isEqual(obj1, obj2) {
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+document.addEventListener("keydown", function (event) {
+    if (event.key === "F5" || (event.key === "r" && event.ctrlKey)) {
+      if (socket != null) {
+        ME_SNAKE.die = true;
+        ME_SNAKE.score = 0;
+        socket.emit("giveup", ME_SNAKE.entityId);
+      }
+      
+    }
+});

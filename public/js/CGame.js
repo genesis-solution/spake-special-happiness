@@ -64,7 +64,7 @@ function CGame(oData) {
 
         _oAiSnakes = new CControlAiSnakes();
 
-        _iPlayerSpeed = parseInt(HERO_SPEED / 2);
+        _iPlayerSpeed = parseInt(HERO_SPEED);
 
         this.createPlayerSnake();
 
@@ -101,21 +101,24 @@ function CGame(oData) {
         if (socket != null) {
             socket.on('opponentMove', async (totalData) => {
 
-                for (let index_player = 0; index_player <= AI_SNAKES.length; index_player++) {
-                    
-                    if (totalData[index_player] && index_player != _oPlayerSnake.getType()) {
+                if (RESPONSE_TIME == null) {
+                    RESPONSE_TIME = new Date();
+                }
+                else {
 
+                    for (let index_player = 0; index_player <= AI_SNAKES.length; index_player++) {
+                        
                         var sleepTime = 1000 / FPS;
 
-                        if (totalData[index_player].length > 0 && totalData[index_player][0].timer != '') {
-                            _oInterface.displayTimer(parseFloat(totalData[index_player][0].timer));
-                        }
-                        
+                        if (totalData[index_player] && index_player != _oPlayerSnake.getType()) {
 
-                        for (let index_item = 0; index_item < totalData[index_player].length; index_item++) {
-                            const moveData = totalData[index_player][index_item];
+                            if (totalData[index_player].length > 0 && totalData[index_player][0].timer != '') {
+                                _oInterface.displayTimer(parseFloat(totalData[index_player][0].timer));
+                            }
 
-                            if (moveData.sender != ME_SNAKE.type) {
+                            for (let index_item = 0; index_item < totalData[index_player].length; index_item++) {
+                                const moveData = totalData[index_player][index_item];
+
                                 var indexAISnakes = -1;
                                 for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
                                     if (moveData.type == AI_SNAKES[index_ai].type) {
@@ -126,14 +129,35 @@ function CGame(oData) {
                                 for (let index_enemysnake = 0; index_enemysnake < _aSnakes.length; index_enemysnake++) {
                                     if (moveData.type == _aSnakes[index_enemysnake].getType()) {
                                         
-                                        _aSnakes[index_enemysnake].setPosition(moveData.pos.x, moveData.pos.y);
-                                        _aSnakes[index_enemysnake].rotate(moveData.rotValue);
-                                        _aSnakes[index_enemysnake].update(moveData.speed);
+                                        if (moveData.sender != ME_SNAKE.type)
+                                        {
+                                            _aSnakes[index_enemysnake].setPosition(moveData.pos.x, moveData.pos.y);
+                                            _aSnakes[index_enemysnake].rotate(moveData.rotValue);
+                                            _aSnakes[index_enemysnake].update(HERO_SPEED);
+                                        }
 
-                                        // _aSnakes[index_enemysnake].createAQueque(moveData.queue.x, moveData.queue.y);
-                                        // _aSnakes[index_enemysnake].setQueue(moveData.queue, moveData.rotValue);
+                                        if (moveData.score > AI_SNAKES[indexAISnakes].score)
+                                        {
+                                            AI_SNAKES[indexAISnakes].score += 1;
 
-                                        AI_SNAKES[indexAISnakes].score = moveData.score;
+                                            if (moveData.sender != ME_SNAKE.type) {
+                                                _aSnakes[index_enemysnake].eatenEffect();
+
+                                                var aFoods = _oSection.getSectionByID(_aSnakes[index_enemysnake].getSectionID()).getFoodsSection();
+                                                for (var j = 0; j < aFoods.length; j++) {
+                                                    this.snakeOpenMounth(_aSnakes[index_enemysnake], aFoods[j]);
+                                                    if (!aFoods[j].getEaten()) {
+                                                        var oPos = _aSnakes[index_enemysnake].getPos();
+                                                        oPos.y += EATEN_OFFSET_DETECT * _aSnakes[index_enemysnake].getDir().getY();
+                                                        oPos.x += EATEN_OFFSET_DETECT * _aSnakes[index_enemysnake].getDir().getX();
+                                                        if (this.circleToCircleCollision(oPos, aFoods[j].getPos(), SNAKES_TOKEN_RADIUS_FOOD_DETECT, aFoods[j].getDim().w)) {
+                                                            aFoods[j].setEaten(true);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        
 
                                         if (moveData.die == true) {
                                             AI_SNAKES[indexAISnakes].die = moveData.die;
@@ -149,38 +173,73 @@ function CGame(oData) {
                                     }
                                 }
                             }
+
+
                         }
 
+                        if (false && totalData[index_player] && index_player == _oPlayerSnake.getType()) {
 
+                            for (let index_item = 0; index_item < totalData[index_player].length; index_item++) {
+                                const moveData = totalData[index_player][index_item];
+
+                                if (true) { // 
+
+                                    _oPlayerSnake.setPosition(moveData.pos.x, moveData.pos.y);
+                                    _oPlayerSnake.rotate(moveData.rotValue);
+
+                                    ME_SNAKE.score = moveData.score;
+                                    _iScore = _iBestScore = moveData.score;
+
+                                    ME_SNAKE.die = moveData.die;
+                                    if (moveData.die == true) {
+                                        _oPlayerSnake.die();
+                                    }
+
+                                    ME_SNAKE.x = moveData.pos.x;
+                                    ME_SNAKE.y = moveData.pos.y;
+
+                                    _oPlayerSnake.setVisible(true);
+                                    // for (let index_queue = 0; index_queue < _oPlayerSnake.getQueue().length; index_queue++) {
+                                    //     _oPlayerSnake.getQueue()[index_queue].setVisible(true);
+                                    // }
+                                    this.manageCollision();
+
+                                    await sleep(sleepTime);
+
+                                }
+                            }
+                        }
+
+                        
                     }
+
+                    let display_users = [];
+                    display_users = [ME_SNAKE];
+                    display_users = display_users.concat(AI_SNAKES);
+
+                    var DISP_USERS = localStorage.getItem("disp");
+
+                    if (DISP_USERS == undefined || DISP_USERS == null || compareArrays(display_users, JSON.parse(DISP_USERS)) == false) {
+                        localStorage.setItem("disp", JSON.stringify(display_users));
+
+                        display_users.sort((a, b) => {
+                            let scoreA = parseInt(a.score); // Ignore upper and lowercase
+                            let scoreB = parseInt(b.score); // Ignore upper and lowercase
+                            if (scoreA < scoreB) {
+                                return 1;
+                            }
+                            if (scoreA > scoreB) {
+                                return -1;
+                            }
+                            // names must be equal
+                            return 0;
+                        });
+                        
+                        _oInterface.dispPlayers(display_users);
+                    }
+
+                    if (this.isSubmitResult()) this.submitResult();
                 }
-
-                let display_users = [];
-                display_users = [ME_SNAKE];
-                display_users = display_users.concat(AI_SNAKES);
-
-                var DISP_USERS = localStorage.getItem("disp");
-
-                if (DISP_USERS == undefined || DISP_USERS == null || compareArrays(display_users, JSON.parse(DISP_USERS)) == false) {
-                    localStorage.setItem("disp", JSON.stringify(display_users));
-
-                    display_users.sort((a, b) => {
-                        let scoreA = parseInt(a.score); // Ignore upper and lowercase
-                        let scoreB = parseInt(b.score); // Ignore upper and lowercase
-                        if (scoreA < scoreB) {
-                            return 1;
-                        }
-                        if (scoreA > scoreB) {
-                            return -1;
-                        }
-                        // names must be equal
-                        return 0;
-                    });
-                    
-                    _oInterface.dispPlayers(display_users);
-                }
-
-                if (this.isSubmitResult()) this.submitResult();
                 
             });
 
@@ -189,10 +248,6 @@ function CGame(oData) {
             socket.on('total_foods', (foods) => {
                 if (foods.player != PLAYER) {
                     _oFoods.setManageFoods(foods.data);
-                    
-                    setTimeout(() => {
-                        _oFoods.update();
-                    }, 500);
                 }
 
                 s_oMain.setGameStart();
@@ -204,7 +259,6 @@ function CGame(oData) {
 
                     if (socket != null && ME_SNAKE.isSubmitted == false) {
                         ME_SNAKE.die = true;
-                        ME_SNAKE.score = 0;
                         ME_SNAKE.isSubmitted = true;
                         socket.emit("final_result", ME_SNAKE)
                     }
@@ -212,7 +266,7 @@ function CGame(oData) {
                 else {
                     for (let index = 0; index < AI_SNAKES.length; index++) {
                         if (AI_SNAKES[index].entityId == playerName) {
-                            AI_SNAKES[index].die = false;
+                            AI_SNAKES[index].die = true;
                         }
                     }
                 }
@@ -237,7 +291,7 @@ function CGame(oData) {
             });
 
             socket.on('winner', (winnertype) => {
-                console.log("winner", winnertype)
+                console.log(winnertype)
                 if (winnertype != null && winnertype != '') {
 
                     var result = '';
@@ -313,20 +367,15 @@ function CGame(oData) {
         }
 
         _iDataCount = 0;
+
+        // Disable context menu "Reload"
+        document.addEventListener("contextmenu", function (event) {
+            event.preventDefault();
+            _oInterface._onExit();
+        });
     };
 
     this.addGameData = function (data) {
-        // {
-        //     type: curr_type,
-        //     queue: curr_queue[curr_queue.length - 1].getPos(),
-        //     pos: curr_pos,
-        //     die: curr_die,
-        //     score: _oPlayerSnake.getLengthQueue(),
-        //     rotValue: curr_rotate,
-        //     speed: _iPlayerSpeed,
-        //     isBot: 0,
-        //     sender: ME_SNAKE.type
-        // }
         if (!_GameData[data.type]) {
             _GameData[data.type] = [];
         }
@@ -587,8 +636,8 @@ function CGame(oData) {
     };
 
     this.scrollStage = function (oFollow, speed) {
-        s_oScrollStage.x += oFollow.getDir().getX() * speed + (PLAYER_CAMERA_OFFSET.x - oFollow.getLocalPos().x) * _fLerpCamera;
-        s_oScrollStage.y += oFollow.getDir().getY() * speed + (PLAYER_CAMERA_OFFSET.y - oFollow.getLocalPos().y) * _fLerpCamera;
+        s_oScrollStage.x += oFollow.getDir().getX() * speed * 0.8  + (PLAYER_CAMERA_OFFSET.x - oFollow.getLocalPos().x) * _fLerpCamera;
+        s_oScrollStage.y += oFollow.getDir().getY() * speed * 0.8  + (PLAYER_CAMERA_OFFSET.y - oFollow.getLocalPos().y) * _fLerpCamera;
 
         if (s_oScrollStage.x < _pStartScroll.xMin) {
             s_oScrollStage.x = _pStartScroll.xMin;
@@ -650,6 +699,7 @@ function CGame(oData) {
             }
 
             oEnemySnake.die();
+            this.submitResult();
 
           //  createjs.Tween.get(this).wait(MS_TIME_SHOW_WIN_PANEL).call(this.onDiePlayerSnake);
         }
@@ -659,13 +709,13 @@ function CGame(oData) {
         // if (oSnake2.getTarget().target !== AI_PLAYER || oSnake1.getEaten()) {
         //     return;
         // }
-        if (oSnake2.getEaten() || oSnake1.getEaten()) { // oSnake2.getTarget().target !== AI_PLAYER || 
+        if (oSnake2.getEaten() || oSnake1.getEaten()) {
             return;
         }
 
         var aQueue1 = oSnake1.getQueue();
         for (var j = aQueue1.length - 2; j > 0; j--) {
-            this.snakeOpenMounth(oSnake2, aQueue1[j]);
+           // this.snakeOpenMounth(oSnake2, aQueue1[j]);
             if (this.circleToCircleCollision(aQueue1[j].getPos(), oSnake2.getPos(), aQueue1[j].getDim().h, oSnake2.getDim().w)) {
               //  this.cutQueueAt(oSnake1, j);
                 if (oSnake1.getCurrentAnimation() !== "damage_open" && oSnake1.getCurrentAnimation() !== "remain_damage") {
@@ -678,8 +728,8 @@ function CGame(oData) {
                     }
 
                     oSnake2.die();
-                    this.cutQueueAt(oSnake2, 0);
-                    this.snakeCloseMounthAnim(oSnake2);
+               //     this.cutQueueAt(oSnake2, 0);
+                    //this.snakeCloseMounthAnim(oSnake2);
                 }
                 
                 break;
@@ -688,15 +738,16 @@ function CGame(oData) {
 
         aQueue1 = oSnake2.getQueue();
         for (var j = aQueue1.length - 2; j > 0; j--) {
-            this.snakeOpenMounth(oSnake1, aQueue1[j]);
+          //  this.snakeOpenMounth(oSnake1, aQueue1[j]);
             if (this.circleToCircleCollision(aQueue1[j].getPos(), oSnake1.getPos(), aQueue1[j].getDim().h, oSnake1.getDim().w)) {
               //  this.cutQueueAt(oSnake1, j);
                 if (oSnake2.getCurrentAnimation() !== "damage_open" && oSnake2.getCurrentAnimation() !== "remain_damage") {
                     // oSnake1.changeState("damage_open");
                     oSnake1.die();
                     ME_SNAKE.die = true;
-                    this.cutQueueAt(oSnake1, 0);
-                    this.snakeCloseMounthAnim(oSnake1);
+            //        this.cutQueueAt(oSnake1, 0);
+                    //this.snakeCloseMounthAnim(oSnake1);
+                    this.submitResult();
                 }
                 break;
             }
@@ -732,11 +783,16 @@ function CGame(oData) {
 
                     if (_aSnakes[j].getType() == ME_SNAKE.type) {
                         ME_SNAKE.die = true;
+                        this.submitResult();
                     }
                 }
             }
         }
     };
+
+    this.getEdgeRectangle = function () {
+        return _oEdges.getRectangles();
+    }
 
     this.snakeEatenFood = function (oSnake, oFood) {
         if (oSnake.getType() === PLAYER) {
@@ -746,10 +802,13 @@ function CGame(oData) {
         oSnake.setTarget({result: false});
         oFood.setEaten(true);
         oFood.eatenAnim(oSnake.getPos());
-        oSnake.eatenEffect();
-        for (var i = 0; i < _aEnemySnakes.length; i++) {
-            if (oSnake.getType() === ENEMY_SNAKES[i] && oSnake.getLengthQueue() >= MAX_AI_QUEUE_LENGTH) {
-                return;
+
+        if (oSnake.getType() == ME_SNAKE.type)
+            oSnake.eatenEffect();
+        else {
+            for (let index = 0; index < AI_SNAKES.length; index++) {
+                if (AI_SNAKES[index].type == oSnake.getType() && AI_SNAKES[index].isBot == 1 && this.getLivePlayer() != null && this.getLivePlayer() == PLAYER)
+                    oSnake.eatenEffect();
             }
         }
     };
@@ -767,8 +826,9 @@ function CGame(oData) {
                         this.snakeEatenFood(_aSnakes[i], aFoods[j]);
 
                         for (let i_enemy = 0; i_enemy < AI_SNAKES.length; i_enemy++) {
-                            if (_aSnakes[i].getType() != null && ENEMY_SNAKES[i_enemy] == _aSnakes[i].getType())
+                            if (AI_SNAKES[i_enemy].type == _aSnakes[i].getType())
                             {
+                                // console.log(AI_SNAKES[i_enemy].type, _aSnakes[i].getLengthQueue())
                                 var i_iScore = _aSnakes[i].getLengthQueue();
                                 AI_SNAKES[i_enemy].score = i_iScore;
                             }
@@ -878,19 +938,16 @@ function CGame(oData) {
 
                     this.addGameData({
                         type: curr_type,
-                        // queue: curr_queue[curr_queue.length - 1].getPos(),
                         pos: curr_pos,
                         die: curr_die,
                         score: _oPlayerSnake.getLengthQueue(),
                         rotValue: curr_rotate,
-                        speed: _iPlayerSpeed,
-                        isBot: 0,
                         sender: ME_SNAKE.type,
                         timer: Math.floor(MAX_TIMER - elapsedTime)
                     });
 
                     var last_elapsedTime = Math.floor((currentDate.getTime() - LAST_UPDATE_TIME.getTime()));
-                    if (last_elapsedTime > MAX_SOCKET_ELAPS) { // last_elapsedTime > MAX_SOCKET_ELAPS
+                    if (last_elapsedTime > MAX_SOCKET_ELAPS) {
                         LAST_UPDATE_TIME = new Date();
                         ///////
                         ///////////////////////////////////////
@@ -937,23 +994,38 @@ function CGame(oData) {
             }
 
             if (_oPlayerSnake.getEaten() == false)
-            {
-                _oPlayerSnake.update(_iPlayerSpeed);
-                this.scrollStage(_oPlayerSnake, _iPlayerSpeed - 10);
+            {   
+                if (RESPONSE_TIME == null) {
+                    // for (let index_enemy = 0; index_enemy < _aEnemySnakes.length; index_enemy++) {
+                    //     for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
+                    //         if (_aEnemySnakes[index_enemy].getType() == AI_SNAKES[index_ai].type && AI_SNAKES[index_ai].isBot == 0) {
+                    //             _aEnemySnakes[index_enemy].update(_iPlayerSpeed / 10000);
+                    //         }
+                    //     }
+                    // }
+                    // _oPlayerSnake.update(_iPlayerSpeed / 10000);
 
-                _oInterface.refreshScore(_oPlayerSnake.getLengthQueue());
-
-                this.manageCollision();
+                    // this.manageCollision();
+                } else {
+                    _oPlayerSnake.update(_iPlayerSpeed);
+                    // _oPlayerSnake.setVisible(false);
+                    // for (let index_queue = 0; index_queue < _oPlayerSnake.getQueue().length; index_queue++) {
+                    //     _oPlayerSnake.getQueue()[index_queue].setVisible(false);
+                    // }
+                    this.scrollStage(_oPlayerSnake, _iPlayerSpeed);
+                    _oInterface.refreshScore(_oPlayerSnake.getLengthQueue());
+                    this.manageCollision();
+                }
 
             } else {
 
                 if (socket != null && ME_SNAKE.isSubmitted == false) {
-                    ME_SNAKE.score = 0;
                     ME_SNAKE.die = true;
                     ME_SNAKE.isSubmitted = true;
                     socket.emit("final_result", ME_SNAKE)
                 }
             }
+
         }
     };
 
@@ -972,7 +1044,7 @@ function CGame(oData) {
     this.isSubmitResult = function () {
 
         for (let index = 0; index < AI_SNAKES.length; index++) {
-            if ( (AI_SNAKES[index].die == false && AI_SNAKES[index].isBot == 0)) {
+            if ( (AI_SNAKES[index].die == false && AI_SNAKES[index].isBot == 0) || (AI_SNAKES[index].die == false && AI_SNAKES[index].isBot == 1 && _oPlayerSnake.getEaten() == false)) {
                 return false;
             }
         }

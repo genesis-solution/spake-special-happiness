@@ -5,6 +5,7 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
     var _oParentContainer = oParentContainer;
     var _oRectangleMeasure;
     var _oRectangle;
+    var _oAIRectangle;
     var _oContainer;
     var _oTarget;
     var _oOpenMounthDim;
@@ -121,10 +122,13 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
         _oRectangle = new createjs.Rectangle(_oRectangleMeasure.x, _oRectangleMeasure.y,
                 _oRectangleMeasure.w, _oRectangleMeasure.h);
 
+        _oAIRectangle = new createjs.Rectangle(_oRectangleMeasure.x - 2 * _iRadius, _oRectangleMeasure.y - 2 * _iRadius,
+            _oRectangleMeasure.w * 4, _oRectangleMeasure.h * 4);
+
         if (SHOW_COLLISION_SHAPE) {
             _oShape = new createjs.Shape();
-            _oShape.graphics.beginFill("#00ff00").drawRect(_oRectangle.x, _oRectangle.y,
-                    _oRectangle.width, _oRectangle.height);
+            _oShape.graphics.beginFill("#00ff00").drawRect(_oAIRectangle.x, _oAIRectangle.y,
+                _oAIRectangle.width, _oAIRectangle.height);
             _oShape.alpha = 0.5;
             _oParentContainer.addChild(_oShape);
         }
@@ -395,6 +399,10 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
         _oRectangle.setValues(_oRectangleMeasure.x, _oRectangleMeasure.y,
                 _oRectangleMeasure.w, _oRectangleMeasure.h);
 
+        _oAIRectangle.setValues(_oRectangleMeasure.x - 2 * _iRadius, _oRectangleMeasure.y - 2 * _iRadius,
+            _oRectangleMeasure.w * 4, _oRectangleMeasure.h * 4);
+
+
         if (SHOW_COLLISION_SHAPE) {
             if (_oShape) {
                 _oParentContainer.removeChild(_oShape);
@@ -402,7 +410,7 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
             }
 
             _oShape = new createjs.Shape();
-            _oShape.graphics.beginFill("#00ff00").drawRect(_oRectangle.x, _oRectangle.y, _oRectangle.width, _oRectangle.height);
+            _oShape.graphics.beginFill("#00ff00").drawRect(_oAIRectangle.x, _oAIRectangle.y, _oAIRectangle.width, _oAIRectangle.height);
             _oShape.alpha = 0.5;
             _oParentContainer.addChild(_oShape);
         }
@@ -410,6 +418,10 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
 
     this.getRectangle = function () {
         return _oRectangle;
+    };
+
+    this.getAIRectangle = function () {
+        return _oAIRectangle;
     };
 
     this.update = function (iSpeed) {
