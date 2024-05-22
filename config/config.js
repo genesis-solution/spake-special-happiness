@@ -11,6 +11,5 @@ const serverPort = process.env.SERVER_PORT || 9000;
 const secretKey = process.env.SECRET_KEY || 'html5_game_by_alex';
 const server_url = process.env.SERVER_URL || 'http://isapi.mekashron.com/SmartWinners/player1.dll/soap/IPlayer1';
 const GAMEID = process.env.GAME_ID || 3;
-const TOTAL_PLAYERS = process.env.TOTAL_PLAYERS || 5;
 
-module.exports = { dbConfig, serverPort, secretKey, server_url, GAMEID, TOTAL_PLAYERS};
+module.exports = { dbConfig, serverPort, secretKey, server_url, GAMEID};

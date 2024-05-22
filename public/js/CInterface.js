@@ -86,18 +86,25 @@ function CInterface() {
         _pStartPosPause = {x: _pStartPosExit.x - oSprite.height - 20, y: _pStartPosExit.y};
 
         _oButPause = new CGfxButton(_pStartPosPause.x, _pStartPosPause.y, oSprite, s_oStage);
-        _oButPause.addEventListener(ON_MOUSE_UP, this._onPause, this);
+        _oButPause.visible = false;
+       //  _oButPause.addEventListener(ON_MOUSE_UP, this._onPause, this);
 
-        if (DISABLE_SOUND_MOBILE === false || s_bMobile === false) {
+
+        if (true) { // DISABLE_SOUND_MOBILE === false || s_bMobile === false
             var oSprite = s_oSpriteLibrary.getSprite('audio_icon');
-            _pStartPosAudio = {x: _pStartPosExit.x - oSprite.height - 20, y: _pStartPosExit.y};
-            // _pStartPosAudio = {x: _pStartPosPause.x - oSprite.height - 20, y: _pStartPosExit.y};
+            // _pStartPosAudio = {x: _pStartPosExit.x - oSprite.height - 20, y: _pStartPosExit.y};
+            _pStartPosAudio = {x: _pStartPosExit.x - oSprite.height - 20, y: _pStartPosExit.y};;
+
             _oAudioToggle = new CToggle(_pStartPosAudio.x, _pStartPosAudio.y, oSprite, s_bAudioActive, s_oStage);
             _oAudioToggle.addEventListener(ON_MOUSE_UP, this._onAudioToggle, this);
             
-            _pStartPosFullscreen = {x:_pStartPosAudio.x - oSprite.width/2 - 20,y:_pStartPosPause.y};
+            
+            if (s_bMobile == false)
+                _pStartPosFullscreen = {x:_pStartPosAudio.x - oSprite.width/2 - 20, y:_pStartPosPause.y};
+            else 
+                _pStartPosFullscreen = {x:_pStartPosAudio.x - oSprite.width/2 - 20, y:_pStartPosPause.y}; // + oSprite.height
         }else{
-            _pStartPosFullscreen = {x: _pStartPosPause.x - oSprite.height - 20, y: _pStartPosExit.y};
+            _pStartPosFullscreen = {x: _pStartPosAudio.x - oSprite.height - 20, y: _pStartPosPause.y};
         }
         
         var doc = window.document;
@@ -109,7 +116,7 @@ function CInterface() {
             _fRequestFullScreen = false;
         }
         
-        if (_fRequestFullScreen && screenfull.enabled){
+        if (true){ // _fRequestFullScreen && screenfull.enabled
             oSprite = s_oSpriteLibrary.getSprite('but_fullscreen');
             
             _oButFullscreen = new CToggle(_pStartPosFullscreen.x,_pStartPosFullscreen.y,oSprite,s_bFullscreen,s_oStage);
@@ -298,7 +305,7 @@ function CInterface() {
         }
         
         if (_fRequestFullScreen && screenfull.enabled){
-            _oButFullscreen.setPosition(_pStartPosFullscreen.x - iNewX,_pStartPosFullscreen.y + iNewY);
+            _oButFullscreen.setPosition(_pStartPosFullscreen.x - iNewX, iNewY + _pStartPosFullscreen.y);
         }
 
         _oBestScoreText.x = _pStartPosBest.x + iNewX;

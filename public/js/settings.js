@@ -194,7 +194,7 @@ var ENEMY_POSITIONS = [
 var HERO_ACCELLERATION;
 
 var MAX_HERO_SPEED;
-var ENABLE_FULLSCREEN;
+var ENABLE_FULLSCREEN = true;
 var ENABLE_CHECK_ORIENTATION;
 
 var MAX_TIMER = 600000;
@@ -253,7 +253,7 @@ function Draw() {
     const results = [];
   
     // Magical recursive functional love
-    // requestAnimationFrame(Draw);
+    requestAnimationFrame(Draw);
   
     //context.clearRect(0, 0, windowW, window.innerHeight);
   

@@ -101,6 +101,8 @@ function CGame(oData) {
         if (socket != null) {
             socket.on('opponentMove', async (totalData) => {
 
+                console.log(totalData)
+
                 var arrMovements = totalData.split(';');
 
                 //             type: curr_type,
@@ -191,14 +193,15 @@ function CGame(oData) {
                 
             });
 
-            this.shareFoods();
+            
 
             socket.on('total_foods', (foods) => {
                 if (foods.player != PLAYER) {
                     _oFoods.setManageFoods(foods.data);
                 }
 
-                s_oMain.setGameStart();
+                if (foods.data.length > 0)
+                    s_oMain.setGameStart();
             });
 
             socket.on('giveup', (playerName) => {
@@ -309,6 +312,8 @@ function CGame(oData) {
 
         }
 
+        this.shareFoods();
+
         _iDataCount = 0;
 
         // Disable context menu "Reload"
@@ -341,8 +346,7 @@ function CGame(oData) {
     }
 
     this.shareFoods = function () {
-        if (this.getLivePlayer() != null && this.getLivePlayer() == PLAYER)
-        {
+        if (PLAYER == 0) {
             var attrFoods = [];
             var totalFoods = _oFoods.getFoods();
 
@@ -358,7 +362,7 @@ function CGame(oData) {
                 );
             }
 
-            if (socket != null)
+            if (socket != null && attrFoods.length > 0)
             {
                 socket.emit('total_foods', {data: attrFoods, player: PLAYER});
             }
@@ -644,7 +648,7 @@ function CGame(oData) {
             return;
         }
         this.snakeOpenMounth(oPlayerSnake, oEnemySnake);
-        if (this.circleToCircleCollision(oPlayerSnake.getPos(), oEnemySnake.getPos(), oPlayerSnake.getDim().h, oEnemySnake.getDim().h)) {
+        if (this.circleToCircleCollision(oPlayerSnake.getPos(), oEnemySnake.getPos(), 25, 25)) { // oPlayerSnake.getDim().h, oEnemySnake.getDim().h
             _bKeyDown = false;
             oPlayerSnake.die();
             
@@ -674,7 +678,8 @@ function CGame(oData) {
         var aQueue1 = oSnake1.getQueue();
         for (var j = aQueue1.length - 2; j > 0; j--) {
            // this.snakeOpenMounth(oSnake2, aQueue1[j]);
-            if (this.circleToCircleCollision(aQueue1[j].getPos(), oSnake2.getPos(), aQueue1[j].getDim().h, oSnake2.getDim().w)) {
+           
+            if (this.circleToCircleCollision(aQueue1[j].getPos(), oSnake2.getPos(), 25, 25)) { // aQueue1[j].getDim().h / 100, oSnake2.getDim().w / 100
               //  this.cutQueueAt(oSnake1, j);
                 if (oSnake1.getCurrentAnimation() !== "damage_open" && oSnake1.getCurrentAnimation() !== "remain_damage") {
                     // oSnake2.changeState("damage_open");
@@ -697,7 +702,7 @@ function CGame(oData) {
         aQueue1 = oSnake2.getQueue();
         for (var j = aQueue1.length - 2; j > 0; j--) {
           //  this.snakeOpenMounth(oSnake1, aQueue1[j]);
-            if (this.circleToCircleCollision(aQueue1[j].getPos(), oSnake1.getPos(), aQueue1[j].getDim().h, oSnake1.getDim().w)) {
+            if (this.circleToCircleCollision(aQueue1[j].getPos(), oSnake1.getPos(), 25, 25)) { // aQueue1[j].getDim().h / 100, oSnake1.getDim().w / 100
               //  this.cutQueueAt(oSnake1, j);
                 if (oSnake2.getCurrentAnimation() !== "damage_open" && oSnake2.getCurrentAnimation() !== "remain_damage") {
                     // oSnake1.changeState("damage_open");
@@ -960,6 +965,7 @@ function CGame(oData) {
                 }
             }
 
+            if (this.isSubmitResult()) this.submitResult();
         }
     };
 
@@ -977,6 +983,18 @@ function CGame(oData) {
 
     this.isSubmitResult = function () {
 
+        if (_oPlayerSnake.getEaten() == true) {
+            var isSubmit = true;
+            for (let index = 0; index < AI_SNAKES.length; index++) {
+                if (AI_SNAKES[index].die == false && AI_SNAKES[index].isBot == 0) {
+                    isSubmit = false;
+                    break;
+                }
+            }
+
+            if (isSubmit == true) return true;
+        }
+
         for (let index = 0; index < AI_SNAKES.length; index++) {
             if ( (AI_SNAKES[index].die == false && AI_SNAKES[index].isBot == 0) || (AI_SNAKES[index].die == false && AI_SNAKES[index].isBot == 1 && _oPlayerSnake.getEaten() == false)) {
                 return false;
@@ -988,7 +1006,7 @@ function CGame(oData) {
 
     this.submitResult = function () {
 
-        if (socket != null && ME_SNAKE.isSubmitted == false) {
+        if (socket != null) { // && ME_SNAKE.isSubmitted == false
             var curr_type = _oPlayerSnake.getType(); 
             // console.log("curr_type", curr_type)
             // var curr_queue = _oPlayerSnake.getQueue();

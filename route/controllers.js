@@ -1,5 +1,5 @@
 const { queryDatabase } = require('../config/database');
-const { secretKey, server_url, GAMEID, TOTAL_PLAYERS} = require('../config/config');
+const { secretKey, server_url, GAMEID} = require('../config/config');
 const jwt = require('jsonwebtoken');
 const request = require('request');
 const xml2js = require('xml2js');
@@ -189,7 +189,7 @@ async function result(req, res) {
                   <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:ns1="urn:Player1.Intf-IPlayer1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:enc="http://www.w3.org/2003/05/soap-encoding" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns2="urn:CommonWSTypes">
                   <env:Body>
                   <ns1:`+func_name+` env:encodingStyle="http://www.w3.org/2003/05/soap-encoding">
-                  <TokenIds enc:itemType="xsd:string" enc:arraySize="`+TOTAL_PLAYERS+`" xsi:type="ns2:ArrayOfString">
+                  <TokenIds enc:itemType="xsd:string" enc:arraySize="`+(oppenents.length + 1)+`" xsi:type="ns2:ArrayOfString">
                   `+strTokens+`
                   </TokenIds>
                   <gameID xsi:type="xsd:int">`+GAMEID+`</gameID>
@@ -221,6 +221,7 @@ async function result(req, res) {
     
                         try {
                           var returnValue = JSON.parse(resultValue_)
+                          console.log(winner.entityId, returnValue);
         
                           if (returnValue.ResultCode == 0 && returnValue.ResultMessage == 'OK') {
                             res.json({success: true, PriseUsd: returnValue.prizeUSD})

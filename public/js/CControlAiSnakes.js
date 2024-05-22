@@ -95,6 +95,26 @@ function CControlAiSnakes() {
                     AI_SNAKES[index].die = curr_die;
                     AI_SNAKES[index].score = curr_score;
                     socket.emit("final_result", AI_SNAKES[index])
+
+                    if (curr_die == true) {
+                        var curr_type = oSnake.snake.getType(); 
+                        var curr_pos = oSnake.snake.getPos();
+                        var curr_rotate = oSnake.snake.getRotate();
+                        
+                        var pos_data = {
+                            type: curr_type,
+                            pos: curr_pos,
+                            die: curr_die,
+                            score:  oSnake.snake.getLengthQueue(),
+                            rotValue: curr_rotate,
+                            sender: ME_SNAKE.type,
+                            timer: ''
+                        }
+
+                        s_oGame.addGameData(
+                            pos_data
+                        );
+                    }
                 }
             }
         }
