@@ -380,7 +380,7 @@ function handleSocketEvents(io) {
                 }
             } else {
                 // Inform client that the name is already taken
-
+                console.log('New Bot already joined');
                 if (bot.isBot == 0)
                 {
                     console.log("already joined!", player.player.entityId)
