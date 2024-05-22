@@ -221,6 +221,7 @@ async function result(req, res) {
     
                         try {
                           var returnValue = JSON.parse(resultValue_)
+                          console.log(winner.entityId, returnValue);
         
                           if (returnValue.ResultCode == 0 && returnValue.ResultMessage == 'OK') {
                             res.json({success: true, PriseUsd: returnValue.prizeUSD})

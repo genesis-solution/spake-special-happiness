@@ -253,7 +253,7 @@ function Draw() {
     const results = [];
   
     // Magical recursive functional love
-    // requestAnimationFrame(Draw);
+    requestAnimationFrame(Draw);
   
     //context.clearRect(0, 0, windowW, window.innerHeight);
   

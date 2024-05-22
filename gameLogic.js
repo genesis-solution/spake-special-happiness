@@ -542,6 +542,7 @@ function handleSocketEvents(io) {
                         }
 
                         if (final_score > 0 && winnerID != '' && _result.isBot == 0) {
+                            console.log(gameResult[roomName1])
                             io.to(roomName1).emit("winner", winnerID)
                         }
 

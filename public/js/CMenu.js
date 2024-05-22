@@ -54,7 +54,7 @@ function CMenu() {
             _fRequestFullScreen = false;
         }
         
-        if (_fRequestFullScreen && screenfull.enabled){
+        if (true){ // _fRequestFullScreen && screenfull.enabled
             oSprite = s_oSpriteLibrary.getSprite('but_fullscreen');
             _pStartPosFullscreen = {x:_pStartPosCredits.x + oSprite.width/2 + 10,y:oSprite.height/2 + 10};
 
