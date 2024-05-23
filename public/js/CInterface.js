@@ -100,9 +100,9 @@ function CInterface() {
             
             
             if (s_bMobile == false)
-                _pStartPosFullscreen = {x:_pStartPosAudio.x - oSprite.width/2 - 20, y:_pStartPosPause.y};
+                _pStartPosFullscreen = {x:_pStartPosAudio.x - oSprite.width/2 - 20, y:_pStartPosExit.y};
             else 
-                _pStartPosFullscreen = {x:_pStartPosAudio.x - oSprite.width/2 - 20, y:_pStartPosPause.y}; // + oSprite.height
+                _pStartPosFullscreen = {x:_pStartPosAudio.x - oSprite.width/2 - 20, y:_pStartPosExit.y}; // + oSprite.height
         }else{
             _pStartPosFullscreen = {x: _pStartPosAudio.x - oSprite.height - 20, y: _pStartPosPause.y};
         }
@@ -299,7 +299,7 @@ function CInterface() {
     
     this.refreshButtonPos = function (iNewX, iNewY) {
         _oButExit.setPosition(_pStartPosExit.x - iNewX, iNewY + _pStartPosExit.y);
-        _oButPause.setPosition(_pStartPosPause.x - iNewX, iNewY + _pStartPosPause.y);
+        _oButPause.setPosition(_pStartPosPause.x - iNewX, iNewY + _pStartPosExit.y);
         if (DISABLE_SOUND_MOBILE === false || s_bMobile === false) {
             _oAudioToggle.setPosition(_pStartPosAudio.x - iNewX, iNewY + _pStartPosAudio.y);
         }

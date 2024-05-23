@@ -237,7 +237,7 @@ function handleSocketEvents(io) {
 
             console.log('New Bot connected');
 
-            if (bot.player.entityId != '' && !isBotTaken(bot.player.entityId) && !isRoomTaken(bot.player.entityId)) {
+            if (bot.player.entityId != '') { //  && !isBotTaken(bot.player.entityId) && !isRoomTaken(bot.player.entityId)
                 var virtualSocket = {};
                 virtualSocket.playerName = bot.playerName; // Store the player's name in the socket object
                 virtualSocket.TokenId = bot.player.TokenId;
