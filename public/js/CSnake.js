@@ -122,8 +122,8 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
         _oRectangle = new createjs.Rectangle(_oRectangleMeasure.x, _oRectangleMeasure.y,
                 _oRectangleMeasure.w, _oRectangleMeasure.h);
 
-        _oAIRectangle = new createjs.Rectangle(_oRectangleMeasure.x - 2 * _iRadius, _oRectangleMeasure.y - 2 * _iRadius,
-            _oRectangleMeasure.w * 4, _oRectangleMeasure.h * 4);
+        _oAIRectangle = new createjs.Rectangle(_oRectangleMeasure.x - 1 * _iRadius, _oRectangleMeasure.y - 1 * _iRadius,
+            _oRectangleMeasure.w * 3, _oRectangleMeasure.h * 3);
 
         if (SHOW_COLLISION_SHAPE) {
             _oShape = new createjs.Shape();
