@@ -250,6 +250,10 @@ function CMain(oData) {
                 redirectToWithAuth('/login', "You are already playing", "");
             });
 
+            socket.on('bot_not', () => {
+               // redirectToWithAuth('https://www.player1.win/games/3/snakes', "No available players at the moment", 0);
+            });
+
             socket.on('userPosition', (userPos) => {
                 if (userPos == true)
                     PLAYER = 0;
