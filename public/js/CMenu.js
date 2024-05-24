@@ -56,7 +56,7 @@ function CMenu() {
         
         if (true){ // _fRequestFullScreen && screenfull.enabled
             oSprite = s_oSpriteLibrary.getSprite('but_fullscreen');
-            _pStartPosFullscreen = {x:_pStartPosCredits.x + oSprite.width/2 + 10,y:oSprite.height/2 + 10};
+            _pStartPosFullscreen = {x:_pStartPosCredits.x + oSprite.width/2 + 10, y:oSprite.height/2 + 10};
 
             _oButFullscreen = new CToggle(_pStartPosFullscreen.x,_pStartPosFullscreen.y,oSprite,s_bFullscreen,_oContainerMenuGUI);
             _oButFullscreen.addEventListener(ON_MOUSE_UP, this._onFullscreenRelease, this);
@@ -86,7 +86,10 @@ function CMenu() {
             _oAudioToggle.setPosition(_pStartPosAudio.x - iNewX, iNewY + _pStartPosAudio.y);
         }
         if (_fRequestFullScreen && screenfull.enabled){
+            if (s_bMobile == false)
             _oButFullscreen.setPosition(_pStartPosCredits.x + iNewX, iNewY + _pStartPosCredits.y); // (_pStartPosFullscreen.x + iNewX,_pStartPosFullscreen.y + iNewY);
+            else
+            _oButFullscreen.setPosition(_pStartPosCredits.x + iNewX, _pStartPosCredits.y); // (_pStartPosFullscreen.x + iNewX,_pStartPosFullscreen.y + iNewY);
         }
     };
 
@@ -147,13 +150,8 @@ function CMenu() {
         _oAnimMenu.update();
 
         var COUNT_OF_BOTS = 0;
-        var savedCountOfBots = localStorage.getItem("bots");
 
-        if (savedCountOfBots != undefined && savedCountOfBots != null) {
-            COUNT_OF_BOTS = parseInt(savedCountOfBots);
-        }
-
-        if (_endTime != null && s_oMain.getGameState() != STATE_GAME && COUNT_OF_BOTS < 10) {
+        if (_endTime != null && s_oMain.getGameState() != STATE_GAME) {
             (function frame(onJoinGameForBot, OWNER, _STATE_GAME) {
                 // launch a few confetti from the left edge
                 confetti({
@@ -166,7 +164,7 @@ function CMenu() {
     
                 if (Date.now() > _endTime && OWNER == 0) {
 
-                    localStorage.setItem("bots", COUNT_OF_BOTS + 1)
+                    _endTime = null;
 
                     $.ajax({
                         url: '/bot/info',
@@ -177,7 +175,19 @@ function CMenu() {
                                 betUsd: ME_SNAKE.betUsd
                             },
                         success: function(response) {
-                            onJoinGameForBot(response, 1);
+                            if (response) {
+                                for (let index_resp = 0; index_resp < response.length; index_resp++) {
+                                    var item = {
+                                        username: response[index_resp].Name,
+                                        CountryName: response[index_resp].CountryName,
+                                        TokenId: response[index_resp].TokenId,
+                                        entityId: response[index_resp].entityId,
+                                        betUsd: ME_SNAKE.betUsd,
+                                        Status: 0
+                                    }
+                                    onJoinGameForBot(item, 1);
+                                }
+                            }
                         },
                         error: function(xhr, status, error) {
                             // Handle errors

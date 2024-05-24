@@ -41,12 +41,12 @@ function initializeSocket(server) {
         </ns1:Games_Get>
         </env:Body>
         </env:Envelope>`
-      };
+    };
 
-      var func_name = 'Games_Get'
+    var func_name = 'Games_Get'
   
       
-      request(soapOptions, function(_err, _resp) {
+    request(soapOptions, function(_err, _resp) {
         if (_err == null) {
             if (_resp.statusCode == 200)
             {
@@ -68,7 +68,7 @@ function initializeSocket(server) {
                 })
             }
         }
-    })
+    });
 
     
     return ioInstance;

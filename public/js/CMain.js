@@ -368,6 +368,6 @@ var s_oScrollStage;
 var s_oMain;
 var s_oSpriteLibrary;
 var s_oSoundTrack = null;
-var s_bFullscreen = false;
+var s_bFullscreen = true;
 var s_aSounds;
 var s_aSoundsInfo;

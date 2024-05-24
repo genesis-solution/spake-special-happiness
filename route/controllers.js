@@ -324,75 +324,120 @@ function getBotInfo(req, res) {
   const { t, betUsd } = req.query;
 
   try {
+
     const url = server_url;
-    const func_name = "Bot_Get";
-
     var soapOptions = {
-      uri: url,
-      headers: {
-          'Content-Type': 'text/xml; charset=utf-8',
-          'Connection': 'keep-alive'
-      },
-      method: 'POST',
-      body: `<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:ns1="urn:Player1.Intf-IPlayer1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2003/05/soap-encoding">
-      <env:Body>
-      <ns1:`+func_name+` env:encodingStyle="http://www.w3.org/2003/05/soap-encoding">
-      <GameId xsi:type="xsd:int">`+GAMEID+`</GameId>
-      <betUSD xsi:type="xsd:double">`+betUsd+`</betUSD>
-      </ns1:`+func_name+`>
-      </env:Body>
-      </env:Envelope>
-          `
+        uri: url,
+        headers: {
+            'Content-Type': 'text/xml; charset=utf-8',
+            'Connection': 'keep-alive'
+        },
+        method: 'POST',
+        body: `<?xml version="1.0" encoding="UTF-8"?>
+        <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:ns1="urn:Player1.Intf-IPlayer1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:enc="http://www.w3.org/2003/05/soap-encoding" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns2="urn:CommonWSTypes"><env:Body><ns1:Games_Get env:encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+        <Fields enc:itemType="xsd:string" enc:arraySize="1" xsi:type="ns2:ArrayOfString">
+        <item xsi:type="xsd:string">participants_count</item>
+        </Fields>
+        <FilterFields enc:itemType="xsd:string" enc:arraySize="1" xsi:type="ns2:ArrayOfString">
+        <item xsi:type="xsd:string">gameID</item></FilterFields>
+        <FilterValues enc:itemType="xsd:string" enc:arraySize="1" xsi:type="ns2:ArrayOfString">
+        <item xsi:type="xsd:string">3</item>
+        </FilterValues>
+        <LimitFrom xsi:type="xsd:int">0</LimitFrom><LimitCount xsi:type="xsd:int">0</LimitCount>
+        </ns1:Games_Get>
+        </env:Body>
+        </env:Envelope>`
     };
-    
+
+    var func_name = 'Games_Get'
+  
     request(soapOptions, function(_err, _resp) {
-      if (_err == null) {
-        if (_resp.statusCode == 200)
-        {
-          xml2js.parseString(_resp.body, async (err, result) => {
-            if (err) {
-                console.error('Error parsing XML response:', err);
-                res.status(401).json({ error: 'Invalid credentials' });
-            } else {
+        if (_err == null) {
+            if (_resp.statusCode == 200)
+            {
+                xml2js.parseString(_resp.body, async (err, result) => {
+                    if (err) {
+                        console.error('Error parsing XML response:', err);
+                        res.status(401).json({ error: 'Invalid credentials' });
+                    } else {
+                        if (result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'] != undefined && result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'].length > 0)
+                        {
+                            const resultValue = result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'][0]['return'][0]['_'];
+                            var returnValue = JSON.parse(resultValue)
+                            if (returnValue.length > 0) {
+                              var TOTAL_PLAYERS = parseInt(returnValue[0].participants_count) - 1;
 
-              if (result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'] != undefined && result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'].length > 0)
-              {
-                const resultValue = result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'][0]['return'][0]['_'];
-                var userInfo = JSON.parse(resultValue)
+                              func_name = "Bot_Get";
 
-                if (userInfo.ResultCode == undefined && userInfo.ResultMessage == undefined) {
-                  res.json({
-                    username: userInfo.Name,
-                    CountryName: userInfo.CountryName,
-                    TokenId: userInfo.TokenId,
-                    entityId: userInfo.entityId,
-                    betUsd: betUsd,
-                    Status: 0
-                  })
-                }
-                else {
-                  const errorMessage = 'https://www.player1.win/games/3/snakes?e=' + 'No players available'; // userInfo.ResultMessage;
-                  const errorHtml = fs.readFileSync(path.join(__dirname, '../public', 'error.html'), 'utf8');
-                  const htmlWithErrorMessage = errorHtml.replace('{{ errorMessage }}', errorMessage);
-                  return res.status(400).send(htmlWithErrorMessage);
-                }
-              } else {
-                  const errorMessage = 'https://www.player1.win/games/3/snakes?e=' + 'No players available'; // userInfo.ResultMessage;
-                  const errorHtml = fs.readFileSync(path.join(__dirname, '../public', 'error.html'), 'utf8');
-                  const htmlWithErrorMessage = errorHtml.replace('{{ errorMessage }}', errorMessage);
-                  return res.status(400).send(htmlWithErrorMessage);
-              }
+                              soapOptions = {
+                                uri: url,
+                                headers: {
+                                    'Content-Type': 'text/xml; charset=utf-8',
+                                    'Connection': 'keep-alive'
+                                },
+                                method: 'POST',
+                                body: `<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:ns1="urn:Player1.Intf-IPlayer1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2003/05/soap-encoding">
+                                <env:Body>
+                                <ns1:`+func_name+` env:encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+                                <GameId xsi:type="xsd:int">`+GAMEID+`</GameId>
+                                <betUSD xsi:type="xsd:double">`+betUsd+`</betUSD>
+                                <count xsi:type="xsd:int">`+TOTAL_PLAYERS+`</count>
+                                </ns1:`+func_name+`>
+                                </env:Body>
+                                </env:Envelope>
+                                    `
+                              };
+                              
+                              request(soapOptions, function(__err, __resp) {
+                                if (__err == null) {
+                                  if (__resp.statusCode == 200)
+                                  {
+                                    xml2js.parseString(__resp.body, async (err, result) => {
+                                      if (err) {
+                                          console.error('Error parsing XML response:', err);
+                                          res.status(401).json({ error: 'Invalid credentials' });
+                                      } else {
+
+                                        if (result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'] != undefined && result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'].length > 0)
+                                        {
+                                          const resultValue = result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'][0]['return'][0]['_'];
+                                          var userInfo = JSON.parse(resultValue)
+
+                                          if (userInfo.length == TOTAL_PLAYERS)
+                                            return res.status(200).send(userInfo);
+                                          else 
+                                            {
+                                              const errorMessage = 'https://www.player1.win/games/3/snakes?e=' + 'No players available'; // userInfo.ResultMessage;
+                                              const errorHtml = fs.readFileSync(path.join(__dirname, '../public', 'error.html'), 'utf8');
+                                              const htmlWithErrorMessage = errorHtml.replace('{{ errorMessage }}', errorMessage);
+                                              return res.status(400).send(htmlWithErrorMessage);
+                                            }
+                                        } else {
+                                            const errorMessage = 'https://www.player1.win/games/3/snakes?e=' + 'No players available'; // userInfo.ResultMessage;
+                                            const errorHtml = fs.readFileSync(path.join(__dirname, '../public', 'error.html'), 'utf8');
+                                            const htmlWithErrorMessage = errorHtml.replace('{{ errorMessage }}', errorMessage);
+                                            return res.status(400).send(htmlWithErrorMessage);
+                                        }
+                                      }
+                                    });
+                                  }
+                                  else {
+                                    res.status(401).json({ error: 'Invalid credentials' });
+                                  }
+                                } else {
+                                  console.log(_err)
+                                  res.status(401).json({ error: 'Invalid credentials' });
+                                }
+                              });
+                            }
+                            
+                        }
+                    }
+                })
             }
-          });
         }
-        else {
-          res.status(401).json({ error: 'Invalid credentials' });
-        }
-      } else {
-        console.log(_err)
-        res.status(401).json({ error: 'Invalid credentials' });
-      }
     });
+
   } catch (error) {
     console.error('Error:', error.message);
     res.status(401).json({ error: 'Invalid credentials' });

@@ -97,14 +97,6 @@ function CInterface() {
 
             _oAudioToggle = new CToggle(_pStartPosAudio.x, _pStartPosAudio.y, oSprite, s_bAudioActive, s_oStage);
             _oAudioToggle.addEventListener(ON_MOUSE_UP, this._onAudioToggle, this);
-            
-            
-            if (s_bMobile == false)
-                _pStartPosFullscreen = {x:_pStartPosAudio.x - oSprite.width/2 - 20, y:_pStartPosExit.y};
-            else 
-                _pStartPosFullscreen = {x:_pStartPosAudio.x - oSprite.width/2 - 20, y:_pStartPosExit.y}; // + oSprite.height
-        }else{
-            _pStartPosFullscreen = {x: _pStartPosAudio.x - oSprite.height - 20, y: _pStartPosPause.y};
         }
         
         var doc = window.document;
@@ -118,8 +110,10 @@ function CInterface() {
         
         if (true){ // _fRequestFullScreen && screenfull.enabled
             oSprite = s_oSpriteLibrary.getSprite('but_fullscreen');
+
+            _pStartPosFullscreen = {x:_pStartPosAudio.x - oSprite.width/2 - 20, y:_pStartPosExit.y};
             
-            _oButFullscreen = new CToggle(_pStartPosFullscreen.x,_pStartPosFullscreen.y,oSprite,s_bFullscreen,s_oStage);
+            _oButFullscreen = new CToggle(_pStartPosAudio.x,_pStartPosAudio.y,oSprite,s_bFullscreen,s_oStage);
             _oButFullscreen.addEventListener(ON_MOUSE_UP, this._onFullscreenRelease, this);
         }
         
@@ -305,7 +299,10 @@ function CInterface() {
         }
         
         if (_fRequestFullScreen && screenfull.enabled){
-            _oButFullscreen.setPosition(_pStartPosFullscreen.x - iNewX, iNewY + _pStartPosFullscreen.y);
+            if (s_bMobile == false)
+                _oButFullscreen.setPosition(_pStartPosFullscreen.x - iNewX, iNewY + _pStartPosFullscreen.y);
+            else
+                _oButFullscreen.setPosition(_pStartPosFullscreen.x - iNewX, _pStartPosFullscreen.y);
         }
 
         _oBestScoreText.x = _pStartPosBest.x + iNewX;
@@ -528,12 +525,12 @@ function CInterface() {
 
     this._onFullscreenRelease = function(){
         if(s_bFullscreen) { 
-		_fCancelFullScreen.call(window.document);
-	}else{
-		_fRequestFullScreen.call(window.document.documentElement);
-	}
-	
-	sizeHandler();
+		    _fCancelFullScreen.call(window.document);
+        }else{
+            _fRequestFullScreen.call(window.document.documentElement);
+        }
+        
+        sizeHandler();
 
     };
     
