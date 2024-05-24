@@ -362,19 +362,24 @@ function CInterface() {
     };
 
     // Added by Sup man
-    this.dispPlayers = function(players) {
+    this.dispPlayers = async function(players) {
         _userListContainer.removeAllChildren();
         var userListTitle = new createjs.Text("Players:", "32px " + FONT_GAME, "#ffffff");
         _userListContainer.addChild(userListTitle);
 
+        const maxRetryAttempts = 3;
+        let retryCount = 0;
+
         for (var i = 0; i < players.length; i++) {
             
+            retryCount = 0;
+
             if (players[i].die == false)
             {
                 var flagImage = new Image();
                 var flagName = players[i].country.replace(' ', '-');
                 flagName = players[i].country.replace(' ', '-');
-                flagImage.src = `https://www.player1.win/assets/images/flags/`+ flagName +`.png`
+                flagImage.src = `https://www.player1.win/assets/images/flags/`+ flagName.toLowerCase() +`.png`
 
                 const flagWidth = 36; // Set your desired width here
                 const flagHeight = 27; // Set your desired height here
@@ -398,6 +403,51 @@ function CInterface() {
                         listItem.addChild(bitmap, usernameText);
         
                         _userListContainer.addChild(listItem);
+                    };
+                })(i);
+
+                var fallbackUrl = 'https://www.player1.win/assets/images/flags/default.png'
+                flagImage.onerror = (function(index, _fallbackUrl) {
+                    return function() {
+
+                        if (_fallbackUrl) {
+                            // Load the fallback image
+                            flagImage.src = _fallbackUrl;
+                            _fallbackUrl = null; // Prevent infinite loop in case fallback image also fails
+                            fallbackUrl = null;
+                        }
+
+                        else {
+                            var listItem = new createjs.Container();
+                            listItem.y = (index + 1) * 38; // Adjust the positioning according to your needs
+
+                            var usernameText = new createjs.Text(players[index].name + '(' + players[index].score + ')', "28px " + FONT_GAME, "#ffffff");
+
+                            var bitmap = new createjs.Bitmap(this);
+                            bitmap.scaleX = flagWidth / bitmap.image.width;
+                            bitmap.scaleY = flagHeight / bitmap.image.height;
+                            // Center the bitmap within the container
+                            // bitmap.regX = bitmap.image.width / 2;
+                            // bitmap.regY = 80;
+            
+                            usernameText.regX = usernameText.regX - bitmap.image.width - 20;
+            
+                            listItem.addChild(bitmap, usernameText);
+            
+                            _userListContainer.addChild(listItem);
+                        }
+                    };
+                })(i, fallbackUrl);
+
+                flagImage.onabort = (function(index) {
+                    
+                    return function() {
+                        if (retryCount < maxRetryAttempts) {
+                            retryCount++;
+                            flagImage.src = `https://www.player1.win/assets/images/flags/`+ flagName.toLowerCase() +`.png`;
+                        } else {
+                            flagImage.src = fallbackUrl;
+                        }
                     };
                 })(i);
             }

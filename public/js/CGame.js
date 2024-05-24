@@ -640,6 +640,13 @@ function CGame(oData) {
         for (var i = 0; i < _aEnemySnakes.length; i++) {
             this.snakesHeadHeadCollision(_oPlayerSnake, _aEnemySnakes[i]);
             this.snakesHeadQueueCollision(_oPlayerSnake, _aEnemySnakes[i]);
+
+            if (_aEnemySnakes.length >= 2)
+            {
+                for (var j = i + 1; j < _aEnemySnakes.length; j++) {
+                    this.snakesHeadQueueCollision(_aEnemySnakes[i], _aEnemySnakes[j]);
+                }
+            }
         }
     };
 
@@ -684,13 +691,22 @@ function CGame(oData) {
                 if (oSnake1.getCurrentAnimation() !== "damage_open" && oSnake1.getCurrentAnimation() !== "remain_damage") {
                     // oSnake2.changeState("damage_open");
                     
-                    for (let i_AI = 0; i_AI < AI_SNAKES.length; i_AI++) {
-                        if (oSnake2.getType() != null && AI_SNAKES[i_AI].type == oSnake2.getType()) {
-                            AI_SNAKES[i_AI].die = true
+                    oSnake2.die();
+
+                    if (oSnake2.getType() == ME_SNAKE.type)
+                    {
+                        ME_SNAKE.die = true;
+                        this.submitResult();
+                    }
+                    else {
+                        for (let i_AI = 0; i_AI < AI_SNAKES.length; i_AI++) {
+                            if (oSnake2.getType() != null && AI_SNAKES[i_AI].type == oSnake2.getType()) {
+                                AI_SNAKES[i_AI].die = true
+                            }
                         }
                     }
 
-                    oSnake2.die();
+                    
                //     this.cutQueueAt(oSnake2, 0);
                     //this.snakeCloseMounthAnim(oSnake2);
                 }
@@ -707,8 +723,19 @@ function CGame(oData) {
                 if (oSnake2.getCurrentAnimation() !== "damage_open" && oSnake2.getCurrentAnimation() !== "remain_damage") {
                     // oSnake1.changeState("damage_open");
                     oSnake1.die();
-                    ME_SNAKE.die = true;
-                    this.submitResult();
+
+                    if (oSnake1.getType() == ME_SNAKE.type)
+                    {
+                        ME_SNAKE.die = true;
+                        this.submitResult();
+                    }
+                    else {
+                        for (let i_AI = 0; i_AI < AI_SNAKES.length; i_AI++) {
+                            if (oSnake1.getType() != null && AI_SNAKES[i_AI].type == oSnake1.getType()) {
+                                AI_SNAKES[i_AI].die = true
+                            }
+                        }
+                    }
             //        this.cutQueueAt(oSnake1, 0);
                     //this.snakeCloseMounthAnim(oSnake1);
                 }

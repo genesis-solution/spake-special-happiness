@@ -153,7 +153,7 @@ function CMenu() {
             COUNT_OF_BOTS = parseInt(savedCountOfBots);
         }
 
-        if (_endTime != null && s_oMain.getGameState() != STATE_GAME && COUNT_OF_BOTS < 20) {
+        if (_endTime != null && s_oMain.getGameState() != STATE_GAME && COUNT_OF_BOTS < 10) {
             (function frame(onJoinGameForBot, OWNER, _STATE_GAME) {
                 // launch a few confetti from the left edge
                 confetti({
@@ -189,7 +189,7 @@ function CMenu() {
                                 redirectToWithAuth('https://www.player1.win/games/3/snakes', 'Token invalid', 0);
                             } else {
                                 console.error('Error:', error);
-                                // redirectToWithAuth('https://www.player1.win/games/3/snakes', 'Not found Bot', 0);
+                                redirectToWithAuth('https://www.player1.win/games/3/snakes', 'Not found Bot', 0);
                             }
                         }
                     });   
