@@ -153,7 +153,7 @@ function CMenu() {
             COUNT_OF_BOTS = parseInt(savedCountOfBots);
         }
 
-        if (_endTime != null && s_oMain.getGameState() != STATE_GAME && COUNT_OF_BOTS < 5) {
+        if (_endTime != null && s_oMain.getGameState() != STATE_GAME && COUNT_OF_BOTS < 10) {
             (function frame(onJoinGameForBot, OWNER, _STATE_GAME) {
                 // launch a few confetti from the left edge
                 confetti({
