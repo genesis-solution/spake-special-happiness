@@ -86,10 +86,7 @@ function CMenu() {
             _oAudioToggle.setPosition(_pStartPosAudio.x - iNewX, iNewY + _pStartPosAudio.y);
         }
         if (_fRequestFullScreen && screenfull.enabled){
-            if (s_bMobile == false)
-            _oButFullscreen.setPosition(_pStartPosCredits.x + iNewX, iNewY + _pStartPosCredits.y); // (_pStartPosFullscreen.x + iNewX,_pStartPosFullscreen.y + iNewY);
-            else
-            _oButFullscreen.setPosition(_pStartPosCredits.x + iNewX, _pStartPosCredits.y); // (_pStartPosFullscreen.x + iNewX,_pStartPosFullscreen.y + iNewY);
+            _oButFullscreen.setPosition(_pStartPosCredits.x + iNewX, iNewY + _pStartPosAudio.y); // (_pStartPosFullscreen.x + iNewX,_pStartPosFullscreen.y + iNewY);
         }
     };
 
@@ -158,7 +155,7 @@ function CMenu() {
                     particleCount: 15,
                     angle: 60,
                     spread: 180,
-                    startVelocity: 150,
+                    startVelocity: 70,
                     origin: { x: 0.5, y: 1 }
                 });
     

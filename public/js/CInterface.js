@@ -113,7 +113,7 @@ function CInterface() {
 
             _pStartPosFullscreen = {x:_pStartPosAudio.x - oSprite.width/2 - 20, y:_pStartPosExit.y};
             
-            _oButFullscreen = new CToggle(_pStartPosAudio.x,_pStartPosAudio.y,oSprite,s_bFullscreen,s_oStage);
+            _oButFullscreen = new CToggle(_pStartPosFullscreen.x,_pStartPosFullscreen.y,oSprite,s_bFullscreen,s_oStage);
             _oButFullscreen.addEventListener(ON_MOUSE_UP, this._onFullscreenRelease, this);
         }
         
@@ -298,12 +298,7 @@ function CInterface() {
             _oAudioToggle.setPosition(_pStartPosAudio.x - iNewX, iNewY + _pStartPosAudio.y);
         }
         
-        if (_fRequestFullScreen && screenfull.enabled){
-            if (s_bMobile == false)
-                _oButFullscreen.setPosition(_pStartPosFullscreen.x - iNewX, iNewY + _pStartPosFullscreen.y);
-            else
-                _oButFullscreen.setPosition(_pStartPosFullscreen.x - iNewX, _pStartPosFullscreen.y);
-        }
+        _oButFullscreen.setPosition(_pStartPosFullscreen.x - iNewX, iNewY + _pStartPosExit.y);
 
         _oBestScoreText.x = _pStartPosBest.x + iNewX;
         _oBestScoreText.y = _pStartPosBest.y + iNewY;
