@@ -190,8 +190,25 @@ function CControlAiSnakes() {
                     vCast.invert();
                     return {vect: vCast, result: AI_PLAYER};
                 } else {
+                    var arrEnemySnakes = s_oGame.getEnemySnakes();
+                    for (let index_enemy = 0; index_enemy < arrEnemySnakes.length; index_enemy++) {
+                        
+                        oPlayerSnake = arrEnemySnakes[index_enemy];
+
+                        if (oPlayerSnake.getType() != oSnake.getType())
+                        {
+                            vCast.set(oSnake.getX() - oPlayerSnake.getX(), oSnake.getY() - oPlayerSnake.getY());
+                            fAngleNeg = Math.abs(oLineNeg.angleBetweenVectors(vCast));
+                            fAnglePos = Math.abs(oLinePos.angleBetweenVectors(vCast));
+                            if (fAnglePos < fAngle && fAngleNeg < fAngle && fMagLinePos > vCast.length2() /*&& oSnake.getLengthQueue() > oPlayerSnake.getLengthQueue()*/) {
+                                vCast.invert();
+                                return {vect: vCast, result: AI_PLAYER};
+                            }
+                        }
+                    }
                     oSnake.setTarget({result: false, target: null});
                 }
+
             }
         // }
 

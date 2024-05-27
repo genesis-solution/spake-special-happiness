@@ -540,6 +540,10 @@ function CGame(oData) {
         return _oPlayerSnake;
     };
 
+    this.getEnemySnakes = function () {
+        return _aEnemySnakes;
+    };
+
     this.getSnakesArray = function () {
         return _aSnakes;
     };
