@@ -285,7 +285,7 @@ function Draw() {
 }
 
 var shareTitle = 'Highscore on Play Checkers is [SCORE]';//social share score title
-var shareMessage = 'I just won $[SCORE] on player1.win, Let’s play Connect Four with real money bets! Are you in? Join now.'; //social share score message
+var shareMessage = 'I just won $[SCORE] on player1.win, Let’s play Snake with real money bets! Are you in? Join now.'; //social share score message
 
 function gtag(){dataLayer.push(arguments);}
 

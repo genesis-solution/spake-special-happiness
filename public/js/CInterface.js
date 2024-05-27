@@ -371,10 +371,40 @@ function CInterface() {
                 var flagImage = new Image();
                 var flagName = players[i].country.replace(' ', '-');
                 flagName = players[i].country.replace(' ', '-');
-                flagImage.src = `https://www.player1.win/assets/images/flags/`+ flagName.toLowerCase() +`.png`
+
+                var savedFlag = localStorage.getItem(flagName.toLowerCase());
+                flagImage.src = `https://www.player1.win/assets/images/flags/`+ flagName.toLowerCase() +`.png`;
 
                 const flagWidth = 36; // Set your desired width here
                 const flagHeight = 27; // Set your desired height here
+
+                if (savedFlag != null && savedFlag != '') {
+                    flagImage.src = savedFlag;
+                } else {
+                    try {
+                        var savedFlag_sent = localStorage.getItem(flagName.toLowerCase() + '_sent');
+                        if (savedFlag_sent == null || savedFlag_sent != '1')
+                        {
+                            localStorage.setItem(flagName.toLowerCase() + '_sent', '1');
+                            $.ajax({
+                                url: '/fetch-image',
+                                type: 'GET',
+                                data: {
+                                        imageUrl: flagName.toLowerCase()
+                                    },
+                                success: function(response) {
+                                    localStorage.setItem(response.countryname, 'data:image/jpeg;base64,' + response.data)
+                                },
+                                error: function(xhr, status, error) {
+                                    // Handle errors
+                                    console.log(error)
+                                }
+                            });   
+                        }
+                    } catch (error) {
+                        console.error('Failed to fetch image base64 string:', error);
+                    }
+                }
 
                 flagImage.onload = (function(index) {
                     return function() {
@@ -395,6 +425,8 @@ function CInterface() {
                         listItem.addChild(bitmap, usernameText);
         
                         _userListContainer.addChild(listItem);
+
+                        
                     };
                 })(i);
 
@@ -442,6 +474,7 @@ function CInterface() {
                         }
                     };
                 })(i);
+
             }
         }
     };

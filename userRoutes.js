@@ -1,5 +1,5 @@
 const express = require('express');
-const { login, register, result, logout, generateJWTtoken, getUserInfo, getBotInfo, setLog, getCurrentTime } = require('./route/controllers');
+const { login, register, result, logout, generateJWTtoken, getUserInfo, getBotInfo, setLog, getCurrentTime, fetchImage } = require('./route/controllers');
 const cors = require('cors');
 const { authenticateToken } = require('./middleware/middlewares');
 const { exec } = require('child_process');
@@ -46,5 +46,7 @@ gameRoutes.get('/game', (req, res) => {
   res.sendFile(__dirname + '/public/index.html');
 });
 loginRoutes.post('/result', result); // Add result endpoint here
+
+loginRoutes.get('/fetch-image', fetchImage);
 
 module.exports = { loginRoutes, gameRoutes };

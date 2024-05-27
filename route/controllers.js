@@ -5,6 +5,8 @@ const request = require('request');
 const xml2js = require('xml2js');
 const fs = require('fs');
 const path = require('path');
+const axios = require('axios');
+
 
 async function login(req, res) {
   const { t } = req.body;
@@ -221,7 +223,6 @@ async function result(req, res) {
     
                         try {
                           var returnValue = JSON.parse(resultValue_)
-                          console.log(winner.entityId, returnValue);
         
                           if (returnValue.ResultCode == 0 && returnValue.ResultMessage == 'OK') {
                             res.json({success: true, PriseUsd: returnValue.prizeUSD})
@@ -572,4 +573,22 @@ function getCurrentTime(req, res) {
   res.json({ currentTime });
 }
 
-module.exports = { login, register, logout, generateJWTtoken, result, getUserInfo, getBotInfo, setLog, getCurrentTime };
+async function fetchImage(req, res) {
+  var { imageUrl } = req.query;
+
+  if (imageUrl == null || imageUrl == '')
+    imageUrl = 'https://www.player1.win/assets/images/flags/default.png';
+  else {
+    imageUrl = `https://www.player1.win/assets/images/flags/` + imageUrl + `.png`
+  }
+
+  try {
+      const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+      const base64Image = Buffer.from(response.data, 'binary').toString('base64');
+      res.send({data: base64Image, countryname: req.query.imageUrl});
+  } catch (error) {
+      res.status(500).send('Failed to fetch image');
+  }
+}
+
+module.exports = { login, register, logout, generateJWTtoken, result, getUserInfo, getBotInfo, setLog, getCurrentTime, fetchImage };
