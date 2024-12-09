@@ -5,6 +5,7 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
     var _oParentContainer = oParentContainer;
     var _oRectangleMeasure;
     var _oRectangle;
+    
     var _oAIRectangle;
     var _oContainer;
     var _oTarget;
@@ -23,6 +24,8 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
     var _bEatingSoundPlayed = false;
     var _bScreamingSoundPlayed = false;
     var _isBot = 0;
+
+    var _detectEnemyTime = null;
 
     this._init = function (iX, iY, iType, iStartQueueLenght, oSprite, isBot) {
         _oContainer = new createjs.Container();
@@ -141,6 +144,15 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
         _vDir.setV(reflectVectorV2(_vDir, vNormal));
         //_vDir.normalize();
         _oSnake.rotation = Math.atan2(_vDir.getY(), _vDir.getX()) * (180 / Math.PI) - 90;
+    };
+
+    this.bounceNormal = function (vNormal) {
+        _oSnake.x += _vDir.getX() * HERO_SPEED;
+        _oSnake.y += _vDir.getY() * HERO_SPEED;
+
+        _vDir.setV(reflectVectorV2(_vDir, vNormal));
+        //_vDir.normalize();
+        return Math.atan2(_vDir.getY(), _vDir.getX()) * (180 / Math.PI) - 90;
     };
 
     this.changeState = function (szState) {
@@ -437,6 +449,14 @@ function CSnake(iX, iY, oSprite, iType, iStartQueueLenght, iID, oParentContainer
             this.queuePosition();
         }
     };
+
+    this.getDetectEnemyTime = function () {
+        return _detectEnemyTime;
+    }
+
+    this.setDetectEnemyTime = function (_time) {
+        _detectEnemyTime = _time;
+    }
 
     this._init(iX, iY, iType, iStartQueueLenght, oSprite);
 }
