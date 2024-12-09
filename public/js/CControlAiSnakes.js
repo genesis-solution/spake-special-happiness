@@ -31,33 +31,17 @@ function CControlAiSnakes() {
 
     this.manageAI = function (oSnake, oLine) {
         var detected = false;
-        oSnake.snake.setTarget({target: AI_FOODS, result: null})
-        var oInfo = this.fieldOfViewFood(oSnake.snake, oSnake.subAI, oLine);
-        if (oInfo.result === AI_FOODS) {
-            var iID = this.getFoodCloser(oSnake.snake, oInfo.foods);
-
-            oSnake.subAI.setSoundFollow(false);
-
-            if (!oSnake.snake.getTarget().result) {
-                this.setDirectionSnake(oSnake, oInfo.foods[iID], AI_FOODS);
-                detected = true;
-            }
-        }
         
         oSnake.snake.setTarget({target: AI_PLAYER, result: null})
-        oInfo = this.fieldOfViewFood(oSnake.snake, oSnake.subAI, oLine);
-        if (oInfo.result === AI_PLAYER && !s_oGame.getPlayerSnake().getEaten()) {
-            this.setDirectionSnake(oSnake, oInfo, AI_PLAYER);
+        var oInfo = this.fieldOfViewFood(oSnake.snake, oSnake.subAI, oLine);
+        if (oInfo.result === AI_PLAYER) { // && !s_oGame.getPlayerSnake().getEaten()
+            this.setDirectionSnake2(oSnake, oInfo, AI_PLAYER);
+            
             oSnake.subAI.followTime();
             oSnake.subAI.playSoundFollow();
             detected = true;
         } 
         
-        if (detected == false) {
-            oSnake.subAI.setSoundFollow(false);
-            oSnake.subAI.update();
-        }
-
         var s_edgeRectangle = s_oGame.getEdgeRectangle();
         // Check edge Rectangle
         for (var i = 0; i < s_edgeRectangle.length; i++) {
@@ -66,7 +50,28 @@ function CControlAiSnakes() {
             }
         }
 
-        oSnake.snake.update(HERO_SPEED);
+        if (detected == false) {
+
+            oSnake.snake.setTarget({target: AI_FOODS, result: null})
+            oInfo = this.fieldOfViewFood(oSnake.snake, oSnake.subAI, oLine);
+            if (oInfo.result === AI_FOODS && oInfo.foods.length > 0) {
+                var iID = this.getFoodCloser(oSnake.snake, oInfo.foods);
+    
+                oSnake.subAI.setSoundFollow(false);
+    
+                if (!oSnake.snake.getTarget().result) {
+                    this.setDirectionSnake(oSnake, oInfo.foods[iID], AI_FOODS);
+                }
+
+                oSnake.subAI.setSoundFollow(false);
+                oSnake.subAI.update();
+            }
+
+            oSnake.snake.update(HERO_SPEED);
+        } else {
+            oSnake.snake.update(HERO_SPEED / 5);
+        }
+
 
         // var curr_type = oSnake.snake.getType(); 
         // var curr_pos = oSnake.snake.getPos();
@@ -145,6 +150,24 @@ function CControlAiSnakes() {
         //    console.log(fAngle);
     };
 
+    this.setDirectionSnake2 = function (oSnake, oInfo, iTypeFollow) {
+
+        var fAngle = Math.atan2(oInfo.vect.getY(), oInfo.vect.getX()) * (180 / Math.PI) - 90;
+
+        if (fAngle > 0)
+            oSnake.snake.rotation(HERO_ROT_SPEED);
+        else
+            oSnake.snake.rotation(-HERO_ROT_SPEED);
+
+        if (fAngle > 0)
+            oSnake.snake.rotation(HERO_ROT_SPEED);
+        else
+            oSnake.snake.rotation(-HERO_ROT_SPEED);
+
+        oSnake.snake.setTarget({result: true, target: iTypeFollow});
+        //    console.log(fAngle);
+    };
+
     this.fieldOfViewFood = function (oSnake, oSubAI, oLines) {
         var aFoundFoods = new Array();
 
@@ -179,38 +202,64 @@ function CControlAiSnakes() {
         var vCast = new CVector2(0, 0);
         var fAngleNeg, fAnglePos;
 
-        // if (!oSubAI.ignorePlayer()) {
-            if (oSnake.getTarget().target === AI_PLAYER) {
-                
-                var oPlayerSnake = s_oGame.getPlayerSnake();
-                vCast.set(oSnake.getX() - oPlayerSnake.getX(), oSnake.getY() - oPlayerSnake.getY());
-                fAngleNeg = Math.abs(oLineNeg.angleBetweenVectors(vCast));
-                fAnglePos = Math.abs(oLinePos.angleBetweenVectors(vCast));
-                if (fAnglePos < fAngle && fAngleNeg < fAngle && fMagLinePos > vCast.length2() /*&& oSnake.getLengthQueue() > oPlayerSnake.getLengthQueue()*/) {
-                    vCast.invert();
-                    return {vect: vCast, result: AI_PLAYER};
-                } else {
-                    var arrEnemySnakes = s_oGame.getEnemySnakes();
-                    for (let index_enemy = 0; index_enemy < arrEnemySnakes.length; index_enemy++) {
-                        
-                        oPlayerSnake = arrEnemySnakes[index_enemy];
+        // Set Bot level
+        if (true) { // !oSubAI.ignorePlayer(), Math.floor(Math.random() * 7) < parseInt(DEPTH) * 3
+            var oPlayerSnake = s_oGame.getPlayerSnake();
 
-                        if (oPlayerSnake.getType() != oSnake.getType())
-                        {
-                            vCast.set(oSnake.getX() - oPlayerSnake.getX(), oSnake.getY() - oPlayerSnake.getY());
-                            fAngleNeg = Math.abs(oLineNeg.angleBetweenVectors(vCast));
-                            fAnglePos = Math.abs(oLinePos.angleBetweenVectors(vCast));
-                            if (fAnglePos < fAngle && fAngleNeg < fAngle && fMagLinePos > vCast.length2() /*&& oSnake.getLengthQueue() > oPlayerSnake.getLengthQueue()*/) {
-                                vCast.invert();
-                                return {vect: vCast, result: AI_PLAYER};
-                            }
+            vCast.set(oSnake.getX() - oPlayerSnake.getX(), oSnake.getY() - oPlayerSnake.getY());
+            fAngleNeg = Math.abs(oLineNeg.angleBetweenVectors(vCast));
+            fAnglePos = Math.abs(oLinePos.angleBetweenVectors(vCast));
+            if (fAnglePos < fAngle && fAngleNeg < fAngle && fMagLinePos > vCast.length2() /*&& oSnake.getLengthQueue() > oPlayerSnake.getLengthQueue()*/) {
+                // vCast.invert();
+                vCast.rotate(HERO_ROT_SPEED);
+                return {vect: vCast, result: AI_PLAYER};
+            }
+
+            var aQueueCurr = oPlayerSnake.getQueue();
+            for (var j = aQueueCurr.length - 2; j > 0; j--) {
+                if (s_oGame.circleToCircleCollision(aQueueCurr[j].getPos(), oSnake.getPos(), 80, 80)) { // aQueue1[j].getDim().h / 100, oSnake2.getDim().w / 100
+                    // vCast.invert();
+                    vCast.rotate(HERO_ROT_SPEED);
+                    return {vect: vCast, result: AI_PLAYER};
+                }
+            }
+
+            var arrEnemySnakes = s_oGame.getEnemySnakes();
+            for (let index_enemy = 0; index_enemy < arrEnemySnakes.length; index_enemy++) {
+                
+                var _oPlayerSnake = arrEnemySnakes[index_enemy];
+                var aQueue1 = _oPlayerSnake.getQueue();
+
+                if (_oPlayerSnake.getType() != oSnake.getType() && _oPlayerSnake.getType() != oPlayerSnake.getType())
+                {
+                    vCast.set(oSnake.getX() - _oPlayerSnake.getX(), oSnake.getY() - _oPlayerSnake.getY());
+                    fAngleNeg = Math.abs(oLineNeg.angleBetweenVectors(vCast));
+                    fAnglePos = Math.abs(oLinePos.angleBetweenVectors(vCast));
+                    if (fAnglePos < fAngle && fAngleNeg < fAngle && fMagLinePos > vCast.length2() /*&& oSnake.getLengthQueue() > _oPlayerSnake.getLengthQueue()*/) {
+                        // vCast.invert();
+                        vCast.rotate(HERO_ROT_SPEED);
+                        return {vect: vCast, result: AI_PLAYER};
+                    }
+
+                    
+                    for (var j = aQueue1.length - 2; j > 0; j--) {
+                        if (s_oGame.circleToCircleCollision(aQueue1[j].getPos(), oSnake.getPos(), 80, 80)) { // aQueue1[j].getDim().h / 100, oSnake2.getDim().w / 100
+                            // vCast.invert();
+                            vCast.rotate(HERO_ROT_SPEED);
+                            return {vect: vCast, result: AI_PLAYER};
                         }
                     }
-                    oSnake.setTarget({result: false, target: null});
                 }
-
+                
             }
-        // }
+
+            oSnake.setTarget({result: false, target: null});
+
+        }
+
+        
+
+
 
         var aFoods = s_oManageFoods.getFoods();
 
@@ -230,7 +279,8 @@ function CControlAiSnakes() {
                 }
             }
         }
-        return {foods: aFoundFoods, result: null};
+        
+        return {foods: aFoundFoods, result: AI_FOODS};
     };
 
     this.countFollowersAI = function () {

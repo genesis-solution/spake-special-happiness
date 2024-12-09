@@ -29,6 +29,24 @@ function CMain(oData) {
         createjs.Ticker.addEventListener("tick", this._update);
         createjs.Ticker.framerate = FPS;
 
+        this.gameLoop();
+
+        document.addEventListener('visibilitychange', function() {
+            s_oMain._update();
+        });
+        
+        document.addEventListener('mozvisibilitychange', function() {
+            s_oMain._update();
+        });
+        
+        document.addEventListener('webkitvisibilitychange', function() {
+            s_oMain._update();
+        });
+        
+        document.addEventListener('msvisibilitychange', function() {
+            s_oMain._update();
+        });
+
         if (navigator.userAgent.match(/Windows Phone/i)) {
             DISABLE_SOUND_MOBILE = true;
         }
@@ -43,6 +61,14 @@ function CMain(oData) {
         localStorage.clear();
         localStorage.setItem("bots", 0)
     };
+
+    this.gameLoop = function () {
+        if (document.hidden) {
+            // If the tab is inactive, you can still call the tick function
+            s_oMain._update();
+        }
+        requestAnimationFrame(s_oMain.gameLoop);
+    }
 
     this.soundLoaded = function () {
         _iCurResource++;
@@ -144,6 +170,7 @@ function CMain(oData) {
         s_oSpriteLibrary.addSprite("itemPopP", "./sprites/item_pop_p.png");
         s_oSpriteLibrary.addSprite("buttonConfirm", "./sprites/button_confirm.png");
         s_oSpriteLibrary.addSprite("buttonCancel", "./sprites/button_cancel.png");
+        s_oSpriteLibrary.addSprite("p1", "./sprites/p1.png");
 
         for (var j = 1; j < 4; j++) {
             for (var i = 0; i < FRAMES_NUM_HELP[j]; i++) {
@@ -238,14 +265,23 @@ function CMain(oData) {
                                 }
                             )
                             ENEMY_SNAKES.push(index);
+                            
                         }
                     }
                     
+                    _oMenu.writeWaitingTxt(false, "");
                     _oMenu._onButPlayRelease();
                 }
 
             });
-        
+
+            socket.on("waitingGroupMember", (opponent) => {
+            
+                _endTime = Date.now() + 1200000;
+            
+                _oMenu.writeWaitingTxt(true, opponent[0].name)
+            });
+
             socket.on('nameTaken', () => {
                 redirectToWithAuth('/login', "You are already playing", "");
             });

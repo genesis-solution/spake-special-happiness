@@ -148,7 +148,7 @@ function CInterface() {
         itemResult = new createjs.Bitmap(s_oSpriteLibrary.getSprite('itemPop'));
         
         resultShareTxt = new createjs.Text();
-        resultShareTxt.font = "25px " + FONT_GAME;
+        resultShareTxt.font = "21px " + FONT_GAME;
         resultShareTxt.color = '#ffffff';
         resultShareTxt.textAlign = "center";
         resultShareTxt.textBaseline='alphabetic';
@@ -177,7 +177,9 @@ function CInterface() {
         resultPriceTxt.textBaseline='alphabetic';
         resultPriceTxt.text = 'SCORE : 100 TILES';
         
-        
+        imageP1 = new createjs.Bitmap(s_oSpriteLibrary.getSprite('p1'));
+	    imageP1.visible = false;
+
         buttonFacebook = new createjs.Bitmap(s_oSpriteLibrary.getSprite('buttonFacebook'));
         buttonWhatsapp = new createjs.Bitmap(s_oSpriteLibrary.getSprite('buttonWhatsapp'));
         buttonTiktok = new createjs.Bitmap(s_oSpriteLibrary.getSprite('buttonTiktok'));
@@ -199,7 +201,12 @@ function CInterface() {
         });
         buttonContinue.cursor = "pointer";
         buttonContinue.addEventListener("click", function(evt) {
-            window.location.href = 'https://www.player1.win/games/3/snakes?rb=1';
+            const urlParams = new URLSearchParams(window.location.search);
+
+            let lang = urlParams.get('lang'); // Returns 'value1'
+            if (lang == undefined || lang == '') lang = 'en'
+
+            window.location.href = 'https://www.player1.win/'+lang+'/games/3/snakes?rb=1';
         });
 	    centerReg(buttonContinue);
         centerReg(buttonFacebook);
@@ -235,7 +242,10 @@ function CInterface() {
         resultPriceTxt.x = CANVAS_WIDTH/2;
         resultPriceTxt.y = CANVAS_HEIGHT/100 * 44;
 
-        confirmContainer.addChild(itemExit, buttonContinue, resultTitleTxt, resultDescTxt, resultPriceTxt, resultShareTxt, buttonFacebook, buttonTiktok, buttonWhatsapp);
+        imageP1.x = CANVAS_WIDTH/2 - 33;
+		imageP1.y = CANVAS_HEIGHT/100 * 44 - 18;
+
+        confirmContainer.addChild(itemExit, buttonContinue, resultTitleTxt, resultDescTxt, resultPriceTxt, imageP1, resultShareTxt, buttonFacebook, buttonTiktok, buttonWhatsapp);
         confirmContainer.visible = false;
         canvasContainer = new createjs.Container();
         canvasContainer.addChild(confirmContainer);
@@ -255,7 +265,8 @@ function CInterface() {
                 if (winStatus == 'win') {
                     textTitle = "You won!!!!";
                     textMessage = "Congratulations, you won:"
-                    resultPriceTxt.text = "$" + ME_SNAKE.prizeUSD;
+                    resultPriceTxt.text = ME_SNAKE.prizeUSD;
+                    imageP1.visible = true;
                     resultTitleTxt.font = "60px " + FONT_GAME;
 
                     particles = [];
@@ -263,6 +274,18 @@ function CInterface() {
 						particles.push(new confettiParticle(context, possibleColors));
 					}
 					Draw();
+                }
+                else if ('offline') {
+                    textTitle = "Ops, Your device got disconnected.\n\n 📴  \n\n"
+                    textTitle = ""
+                    textMessage = "\n\nOne more try,\nyou've got this!";
+                    resultTitleTxt.font = "20px " + FONT_GAME;
+
+                    resultShareTxt.visible = false;
+                    buttonFacebook.visible = false;
+                    buttonTiktok.visible = false;
+                    buttonWhatsapp.visible = false;
+                    resultPriceTxt.visible = false;
                 }
                 else {
                     textTitle = "The outcome of this game favors the opponent.\n\n 🙁  \n\n"
@@ -368,84 +391,30 @@ function CInterface() {
 
             if (players[i].die == false)
             {
-                var flagImage = new Image();
+                
                 var flagName = players[i].country.replace(' ', '-');
                 flagName = players[i].country.replace(' ', '-');
 
                 var savedFlag = localStorage.getItem(flagName.toLowerCase());
-                flagImage.src = `https://www.player1.win/assets/images/flags/`+ flagName.toLowerCase() +`.png`;
 
                 const flagWidth = 36; // Set your desired width here
                 const flagHeight = 27; // Set your desired height here
 
                 if (savedFlag != null && savedFlag != '') {
+                    var flagImage = new Image();
                     flagImage.src = savedFlag;
-                } else {
-                    try {
-                        var savedFlag_sent = localStorage.getItem(flagName.toLowerCase() + '_sent');
-                        if (savedFlag_sent == null || savedFlag_sent != '1')
-                        {
-                            localStorage.setItem(flagName.toLowerCase() + '_sent', '1');
-                            $.ajax({
-                                url: '/fetch-image',
-                                type: 'GET',
-                                data: {
-                                        imageUrl: flagName.toLowerCase()
-                                    },
-                                success: function(response) {
-                                    localStorage.setItem(response.countryname, 'data:image/jpeg;base64,' + response.data)
-                                },
-                                error: function(xhr, status, error) {
-                                    // Handle errors
-                                    console.log(error)
-                                }
-                            });   
-                        }
-                    } catch (error) {
-                        console.error('Failed to fetch image base64 string:', error);
-                    }
-                }
+                    // flagImage.src = `https://www.player1.win/assets/images/flags/`+ flagName.toLowerCase() +`.png`;
 
-                flagImage.onload = (function(index) {
-                    return function() {
-                        var listItem = new createjs.Container();
-                        listItem.y = (index + 1) * 38; // Adjust the positioning according to your needs
-
-                        var usernameText = new createjs.Text(players[index].name + '(' + players[index].score + ')', "28px " + FONT_GAME, "#ffffff");
-
-                        var bitmap = new createjs.Bitmap(this);
-                        bitmap.scaleX = flagWidth / bitmap.image.width;
-                        bitmap.scaleY = flagHeight / bitmap.image.height;
-                        // Center the bitmap within the container
-                        // bitmap.regX = bitmap.image.width / 2;
-                        // bitmap.regY = 80;
-        
-                        usernameText.regX = usernameText.regX - bitmap.image.width - 20;
-        
-                        listItem.addChild(bitmap, usernameText);
-        
-                        _userListContainer.addChild(listItem);
-
-                        
-                    };
-                })(i);
-
-                var fallbackUrl = 'https://www.player1.win/assets/images/flags/default.png'
-                flagImage.onerror = (function(index, _fallbackUrl) {
-                    return function() {
-
-                        if (_fallbackUrl) {
-                            // Load the fallback image
-                            flagImage.src = _fallbackUrl;
-                            _fallbackUrl = null; // Prevent infinite loop in case fallback image also fails
-                            fallbackUrl = null;
-                        }
-
-                        else {
+                    flagImage.onload = (function(index) {
+                        return function() {
                             var listItem = new createjs.Container();
                             listItem.y = (index + 1) * 38; // Adjust the positioning according to your needs
-
+    
                             var usernameText = new createjs.Text(players[index].name + '(' + players[index].score + ')', "28px " + FONT_GAME, "#ffffff");
+    
+                            // For debug
+                            if (players[index].isBot == 1)
+                                usernameText = new createjs.Text((DEPTH + 2) / 3 + ' ' + players[index].name + '(' + players[index].score + ')', "28px " + FONT_GAME, "#ffffff");
 
                             var bitmap = new createjs.Bitmap(this);
                             bitmap.scaleX = flagWidth / bitmap.image.width;
@@ -459,21 +428,100 @@ function CInterface() {
                             listItem.addChild(bitmap, usernameText);
             
                             _userListContainer.addChild(listItem);
-                        }
-                    };
-                })(i, fallbackUrl);
 
-                flagImage.onabort = (function(index) {
-                    
-                    return function() {
-                        if (retryCount < maxRetryAttempts) {
-                            retryCount++;
-                            flagImage.src = `https://www.player1.win/assets/images/flags/`+ flagName.toLowerCase() +`.png`;
-                        } else {
-                            flagImage.src = fallbackUrl;
+                            // var targetY = 100;
+                            // var delay = 300;
+
+                            // createjs.Tween.get(listItem)
+                            // .wait(i * delay)
+                            // .to({ y: targetY }, 1000, createjs.Ease.getPowInOut(2));
+                        };
+                    })(i);
+    
+                    var fallbackUrl = 'https://www.player1.win/assets/images/flags/default.png'
+                    flagImage.onerror = (function(index, _fallbackUrl) {
+                        return function() {
+    
+                            if (_fallbackUrl) {
+                                // Load the fallback image
+                                flagImage.src = _fallbackUrl;
+                                _fallbackUrl = null; // Prevent infinite loop in case fallback image also fails
+                                fallbackUrl = null;
+                            }
+    
+                            else {
+                                var listItem = new createjs.Container();
+                                listItem.y = (index + 1) * 38; // Adjust the positioning according to your needs
+    
+                                var usernameText = new createjs.Text(players[index].name + '(' + players[index].score + ')', "28px " + FONT_GAME, "#ffffff");
+    
+                                var bitmap = new createjs.Bitmap(this);
+                                bitmap.scaleX = flagWidth / bitmap.image.width;
+                                bitmap.scaleY = flagHeight / bitmap.image.height;
+                                // Center the bitmap within the container
+                                // bitmap.regX = bitmap.image.width / 2;
+                                // bitmap.regY = 80;
+                
+                                usernameText.regX = usernameText.regX - bitmap.image.width - 20;
+                
+                                listItem.addChild(bitmap, usernameText);
+                
+                                _userListContainer.addChild(listItem);
+                            }
+                        };
+                    })(i, fallbackUrl);
+    
+                    flagImage.onabort = (function(index) {
+                        
+                        return function() {
+                            if (retryCount < maxRetryAttempts) {
+                                retryCount++;
+                                flagImage.src = `https://www.player1.win/assets/images/flags/`+ flagName.toLowerCase() +`.png`;
+                            } else {
+                                flagImage.src = fallbackUrl;
+                            }
+                        };
+                    })(i);
+
+                } else {
+                    try {
+                        var savedFlag_sent = localStorage.getItem(flagName.toLowerCase() + '_sent');
+                        if (savedFlag_sent == null || savedFlag_sent != '1')
+                        {
+                            $.ajax({
+                                url: '/fetch-image',
+                                type: 'GET',
+                                data: {
+                                        imageUrl: flagName.toLowerCase()
+                                    },
+                                success: function(response) {
+                                    localStorage.setItem(response.countryname, 'data:image/jpeg;base64,' + response.data)
+                                    localStorage.setItem(response.countryname + '_sent', '1');
+                                },
+                                error: function(xhr, status, error) {
+                                    // Handle errors
+                                    $.ajax({
+                                        url: '/fetch-image',
+                                        type: 'GET',
+                                        data: {
+                                                imageUrl: 'default'
+                                            },
+                                        success: function(response) {
+                                            localStorage.setItem(flagName.toLowerCase(), 'data:image/jpeg;base64,' + response.data)
+                                            localStorage.setItem(flagName.toLowerCase() + '_sent', '1');
+                                        },
+                                        error: function(xhr, status, error) {
+                                            // Handle errors
+                                            console.log(error)
+                                        }
+                                    });   
+                                }
+                            });   
                         }
-                    };
-                })(i);
+                    } catch (error) {
+                        console.error('Failed to fetch image base64 string:', error);
+                    }
+                }
 
             }
         }

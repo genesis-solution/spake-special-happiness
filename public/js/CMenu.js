@@ -14,13 +14,16 @@ function CMenu() {
     var _oButFullscreen;
     var _fRequestFullScreen = null;
     var _fCancelFullScreen = null;
-    var _endTime = null;
+
+    var waitingTxt;
 
     this._init = function () {
         _oBg = CBackground(s_oStage);
 
         _oContainerMenuGUI = new createjs.Container();
         _oContainerMenuGUI.alpha = 0;
+
+
         s_oStage.addChild(_oContainerMenuGUI);
 
         // var oSprite = s_oSpriteLibrary.getSprite('but_play');
@@ -28,6 +31,18 @@ function CMenu() {
         // _oButPlay = new CGfxButton(_pStartPosPlay.x, _pStartPosPlay.y, oSprite, _oContainerMenuGUI);
         // _oButPlay.addEventListener(ON_MOUSE_UP, this._onButPlayRelease, this);
         // _oButPlay.pulseAnimation();
+
+        waitingTxt = new createjs.Text();
+        waitingTxt.font = "25px " + FONT_GAME;
+        waitingTxt.color = '#ffffff';
+        waitingTxt.textAlign = "center";
+        waitingTxt.textBaseline='alphabetic';
+        waitingTxt.text = '';
+        waitingTxt.visible = false;
+        waitingTxt.x = CANVAS_WIDTH / 2;
+        waitingTxt.y = CANVAS_HEIGHT - 200;
+
+        s_oStage.addChild(waitingTxt);
 
         if (DISABLE_SOUND_MOBILE === false || s_bMobile === false) {
             var oSprite = s_oSpriteLibrary.getSprite('audio_icon');
@@ -75,6 +90,11 @@ function CMenu() {
 
         _endTime = Date.now() + 15 * 1000;
     };
+
+    this.writeWaitingTxt = function(_visible, _content) {
+        waitingTxt.visible = _visible;
+        waitingTxt.text = _content;
+    }
 
     this.animContainerGUI = function () {
         createjs.Tween.get(_oContainerMenuGUI).to({alpha: 1}, 500, createjs.Ease.cubicOut);
@@ -158,48 +178,68 @@ function CMenu() {
                     startVelocity: 70,
                     origin: { x: 0.5, y: 1 }
                 });
-    
+                
                 if (Date.now() > _endTime && OWNER == 0) {
 
                     _endTime = null;
 
-                    $.ajax({
-                        url: '/bot/info',
-                        type: 'GET',
-                        data: {
-                                't': localStorage.getItem('t'),
-                                'gameID': 3,
-                                betUsd: ME_SNAKE.betUsd
-                            },
-                        success: function(response) {
-                            if (response) {
-                                for (let index_resp = 0; index_resp < response.length; index_resp++) {
-                                    var item = {
-                                        username: response[index_resp].Name,
-                                        CountryName: response[index_resp].CountryName,
-                                        TokenId: response[index_resp].TokenId,
-                                        entityId: response[index_resp].entityId,
-                                        betUsd: ME_SNAKE.betUsd,
-                                        Status: 0
+                    const urlParams = new URLSearchParams(window.location.search);
+                    // Get the value of a specific parameter
+                    const invite_room = urlParams.get('invite_room');
+
+                    let lang = urlParams.get('lang'); // Returns 'value1'
+                    if (lang == undefined || lang == '') lang = 'en'
+
+                    if (invite_room != undefined && invite_room != '')
+                    {
+                        setTimeout(() => {
+                            redirectToWithAuth(
+                                "https://www.player1.win/"+lang+"/games/3/snakes",
+                                "Your friend didn't come online 🙁",
+                                0
+                            );
+                        }, 3000);
+                    }
+                    else {
+                        const t = urlParams.get('t');
+                        $.ajax({
+                            url: '/bot/info',
+                            type: 'GET',
+                            data: {
+                                    't': t,
+                                    'gameID': 3,
+                                    betUsd: ME_SNAKE.betUsd
+                                },
+                            success: function(response) {
+                                if (response) {
+                                    for (let index_resp = 0; index_resp < response.length; index_resp++) {
+                                        var item = {
+                                            username: response[index_resp].Name,
+                                            CountryName: response[index_resp].CountryName,
+                                            TokenId: response[index_resp].TokenId,
+                                            entityId: response[index_resp].entityId,
+                                            betUsd: ME_SNAKE.betUsd,
+                                            Status: 0
+                                        }
+    
+                                        DEPTH = response[index_resp].depth ? parseInt(response[index_resp].depth) : 7;
+                                        
+                                        onJoinGameForBot(item, 1);
                                     }
-                                    onJoinGameForBot(item, 1);
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                // Handle errors
+                                
+                                if (xhr.status === 400) {
+                                    redirectToWithAuth('https://www.player1.win/'+lang+'/games/3/snakes', 'Token invalid', 0);
+                                } else {
+                                    console.error('Error:', error);
+                                    redirectToWithAuth('https://www.player1.win/'+lang+'/games/3/snakes', 'Not found Bot', 0);
                                 }
                             }
-                        },
-                        error: function(xhr, status, error) {
-                            // Handle errors
-                            
-                            if (socket != null) {
-                                socket.disconnect();
-                            }
-                            if (xhr.status === 400) {
-                                redirectToWithAuth('https://www.player1.win/games/3/snakes', 'Token invalid', 0);
-                            } else {
-                                console.error('Error:', error);
-                                redirectToWithAuth('https://www.player1.win/games/3/snakes', 'Not found Bot', 0);
-                            }
-                        }
-                    });   
+                        });   
+                    }
                     
                 }
 

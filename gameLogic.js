@@ -2,6 +2,7 @@ const request = require('request');
 const xml2js = require('xml2js');
 const { server_url, GAMEID } = require('./config/config');
 
+let groupPlayers = [];
 let waitingPlayers = []; // Store players waiting to be matched
 let rooms = {}; // Store game rooms
 let waitingBots = [];
@@ -17,7 +18,10 @@ const roomData = {};
 let ioInstance;
 
 function initializeSocket(server) {
-    ioInstance = socketIo(server);
+    ioInstance = socketIo(server, {
+        pingTimeout: 120000, // Time before considering a client disconnected
+        pingInterval: 3000, // How often to send a ping to clients
+    });
 
     const url = server_url;
     var soapOptions = {
@@ -233,11 +237,207 @@ function handleSocketEvents(io) {
             }
         });
 
+        socket.on('groupGame', (player) => {
+
+            console.log('New client connected');
+
+            if (TOTAL_PLAYERS > 0 && player.player.entityId != '') { // && !isNameTakenFromTotalPlayers(player.playerName)
+                
+                console.log('Group connected ' + player.invite_room);
+
+                // Getting individual entities from invite_room
+                // let groupEntities = player.invite_room.split(/,|%2C/i);
+                // groupEntities.sort();
+                // let groupName = groupEntities.join("-");
+                let groupName = player.invite_room.split('?')[0]
+                console.log('Group name ' + groupName);
+
+                socket.playerName = player.playerName; // Store the player's name in the socket object
+                socket.TokenId = player.player.TokenId;
+                socket.gameID = GAMEID;
+                socket.Status = player.player.Status;
+                socket.betUsd = player.player.betUsd;
+                socket.CountryName = player.player.CountryName;
+                socket.entityId = player.player.entityId;
+                socket.isBot = player.isBot; // 0 or 1
+                socket.invite_room = groupName;
+
+                // Check if this group member is valid
+                if (!isNameTakenFromGroupPlayers(player.player.entityId, groupName))
+                {
+                    groupPlayers.push(socket); // Add the player to the waiting list
+                }
+
+                var groupMembers = getPlayersByGroup(groupName);
+
+                // Try to match players when there are at least two waiting
+                if (groupMembers.length >= TOTAL_PLAYERS) {
+
+                    let players = [];
+
+                    for (let index_player = 0; index_player < TOTAL_PLAYERS; index_player++) {
+                        players.push(groupMembers[index_player]);
+                    }
+
+                    const date = new Date();
+                    const roomName = `Room-${date.getTime()}`;
+                    console.log("created room", roomName)
+
+                    let Obj_players = [];
+                    let Token_IDs = '';
+                    for (let index_player = 0; index_player < players.length; index_player++) {
+                        Obj_players.push(
+                            { 
+                                id: players[index_player].id, 
+                                name: players[index_player].playerName, 
+                                username: players[index_player].playerName, 
+                                playerName: players[index_player].playerName, 
+                                CountryName: players[index_player].CountryName, 
+                                entityId: players[index_player].entityId, 
+                                TokenId: players[index_player].TokenId, 
+                                gameID: players[index_player].gameID, 
+                                Status: players[index_player].Status, 
+                                betUsd: players[index_player].betUsd, 
+                                CountryName: players[index_player].CountryName, 
+                                isBot: players[index_player].isBot,
+                                invite_room: players[index_player].invite_room
+                            }
+                        );
+
+                        Token_IDs = Token_IDs + `<item xsi:type="xsd:string">`+players[index_player].TokenId+`</item>`;
+                    }
+
+                    if (Token_IDs != '')
+                    try {
+                        const url = server_url;
+                        const func_name = "Entity_Entry_Update";
+                    
+                        var soapOptions = {
+                          uri: url,
+                          headers: {
+                              'Content-Type': 'text/xml; charset=utf-8',
+                              'Connection': 'keep-alive'
+                          },
+                          method: 'POST',
+                          body: `
+                            <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:ns1="urn:Player1.Intf-IPlayer1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:enc="http://www.w3.org/2003/05/soap-encoding" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns2="urn:CommonWSTypes">
+                            <env:Body>
+                            <ns1:Entity_Entry_Update env:encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+                            <TokenIds enc:itemType="xsd:string" enc:arraySize="`+TOTAL_PLAYERS+`" xsi:type="ns2:ArrayOfString">
+                            `+Token_IDs+`
+                            </TokenIds>
+                            <gameID xsi:type="xsd:int">`+Obj_players[0].gameID+`</gameID>
+                            <games_entryID xsi:type="xsd:int">0</games_entryID>
+                            <NamesArray xsi:nil="true" xsi:type="ns2:ArrayOfString"/>
+                            <ValuesArray xsi:nil="true" xsi:type="ns2:ArrayOfString"/></ns1:Entity_Entry_Update>
+                            </env:Body>
+                            </env:Envelope>
+                              `
+                        };
+                    
+                        
+                        request(soapOptions, function(_err, _resp) {
+                          if (_err == null) {
+                            if (_resp.statusCode == 200)
+                            {
+                              xml2js.parseString(_resp.body, async (err, result) => {
+                                if (err) {
+                                    console.error('Error parsing XML response:', err);
+                                    res.status(401).json({ error: 'Invalid credentials' });
+                                } else {
+                                  if (result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'] != undefined && result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'].length > 0)
+                                  {
+                                    const resultValue = result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'][0]['return'][0]['_'];
+                                    var returnValue = JSON.parse(resultValue)
+                    
+                                    if (returnValue.ResultCode == 0 && returnValue.ResultMessage == 'OK') {
+
+                                        let obj_room = {};
+
+                                        for (let index_obj_player = 0; index_obj_player < Obj_players.length; index_obj_player++) {
+                                            Obj_players[index_obj_player]['games_entryID'] = returnValue.games_entryID;
+                                            Obj_players[index_obj_player]['prizeUSD'] = returnValue.prizeUSD;
+
+                                            obj_room['player'+(index_obj_player + 1)] = Obj_players[index_obj_player];
+                                        }
+
+                                        rooms[roomName] = obj_room;
+                    
+                                        for (let index_obj_player = 0; index_obj_player < Obj_players.length; index_obj_player++) {
+                                            players[index_obj_player].join(roomName);
+                                            players[index_obj_player].emit('joinedRoom', roomName);
+                                        }
+
+                                        // delete the members from groupPlayers
+                                        if (Obj_players.length > 0)
+                                        for (let index_member = 0; index_member < TOTAL_PLAYERS; index_member++) {
+                                            let _index = groupPlayers.findIndex(obj => obj.invite_room === Obj_players[0].invite_room);
+                                            if (_index !== -1) {
+                                                groupPlayers.splice(_index, 1);
+                                            }
+                                        }
+
+                                        io.to(roomName).emit('startGamebySocket', [Obj_players, TOTAL_PLAYERS]);
+                                    }
+                                    else {
+                                      console.log("startGamebySocket", returnValue.ResultMessage);
+                                    }
+                                  }
+                                  else {
+                                    
+                                  }
+                                }
+                              });
+                            }
+                          } else {
+                            console.log(_err)
+                          }
+                        });
+                    } catch (error) {
+                        console.error('start game:', error.message);
+                    }
+                }
+                else {
+                    socket.emit('userPosition', waitingPlayers.length % TOTAL_PLAYERS == 1);
+
+                    if (true) { // groupEntities.includes(String(player.player.entityId))
+
+                        let opponentMember = {
+                            entityId: 111,
+                            name: "Waiting for your invited friends " +  groupMembers.length + "/" + TOTAL_PLAYERS
+                        }
+
+                        for (let group_index = 0; group_index < groupMembers.length; group_index++) {
+                            try {
+                                socket.broadcast.to(groupMembers[group_index].id).emit('waitingGroupMember', [opponentMember]);
+                            } catch (_error_socket) {
+                                console.log(_error_socket)
+                            }
+                        }
+
+                        socket.emit('waitingGroupMember', [opponentMember]);
+                    }
+
+                }
+            } else {
+                // Inform client that the name is already taken
+
+                if (player.isBot == 0)
+                {
+                    console.log("already joined 111!", player.player.entityId)
+                    socket.emit('nameTaken');
+                }
+            }
+        });
+
         socket.on('joinGameForBot', (bot) => {
+            
+            console.log(bot);
 
-            console.log('New Bot connected');
+            if (bot.player.entityId != '') { // && !isBotTaken(bot.player.entityId) && !isRoomTaken(bot.player.entityId)
 
-            if (bot.player.entityId != '' && !isBotTaken(bot.player.entityId) && !isRoomTaken(bot.player.entityId)) {
+                console.log('New Bot connected');
+
                 var virtualSocket = {};
                 virtualSocket.playerName = bot.playerName; // Store the player's name in the socket object
                 virtualSocket.TokenId = bot.player.TokenId;
@@ -463,6 +663,16 @@ function handleSocketEvents(io) {
                 waitingPlayers.splice(index3, 1);
             }
 
+            const _index = groupPlayers.findIndex(obj => obj.id == socket.id);
+            if (_index !== -1) {
+                groupPlayers.splice(_index, 1);
+            }
+
+            const _index3 = groupPlayers.findIndex(obj => obj.id == socket.id);
+            if (_index3 !== -1) {
+                groupPlayers.splice(_index3, 1);
+            }
+
             const roomName1 = findRoomBySocketId(socket.id);
             if (roomName1) {
                 if (!disConnectedSocketPlayers[roomName1]) { disConnectedSocketPlayers[roomName1] = []}
@@ -538,6 +748,7 @@ function handleSocketEvents(io) {
 
                         if (final_score > 0 && winnerID != '' && _result.isBot == 0) {
                             io.to(roomName1).emit("winner", winnerID)
+                            socket.emit("winner_me", winnerID)
                         }
 
                     }
@@ -558,35 +769,51 @@ function handleSocketEvents(io) {
                 waitingPlayers.splice(index3, 1);
             }
 
+            const _index = groupPlayers.findIndex(obj => obj.id == socket.id);
+            if (_index !== -1) {
+                groupPlayers.splice(_index, 1);
+            }
+
+            const _index3 = groupPlayers.findIndex(obj => obj.id == socket.id);
+            if (_index3 !== -1) {
+                groupPlayers.splice(_index3, 1);
+            }
+
             const roomName1 = findRoomBySocketId(socket.id);
 
             if (roomName1) {
 
                 if (!disConnectedSocketPlayers[roomName1]) { disConnectedSocketPlayers[roomName1] = []}
                 disConnectedSocketPlayers[roomName1].push(socket.id)
+
                 let isSubmitResult = true;
                 if (rooms.hasOwnProperty(roomName1)) {
 
                     const room = rooms[roomName1];
-                    let winnerID = ''
+
+                    console.log(room);
+
+                    let winnerID = '';
+                    let disconnected_entityID = '';
 
                     for (let index_players = 1; index_players <= TOTAL_PLAYERS; index_players++) {
+
+                        if (room['player'+index_players].id == socket.id) {
+                            disconnected_entityID = room['player'+index_players].entityId;
+                        }
+
                         if (room['player'+index_players].isBot == 1) {
-                            if (winnerID != '')
+                            if (winnerID == '')
                             {
                                 winnerID = room['player'+index_players].entityId;
                                 Player= room['player'+index_players];
                             }
                         } else {
-                            if (isSubmitResult == true && !disConnectedSocketPlayers[roomName1].includes(room['player'+index_players].id)) {
+                            if (!disConnectedSocketPlayers[roomName1].includes(room['player'+index_players].id)) {
                                 isSubmitResult = false;
                             }
                         }
 
-                        if (room['player'+index_players].id == socket.id) {
-                            console.log("disconnected_user", room['player'+index_players].entityId)
-                            io.to(roomName1).emit("disconnected_user", room['player'+index_players].entityId)
-                        }
                     }
 
                     var strTokens = ''
@@ -640,9 +867,15 @@ function handleSocketEvents(io) {
                                 console.log(_err)
                               }
                             });
+
+                            console.log("Bot win: ", winnerID)
                           } catch (error) {
                             console.error('Error:', error.message);
                           }
+                    }
+                    else {
+                        console.log("disconnected_user", disconnected_entityID)
+                        io.to(roomName1).emit("disconnected_user", disconnected_entityID);
                     }
                 }
 
@@ -669,6 +902,16 @@ function handleSocketEvents(io) {
             const index3 = waitingPlayers.findIndex(obj => obj.id == socket.id);
             if (index3 !== -1) {
                 waitingPlayers.splice(index3, 1);
+            }
+
+            const _index = groupPlayers.findIndex(obj => obj.id == socket.id);
+            if (_index !== -1) {
+                groupPlayers.splice(_index, 1);
+            }
+
+            const _index3 = groupPlayers.findIndex(obj => obj.id == socket.id);
+            if (_index3 !== -1) {
+                groupPlayers.splice(_index3, 1);
             }
 
             console.log("roomName", roomName1)
@@ -768,5 +1011,24 @@ function isRoomTaken(playerName) {
     }
     return false;
   }
+
+function getPlayersByGroup(invite_room) {
+    let players = [];
+    for (const player of groupPlayers) {
+        if (player.invite_room == invite_room) {
+            players.push(player);
+        }
+    }
+    return players;
+}
+
+function isNameTakenFromGroupPlayers(playerName, invite_room) {
+    for (const player of groupPlayers) {
+        if (player.entityId == playerName && player.invite_room == invite_room) {
+            return true;
+        }
+    }
+    return false;
+}
 
 module.exports = { initializeSocket, handleSocketEvents, emitDataFromFirstElement};

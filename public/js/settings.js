@@ -127,7 +127,7 @@ var DISPLAY_SHOCK_Y = 50;
 
 var DISTANCE_AI_DETECT_FOOD = 300;
 
-var AI_ANGLE_DETECT_FOODS = 60 * (Math.PI / 180);
+var AI_ANGLE_DETECT_FOODS = 45 * (Math.PI / 180);
 
 var COLLISION_DISTANCE_AI_PLAYER_FACTOR = 500;
 
@@ -154,6 +154,10 @@ var ALLOW_SPEED_UP = false;
 
 var HERO_START_X = 1511;
 var HERO_START_Y = 1024;
+
+var DEPTH = 7;
+
+var _endTime = null;
 
 var ME_SNAKE = {
     type: 0, 
@@ -293,7 +297,12 @@ function share(action){
 	gtag('event','click',{'event_category':'share','event_label':action});
 	window.dataLayer = window.dataLayer || [];
 
-	var loc = 'https://www.player1.win/games/3/snakes'//location.href
+    const urlParams = new URLSearchParams(window.location.search);
+
+    let lang = urlParams.get('lang'); // Returns 'value1'
+    if (lang == undefined || lang == '') lang = 'en'
+    
+	var loc = 'https://www.player1.win/'+lang+'/games/3/snakes'//location.href
 
 	var curr_loc = location.href
 	curr_loc = curr_loc.substring(0, curr_loc.lastIndexOf("/") + 1);
@@ -339,7 +348,17 @@ function createSocket() {
 function joinGame(isBot) {
     if (socket != null && ME_SNAKE.username != '')
 	{
-        socket.emit('joinGame', {playerName: ME_SNAKE.username, player: ME_SNAKE, isBot: isBot});
+        const urlParams = new URLSearchParams(window.location.search);
+		// Get the value of a specific parameter
+		const invite_room = urlParams.get('invite_room');
+
+		if (invite_room != undefined && invite_room != '')
+		{
+			socket.emit('groupGame', {playerName: ME_SNAKE.username, player: ME_SNAKE, isBot: isBot, invite_room: invite_room});
+		}
+        else {
+            socket.emit('joinGame', {playerName: ME_SNAKE.username, player: ME_SNAKE, isBot: isBot});
+        }
     }
 }
 
@@ -361,6 +380,17 @@ function redirectToWithAuth(url, authToken, noError) {
     if (noError == 1)
     {
         headerInput.name = 't';
+
+        const _urlParams = new URLSearchParams(window.location.search);
+        // Get the value of a specific parameter
+        const _invite_room = _urlParams.get('invite_room'); // Returns 'value1'
+        if (_invite_room != undefined && _invite_room != '') {
+        var groupInput = document.createElement('input');
+            groupInput.type = 'hidden';
+            groupInput.name = 'invite_room';
+            groupInput.value = _invite_room; 
+        }
+
     } else {
         headerInput.name = 'e';
     }
@@ -413,3 +443,30 @@ document.addEventListener("keydown", function (event) {
       
     }
 });
+
+if ('wakeLock' in navigator) {
+    let wakeLock = null;
+  
+    const requestWakeLock = async () => {
+        try {
+            wakeLock = await navigator.wakeLock.request('screen');
+            wakeLock.addEventListener('release', () => {
+                console.log('Screen Wake Lock released:', wakeLock.released);
+            });
+            console.log('Screen Wake Lock acquired:', wakeLock.released);
+        } catch (err) {
+            console.error(`${err.name}, ${err.message}`);
+        }
+    };
+  
+    document.addEventListener('visibilitychange', async () => {
+        if (wakeLock !== null && document.visibilityState === 'visible') {
+            await requestWakeLock();
+        }
+    });
+  
+    requestWakeLock();
+    
+  } else {
+    console.log('Screen Wake Lock API not supported.');
+  }

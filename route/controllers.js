@@ -6,7 +6,7 @@ const xml2js = require('xml2js');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
-
+const https = require('https');
 
 async function login(req, res) {
   const { t } = req.body;
@@ -383,6 +383,7 @@ function getBotInfo(req, res) {
                                 <GameId xsi:type="xsd:int">`+GAMEID+`</GameId>
                                 <betUSD xsi:type="xsd:double">`+betUsd+`</betUSD>
                                 <count xsi:type="xsd:int">`+TOTAL_PLAYERS+`</count>
+                                <tokenID xsi:type="xsd:string">`+t+`</tokenID>
                                 </ns1:`+func_name+`>
                                 </env:Body>
                                 </env:Envelope>
@@ -402,10 +403,18 @@ function getBotInfo(req, res) {
                                         if (result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'] != undefined && result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'].length > 0)
                                         {
                                           const resultValue = result['SOAP-ENV:Envelope']['SOAP-ENV:Body'][0]['NS1:'+func_name+'Response'][0]['return'][0]['_'];
-                                          var userInfo = JSON.parse(resultValue)
+                                          var userInfo = JSON.parse(resultValue);
 
-                                          if (userInfo.length == TOTAL_PLAYERS)
-                                            return res.status(200).send(userInfo);
+                                          // Add bot depth
+                                          var botPlayers = [];
+                                          for (let index_bot = 0; index_bot < userInfo.length; index_bot++) {
+                                            var botPlayer = userInfo[index_bot];
+                                            botPlayer['depth'] = parseInt(userInfo[index_bot].game_level) * 3 - 2 // 1, 2, 3
+                                            botPlayers.push(botPlayer)
+                                          }
+
+                                          if (botPlayers.length == TOTAL_PLAYERS)
+                                            return res.status(200).send(botPlayers);
                                           else 
                                             {
                                               const errorMessage = 'https://www.player1.win/games/3/snakes?e=' + 'No players available'; // userInfo.ResultMessage;
@@ -573,7 +582,7 @@ function getCurrentTime(req, res) {
   res.json({ currentTime });
 }
 
-async function fetchImage(req, res) {
+async function fetchImage(req, _res) {
   var { imageUrl } = req.query;
 
   if (imageUrl == null || imageUrl == '')
@@ -583,11 +592,36 @@ async function fetchImage(req, res) {
   }
 
   try {
-      const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-      const base64Image = Buffer.from(response.data, 'binary').toString('base64');
-      res.send({data: base64Image, countryname: req.query.imageUrl});
+    https.get(imageUrl, { responseType: 'arraybuffer' }, (res) => {
+      let chunks = [];
+
+      if (res.statusCode === 404) {
+        _res.status(500).json({ error: 'Failed to fetch image' });
+        return;
+      }
+
+      res.on('data', (chunk) => {
+        chunks.push(chunk);
+      });
+
+      res.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        const base64 = buffer.toString('base64');
+        // const mimeType = res.headers['content-type'];
+        // resolve(`data:${mimeType};base64,${base64}`);
+        _res.send({data: base64, countryname: req.query.imageUrl});
+      });
+    }).on('error', (error) => {
+      _res.status(500).json({ error: 'Failed to fetch image' });
+    });
+
+      // const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+      // console.log(response.data)
+      // const base64Image = Buffer.from(response.data, 'binary').toString('base64');
+      // res.send({data: base64Image, countryname: req.query.imageUrl});
+
   } catch (error) {
-      res.status(500).send('Failed to fetch image');
+    _res.status(500).json({ error: 'Failed to fetch image' });
   }
 }
 

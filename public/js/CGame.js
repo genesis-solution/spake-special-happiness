@@ -99,6 +99,7 @@ function CGame(oData) {
         });
 
         if (socket != null) {
+            
             socket.on('opponentMove', async (totalData) => {
 
                 console.log(totalData)
@@ -265,6 +266,41 @@ function CGame(oData) {
                         }
                     }
 
+                    if (socket != null) {
+                        socket.emit('disconnect_game', {});
+                        this.unpause(false);
+                    }
+
+                    $(s_oMain).trigger("end_session");
+                    _oInterface.toggleResultContainer(true, result); // win or fail
+                    
+                }
+            });
+
+            socket.on('winner_me', (winnertype) => {
+                if (winnertype != null && winnertype != '') {
+
+                    var result = '';
+                    let winnerScore = 0;
+                    let winner = ME_SNAKE;
+
+                    if (ME_SNAKE.type == winnertype) {
+                        result = 'win';
+                        winnerScore = _iScore;
+                        winner = ME_SNAKE;
+                    }
+                    else {
+                        result = 'fail';
+
+                        for (let index_ai = 0; index_ai < AI_SNAKES.length; index_ai++) {
+                            if (winnertype == AI_SNAKES[index_ai].type) {
+                                winnerScore = AI_SNAKES[index_ai].score;
+                                winner = AI_SNAKES[index_ai];
+                                break;
+                            }
+                        }
+                    }
+
                     const urlParams = new URLSearchParams(window.location.search);
 
                     // Get the value of a specific parameter
@@ -293,14 +329,6 @@ function CGame(oData) {
                             }
                         });
                     }
-
-                    if (socket != null) {
-                        socket.emit('disconnect_game', {});
-                        this.unpause(false);
-                    }
-
-                    $(s_oMain).trigger("end_session");
-                    _oInterface.toggleResultContainer(true, result); // win or fail
                 }
             });
 
@@ -309,6 +337,13 @@ function CGame(oData) {
                     this.unpause(false);
                 } 
             });
+
+            socket.on('disconnect', () => {
+                if (_bStartGame == true)
+                {
+                    _oInterface.toggleResultContainer(true, 'offline'); // win or fail
+                }
+              });
 
         }
 
@@ -659,7 +694,7 @@ function CGame(oData) {
             return;
         }
         this.snakeOpenMounth(oPlayerSnake, oEnemySnake);
-        if (this.circleToCircleCollision(oPlayerSnake.getPos(), oEnemySnake.getPos(), 25, 25)) { // oPlayerSnake.getDim().h, oEnemySnake.getDim().h
+        if (this.circleToCircleCollision(oPlayerSnake.getPos(), oEnemySnake.getPos(), 40, 40) && oPlayerSnake) { // oPlayerSnake.getDim().h, oEnemySnake.getDim().h
             _bKeyDown = false;
             oPlayerSnake.die();
             
@@ -690,29 +725,29 @@ function CGame(oData) {
         for (var j = aQueue1.length - 2; j > 0; j--) {
            // this.snakeOpenMounth(oSnake2, aQueue1[j]);
            
-            if (this.circleToCircleCollision(aQueue1[j].getPos(), oSnake2.getPos(), 25, 25)) { // aQueue1[j].getDim().h / 100, oSnake2.getDim().w / 100
+            if (this.circleToCircleCollision(aQueue1[j].getPos(), oSnake2.getPos(), 40, 40)) { // aQueue1[j].getDim().h / 100, oSnake2.getDim().w / 100
               //  this.cutQueueAt(oSnake1, j);
                 if (oSnake1.getCurrentAnimation() !== "damage_open" && oSnake1.getCurrentAnimation() !== "remain_damage") {
                     // oSnake2.changeState("damage_open");
-                    
-                    oSnake2.die();
 
                     if (oSnake2.getType() == ME_SNAKE.type)
                     {
+                        oSnake2.die();
                         ME_SNAKE.die = true;
                         this.submitResult();
                     }
                     else {
                         for (let i_AI = 0; i_AI < AI_SNAKES.length; i_AI++) {
                             if (oSnake2.getType() != null && AI_SNAKES[i_AI].type == oSnake2.getType()) {
+                                oSnake2.die();
                                 AI_SNAKES[i_AI].die = true
                             }
                         }
                     }
 
                     
-               //     this.cutQueueAt(oSnake2, 0);
-                    //this.snakeCloseMounthAnim(oSnake2);
+                    //     this.cutQueueAt(oSnake2, 0);
+                    //      this.snakeCloseMounthAnim(oSnake2);
                 }
                 
                 break;
@@ -722,20 +757,21 @@ function CGame(oData) {
         aQueue1 = oSnake2.getQueue();
         for (var j = aQueue1.length - 2; j > 0; j--) {
           //  this.snakeOpenMounth(oSnake1, aQueue1[j]);
-            if (this.circleToCircleCollision(aQueue1[j].getPos(), oSnake1.getPos(), 25, 25)) { // aQueue1[j].getDim().h / 100, oSnake1.getDim().w / 100
+            if (this.circleToCircleCollision(aQueue1[j].getPos(), oSnake1.getPos(), 40, 40)) { // aQueue1[j].getDim().h / 100, oSnake1.getDim().w / 100
               //  this.cutQueueAt(oSnake1, j);
                 if (oSnake2.getCurrentAnimation() !== "damage_open" && oSnake2.getCurrentAnimation() !== "remain_damage") {
                     // oSnake1.changeState("damage_open");
-                    oSnake1.die();
 
                     if (oSnake1.getType() == ME_SNAKE.type)
                     {
+                        oSnake1.die();
                         ME_SNAKE.die = true;
                         this.submitResult();
                     }
                     else {
                         for (let i_AI = 0; i_AI < AI_SNAKES.length; i_AI++) {
                             if (oSnake1.getType() != null && AI_SNAKES[i_AI].type == oSnake1.getType()) {
+                                oSnake1.die();
                                 AI_SNAKES[i_AI].die = true
                             }
                         }
@@ -802,8 +838,11 @@ function CGame(oData) {
             oSnake.eatenEffect();
         else {
             for (let index = 0; index < AI_SNAKES.length; index++) {
-                if (AI_SNAKES[index].type == oSnake.getType() && AI_SNAKES[index].isBot == 1) // && this.getLivePlayer() != null && this.getLivePlayer() == PLAYER
+                if (AI_SNAKES[index].type != oSnake.getType() && AI_SNAKES[index].isBot == 1) // && this.getLivePlayer() != null && this.getLivePlayer() == PLAYER
+                {
                     oSnake.eatenEffect();
+                    this.updateScoreFood();
+                }
             }
         }
     };
